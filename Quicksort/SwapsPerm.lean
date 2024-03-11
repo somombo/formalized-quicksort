@@ -49,7 +49,7 @@ termination_by l => l.length
 @[simp] theorem swaps_one_eq_swap : a.swaps [(i, j)] = a.swap i j := by simp
 @[simp] theorem swaps_two_eq_swap_swap {i1 j1 i2 j2 : Fin a.size}: a.swaps [(i1, j1),(i2, j2)] = (a.swap i1 j1).swap (a.size_swap _ _ ▸ i2) (a.size_swap _ _ ▸ j2) := by simp
 
-@[simp] theorem swaps_two_id : a.swaps [c,c]  = a := by let (i, j) := c; simp only [swaps_two_eq_swap_swap, ←swap_swap_id]
+@[simp] theorem swaps_two_id : a.swaps [c,c]  = a := by let (i, j) := c; simp only [swaps_two_eq_swap_swap, swap_swap_id]
 
 
 @[simp] theorem size_swaps (a : Array α) : ∀ {l}, (a.swaps l).size = a.size
