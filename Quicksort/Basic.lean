@@ -305,6 +305,9 @@ variable {arr: Array α}
 theorem part_prelims_i_1 {i' j' : Fin arr.size} (_ : i' = next_i arr ival hi pivot hxi := by trivial) (_ : j' = next_j arr jval hj pivot hxj := by trivial) (h0 : i'.val < j'.val := by trivial) : let arr' := (arr.swap i' j'); ∃ (i_ : Nat) (_ : i_ < arr'.size), i'.val.succ ≤ i_ ∧ pivot ≤ arr'[i_] :=
   let arr' := (arr.swap i' j')
   have hs_size : arr'.size = arr.size := (arr.size_swap i' j')
+  have hsi : i'.val < arr.size := i'.isLt
+  have hsj : j'.val < arr.size := j'.isLt
+  have hsj' : j'.val < arr'.size := hs_size.symm ▸ j'.isLt
 
   show ∃ (i_ : Nat) (_ : i_ < arr'.size), i'.val.succ ≤ i_ ∧ pivot ≤ arr'[i_] from
     let j_  := {j' with isLt := hs_size.symm ▸ j'.isLt : Fin arr'.size}
@@ -312,7 +315,7 @@ theorem part_prelims_i_1 {i' j' : Fin arr.size} (_ : i' = next_i arr ival hi piv
     suffices i'.val.succ ≤ j_.val ∧ pivot ≤ arr'[j_] from  ⟨j_.1, j_.2, this⟩
     suffices  pivot ≤ arr'[j_] from ⟨hh0 ▸ h0, this⟩
 
-    have hswap_def : arr'[j_] = arr[i'] := Array.swap_def_jeqi
+    have hswap_def : arr'[j_] = arr[i'] := Array.swap_def_jeqi hsi hsj hsj'
 
     suffices pivot ≤ arr[i'] by
       simp only [←hswap_def] at *
@@ -330,6 +333,9 @@ theorem part_prelims_i_2 {i' j' : Fin arr.size} (_ : i' = next_i arr ival hi piv
 theorem part_prelims_j_1 {i' j' : Fin arr.size} (_ : i' = next_i arr ival hi pivot hxi := by trivial) (_ : j' = next_j arr jval hj pivot hxj := by trivial) (h0 : i'.val < j'.val := by trivial) : let arr' := (arr.swap i' j'); ∃ (j_ : Nat) (_ : j_ < arr'.size), j_ ≤ j'.val.pred ∧ arr'[j_] ≤ pivot :=
   let arr' := (arr.swap i' j')
   have hs_size : arr'.size = arr.size := (arr.size_swap i' j')
+  have hsi : i'.val < arr.size := i'.isLt
+  have hsj : j'.val < arr.size := j'.isLt
+  have hsi' : i'.val < arr'.size := hs_size.symm ▸ i'.isLt
 
   show ∃ (j_ : Nat) (_ : j_ < arr'.size), j_ ≤ j'.val.pred ∧ arr'[j_] ≤ pivot from
     let i_  := {i' with isLt := hs_size.symm ▸ i'.isLt : Fin arr'.size}
@@ -338,7 +344,7 @@ theorem part_prelims_j_1 {i' j' : Fin arr.size} (_ : i' = next_i arr ival hi piv
     suffices i_.val ≤ j'.val.pred ∧ arr'[i_] ≤ pivot from  ⟨i_.1, i_.2, this⟩
     suffices  arr'[i_] ≤ pivot from ⟨Nat.pred_def h0, this⟩
 
-    have hswap_def : arr'[i_] = arr[j'] := Array.swap_def_ieqj
+    have hswap_def : arr'[i_] = arr[j'] := Array.swap_def_ieqj hsi hsj hsi'
 
     suffices  arr[j'] ≤ pivot by
       simp only [←hswap_def] at *
@@ -463,12 +469,16 @@ decreasing_by apply nat_mix nexti_ge_i nextj_le_j; assumption
 theorem part_out_i {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jval : Nat} {hj : jval < arr.size} {pivot : α} {hxi : ∃ (i_ : Nat) (_ : i_ < arr.size), ival ≤ i_ ∧ pivot ≤ arr[i_]} {hxj : ∃ (j_ : Nat) (_ : j_ < arr.size), j_ ≤ jval ∧ arr[j_] ≤ pivot} (_ : x = part arr ival hi jval hj pivot hxi hxj := by trivial) : ∀ (k_ : Nat) (_ : k_ < arr.size) (_ : k_ < x.arr'.size), ( k_ < ival → x.arr'[k_]=arr[k_] ) :=
   let i' := next_i arr ival hi pivot hxi
   let j' := next_j arr jval hj pivot hxj
+  have hsi : i'.val < arr.size := i'.isLt
+  have hsj : j'.val < arr.size := j'.isLt
 
   if h0 : i'.val < j'.val then
     have his : ival < i'.val.succ := Nat.lt_succ_of_le nexti_ge_i
 
     let arr' := (arr.swap i' j')
     have hs_size : arr'.size = arr.size := (arr.size_swap i' j')
+    have hsi' : i'.val < arr'.size := hs_size.symm ▸ i'.isLt
+    have hsj' : j'.val < arr'.size := hs_size.symm ▸ j'.isLt
     let x' := part arr' i'.val.succ part_prelims_i_2 j'.val.pred part_prelims_j_2 pivot part_prelims_i_1 part_prelims_j_1
 
     have h'' : ∀ (k_ : Nat) (_ : k_ < arr'.size) _ , ( k_ < i'.val.succ → x'.arr'[k_]=arr'[k_] )  := part_out_i
@@ -485,10 +495,9 @@ theorem part_out_i {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jval : 
       have heq1 : x'.arr'[k_] = (arr.swap  i' j')[k_] := h'' k_ ‹_› ‹_› <| Trans.trans h1 his
       have h2 : k_ < i'.val := Trans.trans h1 nexti_ge_i
 
-      let k : Fin arr.size := ⟨k_, ‹_›⟩; have hk := show k.val = k_  from rfl
-      have hi : i'.val ≠ k.val := suffices i'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt h2 |>.symm
-      have hj : j'.val ≠ k.val := suffices j'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt (Trans.trans h2 h0) |>.symm
-      have heq2 : (arr.swap i' j')[k.val] = arr[k.val]  := Array.swap_def_else hi hj
+      have hi : i'.val ≠ k_ := Nat.ne_of_lt h2 |>.symm
+      have hj : j'.val ≠ k_ := Nat.ne_of_lt (Trans.trans h2 h0) |>.symm
+      have heq2 : (arr.swap i' j')[k_] = arr[k_]  := Array.swap_def_else hsk hsk' hi hj
 
       show x'.arr'[k_] = arr[k_] from Trans.trans heq1 heq2
     by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
@@ -508,12 +517,16 @@ decreasing_by apply nat_mix nexti_ge_i nextj_le_j; assumption
 theorem part_out_j {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jval : Nat} {hj : jval < arr.size} {pivot : α} {hxi : ∃ (i_ : Nat) (_ : i_ < arr.size), ival ≤ i_ ∧ pivot ≤ arr[i_]} {hxj : ∃ (j_ : Nat) (_ : j_ < arr.size), j_ ≤ jval ∧ arr[j_] ≤ pivot} (_ : x = part arr ival hi jval hj pivot hxi hxj := by trivial) : ∀ (k_ : Nat) (_ : k_ < arr.size) (_ : k_ < x.arr'.size), ( jval < k_ → x.arr'[k_]=arr[k_] ) :=
   let i' := next_i arr ival hi pivot hxi
   let j' := next_j arr jval hj pivot hxj
+  have hsi : i'.val < arr.size := i'.isLt
+  have hsj : j'.val < arr.size := j'.isLt
 
   if h0 : i'.val < j'.val then
     have hjp : j'.val.pred < jval := Trans.trans (Nat.pred_lt' ‹i'.val < j'.val›) nextj_le_j
 
     let arr' := (arr.swap i' j')
     have hs_size : arr'.size = arr.size := (arr.size_swap i' j')
+    have hsi' : i'.val < arr'.size := hs_size.symm ▸ i'.isLt
+    have hsj' : j'.val < arr'.size := hs_size.symm ▸ j'.isLt
     let x' := part arr' i'.val.succ part_prelims_i_2 j'.val.pred part_prelims_j_2 pivot part_prelims_i_1 part_prelims_j_1
 
     have h'' : ∀ (k_ : Nat) (_ : k_ < arr'.size) (_ : k_ < x'.arr'.size), ( j'.val.pred < k_ → x'.arr'[k_]=arr'[k_] ) := part_out_j
@@ -530,10 +543,10 @@ theorem part_out_j {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jval : 
       have heq1 : x'.arr'[k_] = (arr.swap  i' j')[k_] := h'' k_ ‹_› ‹_› <| Trans.trans hjp h1
       have h2 : j'.val < k_ := Trans.trans nextj_le_j h1
 
-      let k : Fin arr.size := ⟨k_, ‹_›⟩; have hk := show k.val = k_  from rfl
-      have hi : i'.val ≠ k.val := suffices i'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt (Trans.trans h0 h2)
-      have hj : j'.val ≠ k.val := suffices j'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt h2
-      have heq2 : (Array.swap arr i' j')[k.val] = arr[k.val]  := Array.swap_def_else hi hj
+      have hi : i'.val ≠ k_ := Nat.ne_of_lt (Trans.trans h0 h2)
+      have hj : j'.val ≠ k_ := Nat.ne_of_lt h2
+      have heq2 : (arr.swap i' j')[k_] = arr[k_]  := Array.swap_def_else hsk hsk' hi hj
+
       show x'.arr'[k_] = arr[k_] from Trans.trans heq1 heq2
 
     by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
@@ -554,10 +567,14 @@ set_option maxHeartbeats 5000000 in
 theorem part_correctness_i {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jval : Nat} {hj : jval < arr.size} {pivot : α} {hxi : ∃ (i_ : Nat) (_ : i_ < arr.size), ival ≤ i_ ∧ pivot ≤ arr[i_]} {hxj : ∃ (j_ : Nat) (_ : j_ < arr.size), j_ ≤ jval ∧ arr[j_] ≤ pivot} (_ : x = part arr ival hi jval hj pivot hxi hxj := by trivial) : ∀ (k_ : Nat) (_ : k_ < x.arr'.size), (ival  ≤ k_→k_ <  x.i' → x.arr'[k_] ≤ pivot) :=
   let i' := next_i arr ival hi pivot hxi
   let j' := next_j arr jval hj pivot hxj
+  have hsi : i'.val < arr.size := i'.isLt
+  have hsj : j'.val < arr.size := j'.isLt
 
   if h0 : i'.val < j'.val then
     let arr' := (arr.swap i' j')
     have hs_size : arr'.size = arr.size := (arr.size_swap i' j')
+    have hsi' : i'.val < arr'.size := hs_size.symm ▸ i'.isLt
+    have hsj' : j'.val < arr'.size := hs_size.symm ▸ j'.isLt
     let x' := part arr' i'.val.succ part_prelims_i_2 j'.val.pred part_prelims_j_2 pivot part_prelims_i_1 part_prelims_j_1
 
     have h'' : ∀ (k_ : Nat) (_ : k_ < x'.arr'.size), (i'.val.succ  ≤ k_→k_ <  x'.i' →  x'.arr'[k_] ≤ pivot) := part_correctness_i
@@ -577,10 +594,9 @@ theorem part_correctness_i {arr: Array α} {ival : Nat} {hi : ival < arr.size}  
         have : arr[k_] ≤ pivot := le_of_not_le this
         have : (arr.swap i' j')[k_] ≤ pivot :=
 
-          let k : Fin arr.size := ⟨k_, ‹_›⟩; have hk := show k.val = k_  from rfl
-          have hi : i'.val ≠ k.val := suffices i'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt h2 |>.symm
-          have hj : j'.val ≠ k.val := suffices j'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt (Trans.trans h2 h0) |>.symm
-          have heq : (arr.swap i' j')[k.val] = arr[k.val]  := Array.swap_def_else hi hj
+          have hi : i'.val ≠ k_ := Nat.ne_of_lt h2 |>.symm
+          have hj : j'.val ≠ k_ := Nat.ne_of_lt (Trans.trans h2 h0) |>.symm
+          have heq : (arr.swap i' j')[k_] = arr[k_]  := Array.swap_def_else hsk hsk' hi hj
 
           show (arr.swap i' j')[k_] ≤ pivot from heq.symm ▸ this
 
@@ -592,7 +608,7 @@ theorem part_correctness_i {arr: Array α} {ival : Nat} {hi : ival < arr.size}  
       have hhh2 : i'.val ≤ k_ → k_ ≤ i'.val → x'.arr'[k_] ≤ pivot :=
         have : x'.arr'[i'.val] ≤ pivot :=
           have : arr[j'] ≤ pivot := nextj_elem_not_right_of_piv rfl
-          have hswap_def : (arr.swap i' j')[i'] = arr[j'] := Array.swap_def_ieqj
+          have hswap_def : (arr.swap i' j')[i'] = arr[j'] := Array.swap_def_ieqj hsi hsj hsi'
           have : (arr.swap i' j')[i'] ≤ pivot := hswap_def.symm ▸ this
           show  x'.arr'[i'] ≤ pivot from
             have heq : x'.arr'[i'] = (arr.swap i' j')[i'] :=
@@ -648,11 +664,15 @@ set_option maxHeartbeats 5000000 in
 theorem part_correctness_j {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jval : Nat} {hj : jval < arr.size} {pivot : α} {hxi : ∃ (i_ : Nat) (_ : i_ < arr.size), ival ≤ i_ ∧ pivot ≤ arr[i_]} {hxj : ∃ (j_ : Nat) (_ : j_ < arr.size), j_ ≤ jval ∧ arr[j_] ≤ pivot} (_ : x = part arr ival hi jval hj pivot hxi hxj := by trivial) : ∀ (k_ : Nat) (_ : k_ < x.arr'.size), (x.j'  < k_→k_ ≤  jval → pivot ≤ x.arr'[k_]) :=
   let i' := next_i arr ival hi pivot hxi
   let j' := next_j arr jval hj pivot hxj
+  have hsi : i'.val < arr.size := i'.isLt
+  have hsj : j'.val < arr.size := j'.isLt
 
   if h0 : i'.val < j'.val then
 
     let arr' := (arr.swap i' j')
     have hs_size : arr'.size = arr.size := (arr.size_swap i' j')
+    have hsi' : i'.val < arr'.size := hs_size.symm ▸ i'.isLt
+    have hsj' : j'.val < arr'.size := hs_size.symm ▸ j'.isLt
     let x' := part arr' i'.val.succ part_prelims_i_2 j'.val.pred part_prelims_j_2 pivot part_prelims_i_1 part_prelims_j_1
 
     have h'' : ∀ (k_ : Nat) _, (x'.j'  < k_→k_ ≤  j'.val.pred →  pivot ≤ x'.arr'[k_]) := part_correctness_j
@@ -672,10 +692,9 @@ theorem part_correctness_j {arr: Array α} {ival : Nat} {hi : ival < arr.size}  
         have : ¬(arr[k_] ≤ pivot):= next_j_before_is_right rfl k_ ‹_› ‹_› ‹_›
         have : pivot ≤ arr[k_] := le_of_not_le this
         have : pivot ≤ (arr.swap i' j')[k_] :=
-          let k : Fin arr.size := ⟨k_, ‹_›⟩; have hk := show k.val = k_  from rfl
-          have hi : i'.val ≠ k.val := suffices i'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt (Trans.trans h0 h1)
-          have hj : j'.val ≠ k.val := suffices j'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt h1
-          have heq : (arr.swap i' j')[k.val] = arr[k.val]  := Array.swap_def_else hi hj
+          have hi : i'.val ≠ k_ := Nat.ne_of_lt (Trans.trans h0 h1)
+          have hj : j'.val ≠ k_ := Nat.ne_of_lt h1
+          have heq : (arr.swap i' j')[k_] = arr[k_]  := Array.swap_def_else hsk hsk' hi hj
           show pivot ≤ (arr.swap i' j')[k_] from heq.symm ▸ this
 
 
@@ -686,7 +705,7 @@ theorem part_correctness_j {arr: Array α} {ival : Nat} {hi : ival < arr.size}  
       have hhh1 : j'.val ≤ k_ → k_ ≤ j'.val → pivot ≤ x'.arr'[k_] :=
         have : pivot ≤ x'.arr'[j'.val] :=
           have : pivot ≤ arr[i'] := nexti_elem_not_left_of_piv rfl
-          have hswap_def : (arr.swap i' j')[j'] = arr[i'] := Array.swap_def_jeqi
+          have hswap_def : (arr.swap i' j')[j'] = arr[i'] := Array.swap_def_jeqi hsi hsj hsj'
           have : pivot ≤ (arr.swap i' j')[j'] := hswap_def.symm ▸ this
           show  pivot ≤ x'.arr'[j'] from
             have heq : x'.arr'[j'] = (arr.swap i' j')[j'] :=
@@ -743,10 +762,14 @@ set_option maxHeartbeats 5000000 in
 theorem part_invariance {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jval : Nat} {hj : jval < arr.size} {pivot : α} {hxi : ∃ (i_ : Nat) (_ : i_ < arr.size), ival ≤ i_ ∧ pivot ≤ arr[i_]} {hxj : ∃ (j_ : Nat) (_ : j_ < arr.size), j_ ≤ jval ∧ arr[j_] ≤ pivot} (motive : α → Prop) (_ : x = part arr ival hi jval hj pivot hxi hxj := by trivial) : (∀ (k_ : Nat) (_ : k_ < arr.size) (_ : ival ≤ k_) (_ : k_ ≤ jval), (motive arr[k_]) ) → (∀ (k_ : Nat) (_ : k_ < x.arr'.size) (_ : ival ≤ k_) (_ : k_ ≤ jval), (motive x.arr'[k_])) :=
   let i' := next_i arr ival hi pivot hxi
   let j' := next_j arr jval hj pivot hxj
+  have hsi : i'.val < arr.size := i'.isLt
+  have hsj : j'.val < arr.size := j'.isLt
 
   if h0 : i'.val < j'.val then
     let arr' := (arr.swap i' j')
     have hs_size : arr'.size = arr.size := (arr.size_swap i' j')
+    have hsi' : i'.val < arr'.size := hs_size.symm ▸ i'.isLt
+    have hsj' : j'.val < arr'.size := hs_size.symm ▸ j'.isLt
     let x' := part arr' i'.val.succ part_prelims_i_2 j'.val.pred part_prelims_j_2 pivot part_prelims_i_1 part_prelims_j_1
 
     have his : ival < i'.val.succ := Nat.lt_succ_of_le nexti_ge_i
@@ -768,7 +791,7 @@ theorem part_invariance {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jv
           h_ j'.1 j'.2 hhi hhj
 
         have hh1 : arr'[k_] = arr[j'] :=
-          have : arr'.get ⟨i'.1, hs_size.symm  ▸ i'.2⟩ = arr.get j' := show arr'[i'] = arr[j'] from Array.swap_def_ieqj
+          have : arr'.get ⟨i'.1, hs_size.symm  ▸ i'.2⟩ = arr.get j' := show arr'[i'] = arr[j'] from Array.swap_def_ieqj hsi hsj hsi'
           show arr'.get ⟨k_, hki' ▸ hs_size.symm  ▸ i'.2⟩ = arr.get j' from  hki' ▸ this
 
         show motive arr'[k_] from  hh1.symm ▸ hh0
@@ -781,7 +804,7 @@ theorem part_invariance {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jv
           h_ i'.1 i'.2 hhi hhj
 
         have hh1 : arr'[k_] = arr[i'] :=
-          have hswap_def : (arr.swap i' j')[j'] = arr[i'] := Array.swap_def_jeqi
+          have hswap_def : (arr.swap i' j')[j'] = arr[i'] := Array.swap_def_jeqi hsi hsj hsj'
           have : arr'.get ⟨j'.1, hs_size.symm  ▸ j'.2⟩ = arr.get i' := show arr'[j'] = arr[i'] from hswap_def
           show arr'.get ⟨k_, hjk' ▸ hs_size.symm  ▸ j'.2⟩ = arr.get i' from  hjk' ▸ this
 
@@ -789,12 +812,7 @@ theorem part_invariance {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jv
 
       else
 
-        have hout : arr'[k_] = arr[k_]  :=
-          let k : Fin arr.size := ⟨k_, ‹_›⟩; have hk := show k.val = k_  from rfl
-          have hi : i'.val ≠ k.val := suffices i'.val ≠ k_ from hk ▸ this; hki'
-          have hj : j'.val ≠ k.val := suffices j'.val ≠ k_ from hk ▸ this; hjk'
-          have : arr'[k] = arr[k] := Array.swap_def_else hi hj
-          show arr'.get ⟨k_, hs_size  ▸ ‹_›⟩ = arr.get ⟨k_, ‹_›⟩ from this
+        have hout : arr'[k_] = arr[k_]  := Array.swap_def_else hsk hsk' hki' hjk'
 
         have hh0 : motive arr[k_] := h_ k_ ‹_› hik hkj
         show motive arr'[k_] from hout.symm ▸ hh0
@@ -853,6 +871,8 @@ variable {arr: Array α} {i' j' : Fin arr.size}
 theorem part_prelims_gen_i  (_ : i' = next_i arr ival hi pivot hxi := by trivial) (_ : j' = next_j arr jval hj pivot hxj := by trivial) (hjr : jval ≤ right := by trivial) (h0 : i'.val < j'.val := by trivial) : let arr' := (arr.swap i' j'); ∃ (i_ : Nat) (_ : i_ < arr'.size), (i'.val.succ ≤ i_) ∧ (i_ ≤ right) ∧ (pivot ≤ arr'[i_]) :=
   let arr' := (arr.swap i' j')
   have hs_size : arr'.size = arr.size := (arr.size_swap i' j')
+  have hsi : i'.val < arr.size := i'.isLt
+  have hsj : j'.val < arr.size := j'.isLt
   have hsj' : j'.val < arr'.size := hs_size.symm ▸ j'.isLt
 
   show ∃ (i_ : Nat) (_ : i_ < arr'.size), (i'.val.succ ≤ i_) ∧ (i_ ≤ right) ∧ (pivot ≤ arr'[i_]) from
@@ -861,7 +881,7 @@ theorem part_prelims_gen_i  (_ : i' = next_i arr ival hi pivot hxi := by trivial
       suffices i'.val.succ ≤ j_.val ∧ j_.val ≤ right ∧ (pivot ≤ arr'[j_]) from  ⟨j_.1, j_.2, this⟩
       suffices (pivot ≤ arr'[j_]) from ⟨hh0 ▸ h0, hh0 ▸ Trans.trans nextj_le_j hjr, this⟩
 
-      have hswap_def : arr'[j_] = arr[i'] := Array.swap_def_jeqi
+      have hswap_def : arr'[j_] = arr[i'] := Array.swap_def_jeqi hsi hsj hsj'
 
       suffices  (pivot ≤ arr[i']) by
         simp only [←hswap_def] at *
@@ -873,6 +893,9 @@ theorem part_prelims_gen_i  (_ : i' = next_i arr ival hi pivot hxi := by trivial
 theorem part_prelims_gen_j (_ : i' = next_i arr ival hi pivot hxi := by trivial) (_ : j' = next_j arr jval hj pivot hxj := by trivial) (hli : left ≤ ival := by trivial) (h0 : i'.val < j'.val := by trivial) : let arr' := (arr.swap i' j'); ∃ (j_ : Nat) (_ : j_ < arr'.size), (left ≤ j_) ∧ (j_ ≤ j'.val.pred) ∧ (arr'[j_] ≤ pivot) :=
   let arr' := (arr.swap i' j')
   have hs_size : arr'.size = arr.size := (arr.size_swap i' j')
+  have hsi : i'.val < arr.size := i'.isLt
+  have hsj : j'.val < arr.size := j'.isLt
+  have hsi' : i'.val < arr'.size := hs_size.symm ▸ i'.isLt
 
   show ∃ (j_ : Nat) (_ : j_ < arr'.size), (left ≤ j_) ∧ (j_ ≤ j'.val.pred) ∧ (arr'[j_] ≤ pivot) from
       let i_ : Fin arr'.size := ⟨i', hs_size.symm ▸ i'.isLt ⟩
@@ -881,7 +904,7 @@ theorem part_prelims_gen_j (_ : i' = next_i arr ival hi pivot hxi := by trivial)
       suffices left ≤ i_.val ∧ i_.val ≤ j'.val.pred ∧ (arr'[i_] ≤ pivot) from  ⟨i_.1, i_.2, this⟩
       suffices  (arr'[i_] ≤ pivot) from ⟨hh0 ▸ Trans.trans hli nexti_ge_i, Nat.pred_def h0, this⟩
 
-      have hswap_def : arr'[i_] = arr[j'] := Array.swap_def_ieqj
+      have hswap_def : arr'[i_] = arr[j'] := Array.swap_def_ieqj hsi hsj hsi'
 
       suffices  (arr[j'] ≤ pivot) by
         simp only [←hswap_def] at *
@@ -892,15 +915,17 @@ theorem part_prelims_gen_j (_ : i' = next_i arr ival hi pivot hxi := by trivial)
 theorem part_prelims_i_2' (hleft : ∀ (i_ : Nat) (_ : i_ < arr.size), left ≤ i_ → i_ < ival → arr[i_] ≤ pivot := by trivial) (_ : i' = next_i arr ival hi pivot hxi := by trivial) (_ : j' = next_j arr jval hj pivot hxj := by trivial) (h0 : i'.val < j'.val := by trivial) : let arr' := (arr.swap i' j');  ∀ (k_ : Nat) (_ : k_ < arr'.size), left ≤ k_ → k_ < i'.val.succ → arr'[k_] ≤ pivot :=
   let arr' := (arr.swap i' j')
   have hs_size : arr'.size = arr.size := (arr.size_swap i' j')
+  have hsi : i'.val < arr.size := i'.isLt
+  have hsj : j'.val < arr.size := j'.isLt
+  have hsi' : i'.val < arr'.size := hs_size.symm ▸ i'.isLt
 
   show ∀ (k_ : Nat) (_ : k_ < arr'.size), left ≤ k_ → k_ < i'.val.succ → arr'[k_] ≤ pivot from
     fun k_ hsk' =>
       have hsk : k_ < arr.size := hs_size ▸ ‹k_ < arr'.size›
       have h_out_i :  k_ < i'.val → arr'[k_]=arr[k_]  := fun h2 =>
-        let k : Fin arr.size := ⟨k_, ‹_›⟩; have hk := show k.val = k_  from rfl
-        have hi : i'.val ≠ k.val := suffices i'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt h2 |>.symm
-        have hj : j'.val ≠ k.val := suffices j'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt (Trans.trans h2 h0) |>.symm
-        show (arr.swap i' j')[k.val] = arr[k.val] from Array.swap_def_else hi hj
+        have hi : i'.val ≠ k_ := Nat.ne_of_lt h2 |>.symm
+        have hj : j'.val ≠ k_ := Nat.ne_of_lt (Trans.trans h2 h0) |>.symm
+        show (arr.swap i' j')[k_] = arr[k_] from Array.swap_def_else hsk hsk' hi hj
 
 
       have h1 : left ≤ k_ → k_ < ival → arr[k_] ≤ pivot := hleft k_ ‹_›
@@ -914,7 +939,7 @@ theorem part_prelims_i_2' (hleft : ∀ (i_ : Nat) (_ : i_ < arr.size), left ≤ 
       have h3 : i'.val ≤ k_ → k_ ≤ i'.val → arr'[k_] ≤ pivot :=
         have : (arr'[i'.val] ≤ pivot) :=
           have : (arr[j'] ≤ pivot) := nextj_elem_not_right_of_piv
-          have hswap_def : (arr.swap i' j')[i']= arr[j'] := Array.swap_def_ieqj
+          have hswap_def : (arr.swap i' j')[i']= arr[j'] := Array.swap_def_ieqj hsi hsj hsi'
           show  (arr'[i'] ≤ pivot) from hswap_def.symm ▸ this
 
         fun hh1 hh2 =>
@@ -930,17 +955,17 @@ theorem part_prelims_i_2' (hleft : ∀ (i_ : Nat) (_ : i_ < arr.size), left ≤ 
 theorem part_prelims_j_2' (hright : ∀ (j_ : Nat) (_ : j_ < arr.size), jval < j_ → j_ ≤ right → pivot ≤ arr[j_] := by trivial) (_ : i' = next_i arr ival hi pivot hxi := by trivial) (_ : j' = next_j arr jval hj pivot hxj := by trivial) (h0 : i'.val < j'.val := by trivial) : let arr' := (arr.swap i' j'); ∀ (k_ : Nat) (x : k_ < arr'.size), j'.val.pred  < k_ → k_ ≤ right → pivot ≤ arr'[k_] :=
   let arr' := (arr.swap i' j')
   have hs_size : arr'.size = arr.size := (arr.size_swap i' j')
+  have hsi : i'.val < arr.size := i'.isLt
+  have hsj : j'.val < arr.size := j'.isLt
   have hsj' : j'.val < arr'.size := hs_size.symm ▸ j'.isLt
 
   show ∀ (k_ : Nat) (x : k_ < arr'.size), j'.val.pred  < k_ → k_ ≤ right → pivot ≤ arr'[k_] from
     fun k_ hsk' =>
       have hsk : k_ < arr.size := hs_size ▸ ‹k_ < arr'.size›
       have h_out_j :  j'.val < k_ → arr'[k_]=arr[k_] := fun h2 =>
-        let k : Fin arr.size := ⟨k_, ‹_›⟩; have hk := show k.val = k_  from rfl
-        have hi : i'.val ≠ k.val := suffices i'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt (Trans.trans h0 h2)
-        have hj : j'.val ≠ k.val := suffices j'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt h2
-
-        show (Array.swap arr i' j')[k.val] = arr[k.val] from  Array.swap_def_else hi hj
+        have hi : i'.val ≠ k_ := Nat.ne_of_lt (Trans.trans h0 h2)
+        have hj : j'.val ≠ k_ := Nat.ne_of_lt h2
+        show (arr.swap i' j')[k_] = arr[k_] from Array.swap_def_else hsk hsk' hi hj
 
       have h1 : jval < k_ → k_ ≤ right → pivot ≤ arr[k_] := hright k_ ‹_›
 
@@ -952,7 +977,7 @@ theorem part_prelims_j_2' (hright : ∀ (j_ : Nat) (_ : j_ < arr.size), jval < j
       have h3 : j'.val ≤ k_ → k_ ≤ j'.val → pivot ≤ arr'[k_] :=
         have : pivot ≤ arr'[j'.val] :=
           have : pivot ≤ arr[i'] := nexti_elem_not_left_of_piv
-          have hswap_def : (arr.swap i' j')[j'] = arr[i'] := Array.swap_def_jeqi
+          have hswap_def : (arr.swap i' j')[j'] = arr[i'] := Array.swap_def_jeqi hsi hsj hsj'
           have : pivot ≤ (arr.swap i' j')[j'] := hswap_def.symm ▸ this
           show  pivot ≤ arr'[j'] from
             have heq : arr'[j'] = (arr.swap i' j')[j'] := rfl
