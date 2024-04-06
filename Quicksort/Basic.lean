@@ -312,7 +312,7 @@ theorem part_prelims_i_1 {i' j' : Fin arr.size} (_ : i' = next_i arr ival hi piv
     suffices i'.val.succ ≤ j_.val ∧ pivot ≤ arr'[j_] from  ⟨j_.1, j_.2, this⟩
     suffices  pivot ≤ arr'[j_] from ⟨hh0 ▸ h0, this⟩
 
-    have hswap_def : arr'[j_] = arr[i'] := Array.swap_def_jeqi
+    have hswap_def : arr'[j_] = arr[i'] := arr.get_swap_right
 
     suffices pivot ≤ arr[i'] by
       simp only [←hswap_def] at *
@@ -338,7 +338,7 @@ theorem part_prelims_j_1 {i' j' : Fin arr.size} (_ : i' = next_i arr ival hi piv
     suffices i_.val ≤ j'.val.pred ∧ arr'[i_] ≤ pivot from  ⟨i_.1, i_.2, this⟩
     suffices  arr'[i_] ≤ pivot from ⟨Nat.pred_def h0, this⟩
 
-    have hswap_def : arr'[i_] = arr[j'] := Array.swap_def_ieqj
+    have hswap_def : arr'[i_] = arr[j'] := arr.get_swap_left
 
     suffices  arr[j'] ≤ pivot by
       simp only [←hswap_def] at *
@@ -406,7 +406,7 @@ theorem part_perm {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jval : N
 
   else if heq : j'.val = i'.val then
     have _ : arr ~ arr := Array.Perm.refl arr
-    by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
+    by simp_all (config := { zetaDelta := true }) [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
 
   else
     have _ : arr ~ arr := Array.Perm.refl arr
@@ -429,7 +429,7 @@ theorem part_arr_size {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jval
     by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
 
   else if _ : j'.val = i'.val then
-    by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
+    by simp_all (config := { zetaDelta := true }) [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
 
   else have _ : j'.val < i'.val := Nat.lt_of_le_of_ne (mtp (Nat.lt_or_ge i'.val j'.val) h0) ‹_›
 
@@ -451,7 +451,7 @@ theorem part_j_lt_i {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jval :
 
   else if _ : j'.val = i'.val then
     have : j'.val.pred <  i'.val.succ := Trans.trans j'.val.pred_le (‹_› ▸ i'.val.lt_succ_self : _ < _)
-    by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
+    by simp_all (config := { zetaDelta := true }) [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
 
   else have _ : j'.val < i'.val := Nat.lt_of_le_of_ne (mtp (Nat.lt_or_ge i'.val j'.val) h0) ‹_›
 
@@ -485,10 +485,9 @@ theorem part_out_i {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jval : 
       have heq1 : x'.arr'[k_] = (arr.swap  i' j')[k_] := h'' k_ ‹_› ‹_› <| Trans.trans h1 his
       have h2 : k_ < i'.val := Trans.trans h1 nexti_ge_i
 
-      let k : Fin arr.size := ⟨k_, ‹_›⟩; have hk := show k.val = k_  from rfl
-      have hi : i'.val ≠ k.val := suffices i'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt h2 |>.symm
-      have hj : j'.val ≠ k.val := suffices j'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt (Trans.trans h2 h0) |>.symm
-      have heq2 : (arr.swap i' j')[k.val] = arr[k.val]  := Array.swap_def_else hi hj
+      have hi : k_ ≠ i'.val := Nat.ne_of_lt h2
+      have hj : k_ ≠ j'.val := Nat.ne_of_lt (Trans.trans h2 h0)
+      have heq2 : (arr.swap i' j')[k_] = arr[k_]  := arr.get_swap_of_ne hsk hi hj
 
       show x'.arr'[k_] = arr[k_] from Trans.trans heq1 heq2
     by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
@@ -496,7 +495,7 @@ theorem part_out_i {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jval : 
   else if _ : j'.val = i'.val then
 
     have : ∀ (k_ : Nat) (_ : k_ < arr.size) (_ : k_ < arr.size), ( k_ < i'.val.succ → arr[k_]=arr[k_] )  := fun _ _ _ _ => rfl
-    by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
+    by simp_all (config := { zetaDelta := true }) [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
 
   else have _ : j'.val < i'.val := Nat.lt_of_le_of_ne (mtp (Nat.lt_or_ge i'.val j'.val) h0) ‹_›
 
@@ -530,10 +529,9 @@ theorem part_out_j {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jval : 
       have heq1 : x'.arr'[k_] = (arr.swap  i' j')[k_] := h'' k_ ‹_› ‹_› <| Trans.trans hjp h1
       have h2 : j'.val < k_ := Trans.trans nextj_le_j h1
 
-      let k : Fin arr.size := ⟨k_, ‹_›⟩; have hk := show k.val = k_  from rfl
-      have hi : i'.val ≠ k.val := suffices i'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt (Trans.trans h0 h2)
-      have hj : j'.val ≠ k.val := suffices j'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt h2
-      have heq2 : (Array.swap arr i' j')[k.val] = arr[k.val]  := Array.swap_def_else hi hj
+      have hi : k_ ≠ i'.val := Nat.ne_of_lt (Trans.trans h0 h2) |>.symm
+      have hj : k_ ≠ j'.val := Nat.ne_of_lt h2 |>.symm
+      have heq2 : (arr.swap i' j')[k_] = arr[k_]  := arr.get_swap_of_ne hsk hi hj
       show x'.arr'[k_] = arr[k_] from Trans.trans heq1 heq2
 
     by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
@@ -541,7 +539,7 @@ theorem part_out_j {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jval : 
   else if _ : j'.val = i'.val then
 
     have : ∀ (k_ : Nat) (_ : k_ < arr.size) (_ : k_ < arr.size), ( j'.val.pred < k_ → arr[k_]=arr[k_] )  := fun _ _ _ _ => rfl
-    by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
+    by simp_all (config := { zetaDelta := true }) [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
 
   else have _ : j'.val < i'.val := Nat.lt_of_le_of_ne (mtp (Nat.lt_or_ge i'.val j'.val) h0) ‹_›
 
@@ -577,10 +575,9 @@ theorem part_correctness_i {arr: Array α} {ival : Nat} {hi : ival < arr.size}  
         have : arr[k_] ≤ pivot := le_of_not_le this
         have : (arr.swap i' j')[k_] ≤ pivot :=
 
-          let k : Fin arr.size := ⟨k_, ‹_›⟩; have hk := show k.val = k_  from rfl
-          have hi : i'.val ≠ k.val := suffices i'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt h2 |>.symm
-          have hj : j'.val ≠ k.val := suffices j'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt (Trans.trans h2 h0) |>.symm
-          have heq : (arr.swap i' j')[k.val] = arr[k.val]  := Array.swap_def_else hi hj
+          have hi : k_ ≠ i'.val := Nat.ne_of_lt h2
+          have hj : k_ ≠ j'.val := Nat.ne_of_lt (Trans.trans h2 h0)
+          have heq : (arr.swap i' j')[k_] = arr[k_]  := arr.get_swap_of_ne hsk hi hj
 
           show (arr.swap i' j')[k_] ≤ pivot from heq.symm ▸ this
 
@@ -592,7 +589,7 @@ theorem part_correctness_i {arr: Array α} {ival : Nat} {hi : ival < arr.size}  
       have hhh2 : i'.val ≤ k_ → k_ ≤ i'.val → x'.arr'[k_] ≤ pivot :=
         have : x'.arr'[i'.val] ≤ pivot :=
           have : arr[j'] ≤ pivot := nextj_elem_not_right_of_piv rfl
-          have hswap_def : (arr.swap i' j')[i'] = arr[j'] := Array.swap_def_ieqj
+          have hswap_def : (arr.swap i' j')[i'] = arr[j'] := arr.get_swap_left
           have : (arr.swap i' j')[i'] ≤ pivot := hswap_def.symm ▸ this
           show  x'.arr'[i'] ≤ pivot from
             have heq : x'.arr'[i'] = (arr.swap i' j')[i'] :=
@@ -633,7 +630,7 @@ theorem part_correctness_i {arr: Array α} {ival : Nat} {hi : ival < arr.size}  
 
       prop_mix h1' h2'
 
-    by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
+    by simp_all (config := { zetaDelta := true }) [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
 
   else have _ : j'.val < i'.val := Nat.lt_of_le_of_ne (mtp (Nat.lt_or_ge i'.val j'.val) h0) ‹_›
 
@@ -672,10 +669,9 @@ theorem part_correctness_j {arr: Array α} {ival : Nat} {hi : ival < arr.size}  
         have : ¬(arr[k_] ≤ pivot):= next_j_before_is_right rfl k_ ‹_› ‹_› ‹_›
         have : pivot ≤ arr[k_] := le_of_not_le this
         have : pivot ≤ (arr.swap i' j')[k_] :=
-          let k : Fin arr.size := ⟨k_, ‹_›⟩; have hk := show k.val = k_  from rfl
-          have hi : i'.val ≠ k.val := suffices i'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt (Trans.trans h0 h1)
-          have hj : j'.val ≠ k.val := suffices j'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt h1
-          have heq : (arr.swap i' j')[k.val] = arr[k.val]  := Array.swap_def_else hi hj
+          have hi : k_ ≠ i'.val := Nat.ne_of_lt (Trans.trans h0 h1) |>.symm
+          have hj : k_ ≠ j'.val := Nat.ne_of_lt h1 |>.symm
+          have heq : (arr.swap i' j')[k_] = arr[k_]  := arr.get_swap_of_ne hsk hi hj
 
           show pivot ≤ (arr.swap i' j')[k_] from heq.symm ▸ this
 
@@ -687,7 +683,7 @@ theorem part_correctness_j {arr: Array α} {ival : Nat} {hi : ival < arr.size}  
       have hhh1 : j'.val ≤ k_ → k_ ≤ j'.val → pivot ≤ x'.arr'[k_] :=
         have : pivot ≤ x'.arr'[j'.val] :=
           have : pivot ≤ arr[i'] := nexti_elem_not_left_of_piv rfl
-          have hswap_def : (arr.swap i' j')[j'] = arr[i'] := Array.swap_def_jeqi
+          have hswap_def : (arr.swap i' j')[j'] = arr[i'] := arr.get_swap_right
           have : pivot ≤ (arr.swap i' j')[j'] := hswap_def.symm ▸ this
           show  pivot ≤ x'.arr'[j'] from
             have heq : x'.arr'[j'] = (arr.swap i' j')[j'] :=
@@ -731,7 +727,7 @@ theorem part_correctness_j {arr: Array α} {ival : Nat} {hi : ival < arr.size}  
         by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
       prop_mix h2' h1'
 
-    by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
+    by simp_all (config := { zetaDelta := true }) [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
 
   else have _ : j'.val < i'.val := Nat.lt_of_le_of_ne (mtp (Nat.lt_or_ge i'.val j'.val) h0) ‹_›
     have : ∀ (k_ : Nat) (_ : k_ < arr.size), (j'.val  < k_→k_ ≤  jval →  pivot ≤ arr[k_]) := fun k_ _  h1 h2 =>
@@ -769,7 +765,7 @@ theorem part_invariance {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jv
           h_ j'.1 j'.2 hhi hhj
 
         have hh1 : arr'[k_] = arr[j'] :=
-          have : arr'.get ⟨i'.1, hs_size.symm  ▸ i'.2⟩ = arr.get j' := show arr'[i'] = arr[j'] from Array.swap_def_ieqj
+          have : arr'.get ⟨i'.1, hs_size.symm  ▸ i'.2⟩ = arr.get j' := show arr'[i'] = arr[j'] from arr.get_swap_left
           show arr'.get ⟨k_, hki' ▸ hs_size.symm  ▸ i'.2⟩ = arr.get j' from  hki' ▸ this
 
         show motive arr'[k_] from  hh1.symm ▸ hh0
@@ -782,21 +778,14 @@ theorem part_invariance {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jv
           h_ i'.1 i'.2 hhi hhj
 
         have hh1 : arr'[k_] = arr[i'] :=
-          have hswap_def : (arr.swap i' j')[j'] = arr[i'] := Array.swap_def_jeqi
+          have hswap_def : (arr.swap i' j')[j'] = arr[i'] := arr.get_swap_right
           have : arr'.get ⟨j'.1, hs_size.symm  ▸ j'.2⟩ = arr.get i' := show arr'[j'] = arr[i'] from hswap_def
           show arr'.get ⟨k_, hjk' ▸ hs_size.symm  ▸ j'.2⟩ = arr.get i' from  hjk' ▸ this
 
         show motive arr'[k_] from  hh1.symm ▸ hh0
 
       else
-
-        have hout : arr'[k_] = arr[k_]  :=
-          let k : Fin arr.size := ⟨k_, ‹_›⟩; have hk := show k.val = k_  from rfl
-          have hi : i'.val ≠ k.val := suffices i'.val ≠ k_ from hk ▸ this; hki'
-          have hj : j'.val ≠ k.val := suffices j'.val ≠ k_ from hk ▸ this; hjk'
-          have : arr'[k] = arr[k] := Array.swap_def_else hi hj
-          show arr'.get ⟨k_, hs_size  ▸ ‹_›⟩ = arr.get ⟨k_, ‹_›⟩ from this
-
+        have hout : arr'[k_] = arr[k_]  := arr.get_swap_of_ne hsk (Ne.symm hki') (Ne.symm hjk')
         have hh0 : motive arr[k_] := h_ k_ ‹_› hik hkj
         show motive arr'[k_] from hout.symm ▸ hh0
 
@@ -829,7 +818,7 @@ theorem part_invariance {arr: Array α} {ival : Nat} {hi : ival < arr.size}  {jv
 
     by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
   else if heq : j'.val = i'.val then
-    by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
+    by simp_all (config := { zetaDelta := true }) [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
   else have _ : j'.val < i'.val := Nat.lt_of_le_of_ne (mtp (Nat.lt_or_ge i'.val j'.val) h0) ‹_›
     by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
 termination_by jval.succ - ival
@@ -862,7 +851,7 @@ theorem part_prelims_gen_i  (_ : i' = next_i arr ival hi pivot hxi := by trivial
       suffices i'.val.succ ≤ j_.val ∧ j_.val ≤ right ∧ (pivot ≤ arr'[j_]) from  ⟨j_.1, j_.2, this⟩
       suffices (pivot ≤ arr'[j_]) from ⟨hh0 ▸ h0, hh0 ▸ Trans.trans nextj_le_j hjr, this⟩
 
-      have hswap_def : arr'[j_] = arr[i'] := Array.swap_def_jeqi
+      have hswap_def : arr'[j_] = arr[i'] := arr.get_swap_right
 
       suffices  (pivot ≤ arr[i']) by
         simp only [←hswap_def] at *
@@ -882,7 +871,7 @@ theorem part_prelims_gen_j (_ : i' = next_i arr ival hi pivot hxi := by trivial)
       suffices left ≤ i_.val ∧ i_.val ≤ j'.val.pred ∧ (arr'[i_] ≤ pivot) from  ⟨i_.1, i_.2, this⟩
       suffices  (arr'[i_] ≤ pivot) from ⟨hh0 ▸ Trans.trans hli nexti_ge_i, Nat.pred_def h0, this⟩
 
-      have hswap_def : arr'[i_] = arr[j'] := Array.swap_def_ieqj
+      have hswap_def : arr'[i_] = arr[j'] := arr.get_swap_left
 
       suffices  (arr[j'] ≤ pivot) by
         simp only [←hswap_def] at *
@@ -898,10 +887,9 @@ theorem part_prelims_i_2' (hleft : ∀ (i_ : Nat) (_ : i_ < arr.size), left ≤ 
     fun k_ hsk' =>
       have hsk : k_ < arr.size := hs_size ▸ ‹k_ < arr'.size›
       have h_out_i :  k_ < i'.val → arr'[k_]=arr[k_]  := fun h2 =>
-        let k : Fin arr.size := ⟨k_, ‹_›⟩; have hk := show k.val = k_  from rfl
-        have hi : i'.val ≠ k.val := suffices i'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt h2 |>.symm
-        have hj : j'.val ≠ k.val := suffices j'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt (Trans.trans h2 h0) |>.symm
-        show (arr.swap i' j')[k.val] = arr[k.val] from Array.swap_def_else hi hj
+        have hi : k_ ≠ i'.val := Nat.ne_of_lt h2
+        have hj : k_ ≠ j'.val := Nat.ne_of_lt (Trans.trans h2 h0)
+        show (arr.swap i' j')[k_] = arr[k_] from arr.get_swap_of_ne hsk hi hj
 
 
       have h1 : left ≤ k_ → k_ < ival → arr[k_] ≤ pivot := hleft k_ ‹_›
@@ -915,13 +903,13 @@ theorem part_prelims_i_2' (hleft : ∀ (i_ : Nat) (_ : i_ < arr.size), left ≤ 
       have h3 : i'.val ≤ k_ → k_ ≤ i'.val → arr'[k_] ≤ pivot :=
         have : (arr'[i'.val] ≤ pivot) :=
           have : (arr[j'] ≤ pivot) := nextj_elem_not_right_of_piv
-          have hswap_def : (arr.swap i' j')[i']= arr[j'] := Array.swap_def_ieqj
+          have hswap_def : (arr.swap i' j')[i']= arr[j'] := arr.get_swap_left
           show  (arr'[i'] ≤ pivot) from hswap_def.symm ▸ this
 
         fun hh1 hh2 =>
           have heq1 : i'.val = k_ := Nat.le_antisymm hh1 hh2
           have heq2 : arr'[i'.val] = arr'[k_] := by simp [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le, heq1]
-          show (arr'[k_] ≤ pivot) by simp [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le, heq2] at this; exact this
+          show (arr'[k_] ≤ pivot) from heq2 ▸ this
 
       have h4 : i'.val < k_ → k_ < i'.val.succ → arr'[k_] ≤ pivot := fun hh1 hh2 => (Nat.not_le_and_gt ⟨hh1, hh2⟩).elim
 
@@ -937,11 +925,10 @@ theorem part_prelims_j_2' (hright : ∀ (j_ : Nat) (_ : j_ < arr.size), jval < j
     fun k_ hsk' =>
       have hsk : k_ < arr.size := hs_size ▸ ‹k_ < arr'.size›
       have h_out_j :  j'.val < k_ → arr'[k_]=arr[k_] := fun h2 =>
-        let k : Fin arr.size := ⟨k_, ‹_›⟩; have hk := show k.val = k_  from rfl
-        have hi : i'.val ≠ k.val := suffices i'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt (Trans.trans h0 h2)
-        have hj : j'.val ≠ k.val := suffices j'.val ≠ k_ from hk ▸ this; Nat.ne_of_lt h2
+        have hi : k_ ≠ i'.val := Nat.ne_of_lt (Trans.trans h0 h2) |>.symm
+        have hj : k_ ≠ j'.val := Nat.ne_of_lt h2 |>.symm
 
-        show (Array.swap arr i' j')[k.val] = arr[k.val] from  Array.swap_def_else hi hj
+        show (arr.swap i' j')[k_] = arr[k_] from  arr.get_swap_of_ne hsk hi hj
 
       have h1 : jval < k_ → k_ ≤ right → pivot ≤ arr[k_] := hright k_ ‹_›
 
@@ -953,7 +940,7 @@ theorem part_prelims_j_2' (hright : ∀ (j_ : Nat) (_ : j_ < arr.size), jval < j
       have h3 : j'.val ≤ k_ → k_ ≤ j'.val → pivot ≤ arr'[k_] :=
         have : pivot ≤ arr'[j'.val] :=
           have : pivot ≤ arr[i'] := nexti_elem_not_left_of_piv
-          have hswap_def : (arr.swap i' j')[j'] = arr[i'] := Array.swap_def_jeqi
+          have hswap_def : (arr.swap i' j')[j'] = arr[i'] := arr.get_swap_right
           have : pivot ≤ (arr.swap i' j')[j'] := hswap_def.symm ▸ this
           show  pivot ≤ arr'[j'] from
             have heq : arr'[j'] = (arr.swap i' j')[j'] := rfl
@@ -962,7 +949,7 @@ theorem part_prelims_j_2' (hright : ∀ (j_ : Nat) (_ : j_ < arr.size), jval < j
         fun h1 h2 =>
           have heq1 : j'.val = k_ := Nat.le_antisymm h1 h2
           have heq2 : arr'[j'.val] = arr'[k_] := by simp [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le, heq1]
-          show pivot ≤ arr'[k_] by simp [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le, heq2] at this; exact this
+          show pivot ≤ arr'[k_] from heq2 ▸ this
 
       have h4 : j'.val.pred < k_ → k_ < j'.val → pivot ≤ arr'[k_] := fun hh1 hh2 =>
         have hh1 : j'.val ≤ k_ := Nat.succ_pred (Nat.not_eq_zero_of_lt h0) ▸ hh1
@@ -1032,7 +1019,7 @@ private theorem part_i_gt_and_j_lt_aux {x : Partition α} (hxri : ∃ (i_ : Nat)
         Trans.trans (show n.succ.pred < n.succ by simp_arith) (hj_0 ▸ this)
 
 
-    by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
+    by simp_all (config := { zetaDelta := true }) [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
 
   else have hlt : j'.val < i'.val := Nat.lt_of_le_of_ne (mtp (Nat.lt_or_ge i'.val j'.val) h0) ‹_›
 
@@ -1181,7 +1168,7 @@ private theorem part_diff_one {x : Partition α}  (hxri : ∃ (i_ : Nat) (_ : i_
       suffices j'.val.succ ≤ jval.succ from heq ▸ this
       Nat.succ_le_succ (nextj_le_j)
 
-    by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
+    by simp_all (config := { zetaDelta := true }) [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
 
   else have hlt : j'.val < i'.val := Nat.lt_of_le_of_ne (mtp (Nat.lt_or_ge i'.val j'.val) h0) ‹_›
     have hone_diff : i'.val = j'.val.succ := part_diff_one_of_jlti hxri hxlj hilejsucc hleft hright rfl rfl hlt
@@ -1197,7 +1184,7 @@ private theorem part_diff_one {x : Partition α}  (hxri : ∃ (i_ : Nat) (_ : i_
 
       Trans.trans hone_diff this
 
-    by simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
+    by simp_all (config := { zetaDelta := true }) [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]; unfold part; simp_all [-Nat.not_lt, -not_lt, -Nat.not_le, -not_le]
 termination_by jval.succ - ival
 decreasing_by apply nat_mix nexti_ge_i nextj_le_j; assumption
 

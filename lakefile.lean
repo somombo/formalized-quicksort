@@ -8,8 +8,8 @@ package «quicksort» where
   --   ⟨`pp.proofs.withType, false⟩
   -- ]
   -- add any additional package configuration options here
--- require std from git "https://github.com/leanprover/std4.git" @ "v4.6.1"
-require mathlib from git "https://github.com/leanprover-community/mathlib4.git" @ "v4.6.1"
+-- require std from git "https://github.com/leanprover/std4.git" @ "v4.7.0"
+require mathlib from git "https://github.com/leanprover-community/mathlib4.git" @ "v4.7.0"
 -- require supertype from git "https://github.com/somombo/supertype" @ "main"
 
 @[default_target]

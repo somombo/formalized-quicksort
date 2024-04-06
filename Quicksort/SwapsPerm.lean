@@ -1,4 +1,4 @@
-import Quicksort.SwapLemmas
+import Std.Data.Array.Lemmas
 
 section subst_lemmas
 section comm
@@ -47,9 +47,9 @@ termination_by l => l.length
 
 @[simp] theorem swaps_zero_eq_swap : a.swaps [] = a := by simp
 @[simp] theorem swaps_one_eq_swap : a.swaps [(i, j)] = a.swap i j := by simp
-@[simp] theorem swaps_two_eq_swap_swap {i1 j1 i2 j2 : Fin a.size}: a.swaps [(i1, j1),(i2, j2)] = (a.swap i1 j1).swap (a.size_swap _ _ ▸ i2) (a.size_swap _ _ ▸ j2) := by simp
+@[simp] theorem swaps_two_eq_swap_swap {i1 j1 i2 j2 : Fin a.size}: a.swaps [(i1, j1),(i2, j2)] = (a.swap i1 j1).swap (⟨i2.1, (a.size_swap _ _).symm ▸ i2.2⟩) ⟨j2.1, (a.size_swap _ _).symm ▸ j2.2⟩ :=  by simp
 
-@[simp] theorem swaps_two_id : a.swaps [c,c]  = a := by let (i, j) := c; simp only [swaps_two_eq_swap_swap, swap_swap_id]
+@[simp] theorem swaps_two_id : a.swaps [c,c]  = a := by let (i, j) := c; simp
 
 
 @[simp] theorem size_swaps (a : Array α) : ∀ {l}, (a.swaps l).size = a.size
