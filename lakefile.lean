@@ -10,7 +10,7 @@ package «quicksort» where
   -- add any additional package configuration options here
 -- require std from git "https://github.com/leanprover/std4.git" @ "v4.7.0"
 require mathlib from git "https://github.com/leanprover-community/mathlib4.git" @ "v4.7.0"
--- require supertype from git "https://github.com/somombo/supertype" @ "main"
+require «swaps-perm» from git "https://github.com/somombo/swaps-perm.git" @ "main"
 
 @[default_target]
 lean_lib «Quicksort» where

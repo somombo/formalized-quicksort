@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Chisomo Makombo Sakala
 -/
 
-import Quicksort.SwapsPerm
+import SwapsPerm
 import Quicksort.Order.Defs
 
 
