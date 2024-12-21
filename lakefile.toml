@@ -1,0 +1,17 @@
+name = "quicksort"
+defaultTargets = ["Quicksort"]
+
+[[lean_lib]]
+name = "Quicksort"
+
+[[lean_exe]]
+name = "quicksort"
+root = "Example"
+
+[[lean_lib]]
+name = "Battteries"
+
+[[require]]
+name = "batteries"
+git = "https://github.com/leanprover-community/batteries.git"
+rev = "v4.14.0"

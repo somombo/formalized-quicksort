@@ -1,5 +1,6 @@
-import Quicksort
-
+import Quicksort.Basic
+open Partition
+------------------------ UNIT TESTS -------------------------------
 def hello := #[
 56, 69, 30, 11, 34, 14, 95, 81, 96, 76,
 91, 24, 13, 39, 42, 14, 46, 3, 4, 61,
@@ -13,34 +14,37 @@ def hello := #[
 84, 75, 99, 4, 91, 50, 53, 60, 56, 24
 ]
 
-#eval qs hello
-def arr : Array Int :=  #[2,1,2,3]
+#eval! qs hello
+def arr_example : Array Int :=  #[2,1,2,3]
+#eval! qs arr_example
 
 
 -- degenerate
-#eval qs (#[] : Array Int)
-#eval qs #[0]
+#eval! qs (#[] : Array Int)
+#eval! qs #[0]
 
 -- trivial
-#eval qs #[0,1]
-#eval qs #[1,0]
-#eval qs #[0,0]
+#eval! qs #[0,1]
+#eval! qs #[1,0]
+#eval! qs #[0,0]
 
 -- recursive
-#eval qs #[1,2,3]
-#eval qs #[3,2,1]
-#eval qs #[1,3,2]
-#eval qs #[2,1,3]
-#eval qs #[3,1,2]
-#eval qs #[2,3,1]
+#eval! qs #[1,2,3] -- ()
+#eval! qs #[1,3,2] -- (23)
+#eval! qs #[2,1,3] -- (12)
+#eval! qs #[2,3,1] -- (12)(13)
+#eval! qs #[3,1,2] -- (12)(23)
+#eval! qs #[3,2,1] -- (13)
 
+#eval! qs #["lorem", "ipsum", "dolor", "sit", "amet"]
+  -- Expect: #["amet", "dolor", "ipsum", "lorem", "sit"]
 
+#eval! qs.strict (as := #v[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4]) (hsize' := by omega)
+#eval! qs #[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4] (part := hoare_classic) (left := 1) (right := 1000) -- EXPECT ERROR: "index out of bounds" with partially sorted output
 
-#eval qs #[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4]
-
-
+/- run as ` ./.lake/build/bin/example world hello` -/
 def main (args : List String) : IO UInt32 := do
-  IO.println s!"{qs args.toArray}" -- TODO: implement String instance of LinearOrder for this to work
+  IO.println s!"{qs args.toArray |>.toList |>.foldl (· ++ " " ++ ·) ""}" -- TODO: implement String instance of LinearOrder for this to work
 
   -- let mut arr : Array Int := Array.mkEmpty args.length
   -- for i in [:args.length], arg in args do
