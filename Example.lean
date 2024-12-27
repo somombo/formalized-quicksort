@@ -14,33 +14,35 @@ def hello := #[
 84, 75, 99, 4, 91, 50, 53, 60, 56, 24
 ]
 
-#eval! qs hello
+#eval qs hello (part := hoare)
+#eval qs hello (part := lomuto)
 def arr_example : Array Int :=  #[2,1,2,3]
-#eval! qs arr_example
+#eval qs arr_example
 
 
 -- degenerate
-#eval! qs (#[] : Array Int)
-#eval! qs #[0]
+#eval qs (#[] : Array Int)
+#eval qs #[0]
 
 -- trivial
-#eval! qs #[0,1]
-#eval! qs #[1,0]
-#eval! qs #[0,0]
+#eval qs #[0,1]
+#eval qs #[1,0]
+#eval qs #[0,0]
 
 -- recursive
-#eval! qs #[1,2,3] -- ()
-#eval! qs #[1,3,2] -- (23)
-#eval! qs #[2,1,3] -- (12)
-#eval! qs #[2,3,1] -- (12)(13)
-#eval! qs #[3,1,2] -- (12)(23)
-#eval! qs #[3,2,1] -- (13)
+#eval qs #[1,2,3] -- ()
+#eval qs #[1,3,2] -- (23)
+#eval qs #[2,1,3] -- (12)
+#eval qs #[2,3,1] -- (12)(13)
+#eval qs #[3,1,2] -- (12)(23)
+#eval qs #[3,2,1] -- (13)
 
-#eval! qs #["lorem", "ipsum", "dolor", "sit", "amet"]
+#eval qs #["lorem", "ipsum", "dolor", "sit", "amet"]
   -- Expect: #["amet", "dolor", "ipsum", "lorem", "sit"]
 
-#eval! qs.strict (as := #v[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4]) (hsize' := by omega)
-#eval! qs #[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4] (part := hoare_classic) (left := 1) (right := 1000) -- EXPECT ERROR: "index out of bounds" with partially sorted output
+#eval qs.strict (as := #v[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4]) (hsize' := by omega)
+#eval! qs #[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4] (part := hoare) (left := 1) (right := 1000) -- EXPECT ERROR: "index out of bounds" with partially sorted output
+#eval! qs #[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4] (part := lomuto) (left := 1) (right := 1000) -- EXPECT ERROR: "index out of bounds" with partially sorted output
 
 /- run as ` ./.lake/build/bin/example world hello` -/
 def main (args : List String) : IO UInt32 := do
