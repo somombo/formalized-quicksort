@@ -29,13 +29,15 @@ open List
 --   · have : [b] ++ B ~ B ++ [b] := perm_append_comm (l₁ := [_])
 --     refine ⟨b :: B, by simpa, ?_⟩
 --     exact swap_of_append as hi (by simpa using hj) (by simp [eq1])
+-- #check _root_.Array.swap_perm
 
-theorem swap_perm (as : Array α) (i j : Fin as.size) : (as.swap i j).toList ~ as.toList := by
-  have {i j} (ij : i < j) : (as.swap i j).toList ~ as.toList := by
-    have ⟨A, a, B, b, C, h1, h2, eq⟩ := exists_three_of_lt _ ij j.2
-    rw [eq, swap_of_append as h1 h2 eq, List.append_assoc, List.append_assoc]
-    exact .append_left _ <| perm_middle.trans <| .cons _ perm_middle.symm
-  obtain h | h | h := Nat.lt_trichotomy i j
-  · exact this h
-  · rw [Fin.eq_of_val_eq h, swap_self]
-  · rw [swap_comm]; exact this h
+
+-- theorem swap_perm' (as : Array α) (i j : Fin as.size) : (as.swap i j).toList ~ as.toList := by
+--   have {i j} (ij : i < j) : (as.swap i j).toList ~ as.toList := by
+--     have ⟨A, a, B, b, C, h1, h2, eq⟩ := exists_three_of_lt _ ij j.2
+--     rw [eq, swap_of_append as h1 h2 eq, List.append_assoc, List.append_assoc]
+--     exact .append_left _ <| perm_middle.trans <| .cons _ perm_middle.symm
+--   obtain h | h | h := Nat.lt_trichotomy i j
+--   · exact this h
+--   · rw [Fin.eq_of_val_eq h, swap_self]
+--   · rw [swap_comm]; exact this h

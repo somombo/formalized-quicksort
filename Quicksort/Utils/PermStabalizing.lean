@@ -1,46 +1,66 @@
-import Batteries.Data.Vector.Basic
-import Batteries.Data.Vector.Lemmas
-import Battteries.Array.Perm
-import Battteries.Vector.Lemmas
+import Batteries.Data.Vector
 
-/--
-The notation typeclass for heterogeneous permutations.
-This enables the notation `a ~ b : γ` where `a : α`, `b : β`.
--/
-class HPerm (α : Type u) (β : Type v) (γ : outParam (Type w)) where
-  hPerm : α → β → γ
 
-/-- The homogeneous version of `HPerm`: `a ~ b : Prop` where `a b : α`. -/
-class _root_.Perm (α : Type u) where
-  /-- `a ~ b` ascerts that  `a` is a permutation of `b`. See `HPerm`. -/
-  perm : α → α → Prop
+section old_Battteries.Vector.Lemmas
+private theorem List.exists_three_of_le (l : List α) (h1 : i ≤ j) (h2 : j ≤ l.length) :
+    ∃ l₁ l₂ l₃, l₁.length = i ∧ i + l₂.length = j ∧ l = l₁ ++ l₂ ++ l₃ := by
 
-@[default_instance]
-instance instHPerm [Perm α] : HPerm α α Prop where
-  hPerm a b := Perm.perm a b
+  let exists_of_length_le {n} {l : List α} (h : n ≤ l.length) :
+      ∃ l₁ l₂, l = l₁ ++ l₂ ∧ l₁.length = n :=
+    ⟨_, _, (List.take_append_drop n l).symm, List.length_take_of_le h⟩
 
-infix:50 " ~ "  => HPerm.hPerm
+  obtain ⟨l', l₃, rfl, rfl⟩ := exists_of_length_le h2
+  let ⟨l₁, l₂, eq, hl₁⟩ := exists_of_length_le h1
+  exact ⟨l₁, l₂, l₃, hl₁, by simp [eq, hl₁]⟩
 
-namespace List
-instance instListPerm (α : Type u) : _root_.Perm (List α)  where
-  perm x y := x ~ y
-end List
 
-namespace Array
-instance instArrayPerm (α : Type u) : Perm (Array α)  where
-  perm x y := x.toList ~ y.toList
-end Array
+theorem Vector.split_three (as : Vector α n) (h1 : lo ≤ hi) (h2 : hi ≤ n) :
+    ∃ (L₁ L₂ L₃ : List α), (L₁.length = lo) ∧ (lo + L₂.length = hi) ∧
+      (as.1.toList = L₁ ++ L₂ ++ L₃) :=
+  have : hi ≤ as.toArray.size := as.2.symm ▸ h2
+  List.exists_three_of_le _ h1 (show hi ≤ as.toArray.toList.length from this)
 
-namespace Batteries.Vector
-instance instVectorPerm {n : Nat} (α : Type u) : Perm (Vector α n)  where
-  perm x y := x.toArray ~ y.toArray
-end Batteries.Vector
+end old_Battteries.Vector.Lemmas
+
+
+-- /--
+-- The notation typeclass for heterogeneous permutations.
+-- This enables the notation `a ~ b : γ` where `a : α`, `b : β`.
+-- -/
+-- class HPerm (α : Type u) (β : Type v) (γ : outParam (Type w)) where
+--   hPerm : α → β → γ
+
+-- /-- The homogeneous version of `HPerm`: `a ~ b : Prop` where `a b : α`. -/
+-- class _root_.Perm (α : Type u) where
+--   /-- `a ~ b` ascerts that  `a` is a permutation of `b`. See `HPerm`. -/
+--   perm : α → α → Prop
+
+-- @[default_instance]
+-- instance instHPerm [Perm α] : HPerm α α Prop where
+--   hPerm a b := Perm.perm a b
+
+-- infix:50 " ~ "  => HPerm.hPerm
+
+-- namespace List
+-- instance instListPerm (α : Type u) : _root_.Perm (List α)  where
+--   perm x y := x ~ y
+-- end List
+
+-- namespace Array
+-- instance instArrayPerm (α : Type u) : _root_.Perm (Array α)  where
+--   perm x y := x ~ y
+-- end Array
+
+-- namespace Vector
+-- instance instVectorPerm {n : Nat} (α : Type u) : _root_.Perm (Vector α n)  where
+--   perm x y := x ~ y
+-- end Vector
 
 private theorem List.getElem_append_left'' {l₁ l₂ : List α} {n : Nat} (h : n < l₁.length) : (l₁ ++ l₂)[n]'(by simp; omega) = l₁[n] := List.getElem_append_left ..
 private theorem List.getElem_append_right'' {l₁ l₂ : List α} {n : Nat} (h : n < l₂.length) : (l₁ ++ l₂)[l₁.length + n]'(by simp; omega) = l₂[n] := by
   simp only [List.getElem_append_right' l₁ h, Nat.add_comm]
 
-namespace Batteries.Vector
+namespace Vector
 /-- `PermStabilizing left right as₁ as₂` asserts that `as₁` and `as₂` are permutations of each other,
 and moreover they agree outside the range `left..=right`. -/
 def PermStabilizing' (left right : Nat) (as₁ as₂ : Vector α n) :=
@@ -70,11 +90,10 @@ protected theorem PermStabilizing'.mono (h : PermStabilizing' left right as₁ a
   right.left _ hi := h.2.1 _ <| Nat.lt_of_lt_of_le hi hleft
   right.right _ hj := h.2.2 _ <| Nat.lt_of_le_of_lt hright hj
 
-
 theorem swap_permStabilizing' {as : Vector α n} {i j : Fin n} {left right : Nat}
     (h_i1 : left ≤ i) (h_i2 : i ≤ right) (h_j1 : left ≤ j) (h_j2 : j ≤ right) :
     PermStabilizing' left right (as.swap i j) as := by
-  refine ⟨Array.swap_perm .., fun k hk => ?_, fun k hk => ?_⟩
+  refine ⟨Vector.swap_perm .., fun k hk => ?_, fun k hk => ?_⟩
   repeat
   · simp [Vector.getElem_swap]
     split
@@ -82,6 +101,16 @@ theorem swap_permStabilizing' {as : Vector α n} {i j : Fin n} {left right : Nat
     · split
       · omega
       · rfl
+
+
+-- @somombo TODO: consider adding this to Std or Batteries
+private theorem List.perm_mem_getElem {l1 l2 : List α} (h : l1.Perm l2) : ∀ (i : Fin l1.length), ∃ (j : Fin l2.length), l2[j] = l1[i] := by
+  intro i
+  have : _ ↔ ∃ (j : Fin l2.length), l2[j] = l1[i] := l2.mem_iff_get
+  simp only [←this]
+  simp only [←h.mem_iff]
+  apply l1.get_mem
+
 
 private theorem PermStabilizing'.mem_getElem {n left hi : Nat} {as as' : Vector α n}
     (hperm : PermStabilizing' left (hi - 1) as as') (hr' : hi ≤ n) :
@@ -93,12 +122,12 @@ private theorem PermStabilizing'.mem_getElem {n left hi : Nat} {as as' : Vector 
   -- h₁ : L₁.length = left
   -- h₂ : left + L₂.length = hi
   -- h₃ : as.toArray.toList = L₁ ++ L₂ ++ L₃
-  have ⟨L₁, L₂, L₃, h₁, h₂, h₃⟩ := Batteries.Vector.split_three as hlr' hr'
-  have ⟨L₁', L₂', L₃', h₁', h₂', h₃'⟩ := Batteries.Vector.split_three as' hlr' hr'
+  have ⟨L₁, L₂, L₃, h₁, h₂, h₃⟩ := Vector.split_three as hlr' hr'
+  have ⟨L₁', L₂', L₃', h₁', h₂', h₃'⟩ := Vector.split_three as' hlr' hr'
 
-  have hasn : as.toArray.toList.length = n := by simp only [as.2]
+  have hasn : as.toArray.toList.length = n := by grind -- simp only [as.2]
   have hlll : (L₁ ++ L₂ ++ L₃).length = n := by rwa [←h₃]
-  have hasn': as'.toArray.toList.length = n := by simp only [as'.2]
+  have hasn': as'.toArray.toList.length = n := by grind -- simp only [as'.2]
   have hlll' : (L₁' ++ L₂' ++ L₃').length = n := by rwa [←h₃']
   have hahi : (L₁ ++ L₂).length = hi := by simpa only [List.length_append, h₁]
   have hahi' : (L₁' ++ L₂').length = hi := by simpa only [List.length_append, h₁']
@@ -132,8 +161,8 @@ private theorem PermStabilizing'.mem_getElem {n left hi : Nat} {as as' : Vector 
       simp only [←h₃, ←h₃']
       exact hperm.2.2 ⟨hi + j, by omega⟩ (by change _ < hi + j; omega)
 
-  have hh2 : L₂ ~ L₂' :=
-    hh1 ▸ hh3 ▸ h₃ ▸ h₃' ▸ (show as.toArray.toList ~ as'.toArray.toList from hperm.1)
+  have hh2 : L₂.Perm L₂' :=
+    hh1 ▸ hh3 ▸ h₃ ▸ h₃' ▸ (show List.Perm as.toArray.toList as'.toArray.toList from Vector.Perm.toList hperm.1)
     |> (List.perm_append_right_iff _).1
     |> (List.perm_append_left_iff _).1
 

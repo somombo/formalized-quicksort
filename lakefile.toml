@@ -8,10 +8,7 @@ name = "Quicksort"
 name = "quicksort"
 root = "Example"
 
-[[lean_lib]]
-name = "Battteries"
-
 [[require]]
 name = "batteries"
 git = "https://github.com/leanprover-community/batteries.git"
-rev = "v4.14.0"
+rev = "v4.22.0"
