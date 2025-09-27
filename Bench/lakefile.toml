@@ -1,0 +1,20 @@
+name = "Bench"
+version = "0.1.0"
+defaultTargets = ["bench"]
+
+[[lean_lib]]
+name = "Bench"
+
+
+
+[[lean_exe]]
+name = "bench"
+root = "Main"
+
+
+
+[[require]]
+name = "quicksort"
+path = ".."
+
+
