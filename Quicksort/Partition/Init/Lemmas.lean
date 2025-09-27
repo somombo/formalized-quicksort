@@ -1,8 +1,8 @@
 import Quicksort.Utils.RangeHas
 import Quicksort.Utils.PermStabalizing
 import Quicksort.Partition.Init.Basic
-import Batteries.Data.Array.Lemmas
-open Batteries Vector
+
+open Vector
 
 variable [Ord α]
 

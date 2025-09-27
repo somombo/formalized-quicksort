@@ -61,6 +61,19 @@ private theorem List.getElem_append_right'' {l₁ l₂ : List α} {n : Nat} (h :
   simp only [List.getElem_append_right' l₁ h, Nat.add_comm]
 
 namespace Vector
+
+example {P Q : β → Prop} : ((∀ x, P x) ∧ (∀ y, Q y)) ↔ (∀ x y, (P x) ∧ (Q y)) where
+  mp:= by grind
+  mpr  := by
+    intro h
+    constructor
+    · intro z
+      have ⟨_, _⟩ := h z z
+      assumption
+    · intro z
+      have ⟨_, _⟩ := h z z
+      assumption
+
 /-- `PermStabilizing left right as₁ as₂` asserts that `as₁` and `as₂` are permutations of each other,
 and moreover they agree outside the range `left..=right`. -/
 def PermStabilizing' (left right : Nat) (as₁ as₂ : Vector α n) :=
@@ -90,7 +103,7 @@ protected theorem PermStabilizing'.mono (h : PermStabilizing' left right as₁ a
   right.left _ hi := h.2.1 _ <| Nat.lt_of_lt_of_le hi hleft
   right.right _ hj := h.2.2 _ <| Nat.lt_of_le_of_lt hright hj
 
-theorem swap_permStabilizing' {as : Vector α n} {i j : Fin n} {left right : Nat}
+theorem swap_permStabilizing' {as : Vector α n} {i j : Nat} {hi : i < n} {hj : j < n} {left right : Nat}
     (h_i1 : left ≤ i) (h_i2 : i ≤ right) (h_j1 : left ≤ j) (h_j2 : j ≤ right) :
     PermStabilizing' left right (as.swap i j) as := by
   refine ⟨Vector.swap_perm .., fun k hk => ?_, fun k hk => ?_⟩

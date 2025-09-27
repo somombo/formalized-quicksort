@@ -2,7 +2,7 @@
 import Quicksort.Partition.Hoare.Classic.Basic
 import Quicksort.Partition.Init.Lemmas
 
-open Batteries Vector
+open Vector
 
 namespace Partition
 variable [Ord α]

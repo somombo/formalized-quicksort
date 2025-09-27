@@ -14,9 +14,25 @@ def hello := #[
 84, 75, 99, 4, 91, 50, 53, 60, 56, 24
 ]
 
+#eval! qs hello (part := hoare)
+
+/--
+info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17, 18, 19, 24, 24, 24, 25, 26, 27, 29, 29, 30,
+  30, 32, 33, 34, 34, 35, 37, 37, 39, 39, 39, 39, 40, 40, 41, 42, 42, 43, 43, 46, 47, 49, 50, 50, 52, 53, 53, 53, 54,
+  56, 56, 57, 58, 60, 60, 61, 63, 65, 68, 69, 70, 73, 75, 76, 77, 78, 79, 81, 84, 84, 85, 86, 88, 89, 90, 90, 91, 91,
+  91, 91, 93, 94, 95, 95, 96, 99, 99]
+-/
+#guard_msgs in
 #eval qs hello (part := hoare)
 #eval qs hello (part := lomuto)
 def arr_example : Array Int :=  #[2,1,2,3]
+
+set_option guard_msgs.diff false
+
+/--
+info: #[1, 2, 2, 3]
+-/
+#guard_msgs(info) in
 #eval qs arr_example
 
 
@@ -25,8 +41,8 @@ def arr_example : Array Int :=  #[2,1,2,3]
 #eval qs #[0]
 
 -- trivial
-#eval qs #[0,1]
-#eval qs #[1,0]
+#eval! qs #[0,1]
+#eval! qs #[1,0]
 #eval qs #[0,0]
 
 -- recursive

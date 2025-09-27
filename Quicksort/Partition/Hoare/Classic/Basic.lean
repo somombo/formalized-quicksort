@@ -1,7 +1,6 @@
 import Quicksort.Partition.Init.Basic
-import Battteries.Vector.Lemmas
 
-open Batteries Vector
+open Vector
 
 namespace Partition
 

@@ -1,5 +1,6 @@
 name = "quicksort"
-defaultTargets = ["Quicksort"]
+testDriver = "test"
+defaultTargets = ["Quicksort", "quicksort", "Bench"]
 
 [[lean_lib]]
 name = "Quicksort"
@@ -8,7 +9,42 @@ name = "Quicksort"
 name = "quicksort"
 root = "Example"
 
+[[lean_exe]]
+name = "timer"
+root = "Timer_Issue"
+srcDir = "Bench"
+
+[[lean_exe]]
+name = "test"
+srcDir = "Bench"
+root = "Main"
+
+[[lean_lib]]
+name = "Bench"
+defaultFacets = ["shared"]    # defaultFacets := #[LeanLib.sharedFacet]
+
+# [[lean_exe]]
+# name = "hoaretest"
+# srcDir = "Bench"
+# root = "Hoare"
+# moreLeancArgs = ["-O3"]
+
+
+
 [[require]]
 name = "batteries"
 git = "https://github.com/leanprover-community/batteries.git"
-rev = "v4.22.0"
+rev = "v4.23.0"
+
+
+
+
+
+
+# import Lake
+# open System Lake DSL
+
+
+
+# @[default_target]
+# lean_lib Bench where

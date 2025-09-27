@@ -1,6 +1,6 @@
 import Quicksort.Partition.Init.Basic
 
-open Batteries Vector
+open Vector
 def dbg {α : Type u} [ToString α] (s : String) (a : α)  : α :=
   dbgTrace s!"{s}" (fun _ => a)
 

@@ -1,6 +1,6 @@
 import Quicksort.Partition.Init.Basic
 
-open Batteries Vector
+open Vector
 
 /-
   imperetive implimentation of Three-Way "Dutch National Flag" Partition

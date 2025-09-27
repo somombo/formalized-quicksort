@@ -4,19 +4,18 @@ namespace Partition
 
 variable [Ord α]
 
--- instance : Nonempty ([Ord α] → {n j : Nat} → α → Vector α n → (jval : Nat) → jval ≤ j → j < n →
---     { j' : Fin n // j' ≤ j }) :=
---   ⟨fun _ _ jval hjj hj => ⟨⟨jval, by omega⟩, by grind⟩⟩
+instance : Nonempty ([Ord α] → {n j left : Nat} → α → Vector α n → (jval : Nat) → jval ≤ j → left ≤ jval → j < n → { j' // j' ≤ j }) :=
+  ⟨fun _ _ jval _ _ _ => ⟨jval, by grind⟩⟩
 
-
+-- set_option warn.sorry false
 
 def hoare.new.loop.while_j' (pivot : α)  (arr : Vector α n) (jval : Nat)  (hjj : jval ≤ j)
     (hxj : left ≤ jval) (hj : j < n) : { j' : Nat // j' ≤ j }:=
-  if h' : jval = left ∨ lt arr[jval] pivot then
-    ⟨jval, by grind⟩
-  else
+  if h' : jval ≠ left ∧ lt pivot arr[jval] then
     -- have _ : jval ≠ left := sorry
     while_j' (left:=left) pivot  arr (jval - 1) (by omega) (by omega) (by omega)
+  else
+    ⟨jval, by grind⟩
 -- partial_fixpoint
 -- termination_by jval
 -- decreasing_by
@@ -26,11 +25,11 @@ def hoare.new.loop.while_j' (pivot : α)  (arr : Vector α n) (jval : Nat)  (hjj
 def hoare.new.loop.while_i' (pivot : α)  (arr : Vector α n) (ival : Nat) (hli : left < ival) (hxi : ival ≤ right)
     (hr : right < n)  : { i' : Nat // left < i' } :=
   -- NOTEvv: @somombo: ival = right → lt pivot arr[ival] if lt is asymmetric
-  if _ : ival = right ∨ lt pivot arr[ival] then
-    ⟨ival, hli⟩
-  else
+  if _ : ival ≠ right ∧  lt arr[ival] pivot then
     -- have _ : ival ≠ right := sorry
     while_i' (right:=right) pivot  arr (ival + 1)  (by omega) (by omega) hr
+  else
+    ⟨ival, hli⟩
 
 
 open Vector in
