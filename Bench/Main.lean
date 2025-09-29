@@ -48,31 +48,31 @@ def main (args : List String): IO Unit := do
   let some size := arg.toNat? | throw <| IO.userError s!"specify size test array"
 
 
-  -- let data ← Array.mkRandom size (duplicate_ratio := 0) (swaps_ratio := 0)
-  -- let _ ← bench "Sorted Uniques" data
+  let data ← Array.randNats size (duplicate_ratio := 0) (swaps_ratio := 0)
+  let _ ← bench "Sorted Uniques" data
 
-  -- let data ← Array.mkRandom size (duplicate_ratio := 0.6) (swaps_ratio := 0)
-  -- let _ ← bench "Sorted With Duplicates" data
+  let data ← Array.randNats size (duplicate_ratio := 0.6) (swaps_ratio := 0)
+  let _ ← bench "Sorted With Duplicates" data
 
-  -- let data ← Array.mkRandom size (duplicate_ratio := 0) (swaps_ratio := 0.0001)
-  -- let _ ← bench "Almost Sorted Uniques" data
+  let data ← Array.randNats size (duplicate_ratio := 0) (swaps_ratio := 0.0001)
+  let _ ← bench "Almost Sorted Uniques" data
 
-  -- let data ← Array.mkRandom size (duplicate_ratio := 0) (swaps_ratio := 0) (reverse := true)
-  -- let _ ← bench "Reverse Sorted Uniques" data
+  let data ← Array.randNats size (duplicate_ratio := 0) (swaps_ratio := 0) (reverse := true)
+  let _ ← bench "Reverse Sorted Uniques" data
 
-  -- let data ← Array.mkRandom size (duplicate_ratio := 0)
-  -- let _ ← bench "Unsorted Uniques" data
+  let data ← Array.randNats size (duplicate_ratio := 0)
+  let _ ← bench "Unsorted Uniques" data
 
-  -- let data ← Array.mkRandom size (duplicate_ratio := 0.9)
-  -- let _ ← bench "Very High Duplicates" data
+  let data ← Array.randNats size (duplicate_ratio := 0.9)
+  let _ ← bench "Very High Duplicates" data
 
-  -- let data ← Array.mkRandom size (duplicate_ratio := 0.5)
-  -- let _ ← bench "High Duplicates" data
+  let data ← Array.randNats size (duplicate_ratio := 0.5)
+  let _ ← bench "High Duplicates" data
 
-  -- let data ← Array.mkRandom size (duplicate_ratio := 0.25)
-  -- let _ ← bench "Mid Duplicates" data
+  let data ← Array.randNats size (duplicate_ratio := 0.25)
+  let _ ← bench "Mid Duplicates" data
 
-  let data ← Array.mkRandom size (duplicate_ratio := 1) (swaps_ratio := 0)
+  let data ← Array.randNats size (duplicate_ratio := 1) (swaps_ratio := 0)
   let _ ← bench "All Duplicates" data
 
 
@@ -96,7 +96,7 @@ def main (args : List String): IO Unit := do
 
 --   -- Generate a highly unsorted array to give qsort some real work to do.
 --   -- let unsortedArr ← Array.mkAlmostSorted size (swaps_ratio := 0.9)
---   let unsortedArr ← Array.mkRandom size (duplicateRatio := 0.9)
+--   let unsortedArr ← Array.randNats size (duplicateRatio := 0.9)
 --   let unsortedArr_copy := Array.mk unsortedArr.toList
 --   IO.println "Generation complete. Starting timer and sorting..."
 --   IO.println "------------------------------------------------"
