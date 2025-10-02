@@ -2,43 +2,36 @@
 import Quicksort.Basic
 import Std.Time.DateTime.Timestamp
 import Bench
+import Bench.Time
 import Batteries.Data.BinaryHeap
 
 
 -- (dbgTraceIfShared s!"as={as}\n" as.qsort)
 
 
-
-def timeAx (ax : IO α) : IO Std.Time.Duration  := do
-  let start ← Std.Time.Timestamp.now
-  let _ ←  ax
-  let dur ← Std.Time.Timestamp.since start
-  return dur
-
-
 def bench (name : String) (data : Array Nat): IO Unit := do
   IO.println s!"\n{name}:"
 
-  let dur ← timeAx ((qs · (part := Partition.hoare.eager)) <$> pure data)
+  let ⟨dur, _⟩ ← timeAx ((qs · (part := Partition.hoare.eager)) <$> pure data)
   IO.println s!"  Partition.hoare.eager: {dur.toMilliseconds}ms"
 
-  let dur ← timeAx ((qs · (part := Partition.hoare.new)) <$> pure data)
+  let ⟨dur, _⟩ ← timeAx ((qs · (part := Partition.hoare.new)) <$> pure data)
   IO.println s!"  Partition.hoare.new:   {dur.toMilliseconds}ms"
 
-  let dur ← timeAx (Array.insertionSort <$> pure data)
+  let ⟨dur, _⟩ ← timeAx (Array.insertionSort <$> pure data)
   IO.println s!"  Array.insertionSort:   {dur.toMilliseconds}ms"
 
   let dataList := data.toList
-  let dur ← timeAx (List.mergeSort <$> pure dataList)
+  let ⟨dur, _⟩ ← timeAx (List.mergeSort <$> pure dataList)
   IO.println s!"  List.mergeSort:        {dur.toMilliseconds}ms"
 
-  let dur ← timeAx ((qs · (part := Partition.lomuto)) <$> pure data)
+  let ⟨dur, _⟩ ← timeAx ((qs · (part := Partition.lomuto)) <$> pure data)
   IO.println s!"  Partition.lomuto:      {dur.toMilliseconds}ms"
 
-  let dur ← timeAx ((Array.heapSort · (· < ·))  <$> pure data)
+  let ⟨dur, _⟩ ← timeAx ((Array.heapSort · (· < ·))  <$> pure data)
   IO.println s!"  Array.heapSort:        {dur.toMilliseconds}ms"
 
-  let dur ← timeAx (Array.qsort <$> pure data)
+  let ⟨dur, _⟩ ← timeAx (Array.qsort <$> pure data)
   IO.println s!"  Array.qsort:           {dur.toMilliseconds}ms"
 
   IO.println ""
@@ -48,34 +41,35 @@ def main (args : List String): IO Unit := do
   let some size := arg.toNat? | throw <| IO.userError s!"specify size test array"
 
 
-  let data ← Array.randNats size (duplicate_ratio := 0) (swaps_ratio := 0)
+  let data ← Array.randNats size (swaps_ratio := 0) -- (unique_ratio := 1)
   let _ ← bench "Sorted Uniques" data
 
-  let data ← Array.randNats size (duplicate_ratio := 0.6) (swaps_ratio := 0)
-  let _ ← bench "Sorted With Duplicates" data
-
-  let data ← Array.randNats size (duplicate_ratio := 0) (swaps_ratio := 0.0001)
+  let data ← Array.randNats size (swaps_ratio := 0.0001) -- (unique_ratio := 1) (swaps_ratio := 1)
   let _ ← bench "Almost Sorted Uniques" data
 
-  let data ← Array.randNats size (duplicate_ratio := 0) (swaps_ratio := 0) (reverse := true)
+  let data ← Array.randNats size (swaps_ratio := 0) (reverse := true) -- (unique_ratio := 1)
   let _ ← bench "Reverse Sorted Uniques" data
 
-  let data ← Array.randNats size (duplicate_ratio := 0)
+  let data ← Array.randNats size -- (unique_ratio := 1) (swaps_ratio := 1)
   let _ ← bench "Unsorted Uniques" data
 
-  let data ← Array.randNats size (duplicate_ratio := 0.9)
-  let _ ← bench "Very High Duplicates" data
-
-  let data ← Array.randNats size (duplicate_ratio := 0.5)
+  let data ← Array.randNats size (unique_ratio := 0.25) -- (swaps_ratio := 1)
   let _ ← bench "High Duplicates" data
 
-  let data ← Array.randNats size (duplicate_ratio := 0.25)
+  let data ← Array.randNats size (unique_ratio := 0.5) -- (swaps_ratio := 1)
   let _ ← bench "Mid Duplicates" data
 
-  let data ← Array.randNats size (duplicate_ratio := 1) (swaps_ratio := 0)
+  let data ← Array.randNats size (unique_ratio := 0) (swaps_ratio := 0)
   let _ ← bench "All Duplicates" data
 
+#eval hash "1,0,true,10,9,8,7,6,5,4,3,2,1,0"
+-- --------------
 
+--   let data ← Array.randNatsWithDominantVal size (duplicate_ratio := 0.6) (swaps_ratio := 0)
+--   let _ ← bench "Sorted With Duplicates" data
+
+--   let data ← Array.randNatsWithDominantVal size (duplicate_ratio := 0.9)
+--   let _ ← bench "Very High Duplicates" data
 
 
 
