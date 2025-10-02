@@ -8,6 +8,21 @@ name = "Bench"
 
 
 [[lean_exe]]
+name = "datagen"
+root = "Make_Input"
+
+[[lean_exe]]
+name = "lean_sort"
+root = "LeanSort"
+cflags = ["-O3", "-march=native"]
+lflags = ["-static"]
+release = true   # enable release mode by default
+
+# [build]
+
+
+
+[[lean_exe]]
 name = "bench"
 root = "Main"
 
@@ -16,5 +31,4 @@ root = "Main"
 [[require]]
 name = "quicksort"
 path = ".."
-
 
