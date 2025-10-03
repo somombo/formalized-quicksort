@@ -1,12 +1,24 @@
 
 import Quicksort.Basic
 import Std.Time.DateTime.Timestamp
+
 import Bench
-import Bench.Time
+import DataGen.RandomArray
 import Batteries.Data.BinaryHeap
 
+/-!
+Run for example `lake test -- 10000`
+-/
 
 -- (dbgTraceIfShared s!"as={as}\n" as.qsort)
+
+
+def appendHello ( _ : Unit) : IO Unit := do
+  let outDir := System.FilePath.mk "data/input"
+  let outFile := outDir / "hello.txt"
+  IO.FS.createDirAll outDir
+  let handle ← IO.FS.Handle.mk outFile IO.FS.Mode.append
+  handle.putStr "Hello world"
 
 
 def bench (name : String) (data : Array Nat): IO Unit := do
@@ -62,7 +74,8 @@ def main (args : List String): IO Unit := do
   let data ← Array.randNats size (unique_ratio := 0) (swaps_ratio := 0)
   let _ ← bench "All Duplicates" data
 
-#eval hash "1,0,true,10,9,8,7,6,5,4,3,2,1,0"
+
+#eval do main ["500"]
 -- --------------
 
 --   let data ← Array.randNatsWithDominantVal size (duplicate_ratio := 0.6) (swaps_ratio := 0)

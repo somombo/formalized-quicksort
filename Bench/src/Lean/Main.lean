@@ -1,12 +1,10 @@
 
+import Bench
 import Quicksort.Basic
 import Std.Time.DateTime.Timestamp
-import Bench
-import Bench.Time
 import Batteries.Data.BinaryHeap
 
 
--- import Std
 import Lean.Data.Json.Parser
 
 def String.toFloat? (s : String) : Option Float :=
@@ -14,19 +12,17 @@ def String.toFloat? (s : String) : Option Float :=
     | .ok (.num t) => some t.toFloat
     | _ => none
 
-#eval "25.123651".toFloat?
-
 
 
 def exitWithError (msg : String) : IO α := do
   IO.eprintln msg
   IO.Process.exit 1
 
-#check Float
-def parseNFromFileName (path : System.FilePath) : IO Nat :=
+
+def parseSizeFromFileName (path : System.FilePath) : IO Nat :=
   let stem : Option String := path.fileStem
   match stem.bind String.toNat? with
-  | some n => pure n
+  | some size => pure size
   | none => exitWithError s!"Error: Could not parse number from filename '{path}'."
 
 structure Row where
@@ -36,7 +32,7 @@ structure Row where
   reverse : Bool
   size : USize
 
-def stringToBool? (s : String) : Option Bool :=
+def String.toBool? (s : String) : Option Bool :=
   if s.toLower == "true" then
     some true
   else if s.toLower == "false" then
@@ -45,18 +41,17 @@ def stringToBool? (s : String) : Option Bool :=
     none
 
 
--- #check String.toFloat?
--- #eval (some "55").toNat?.map UInt64.ofNat
+
 def processLine (line : String) (n : Nat) : IO (Row × Array UInt64) := do
   let parts := (line.trim.splitOn ",").toArray
   if parts.size != 6 + n then
     exitWithError s!"Error: Malformed line. Expected {6+n} columns, got {parts.size} in line: '{line}'."
 
-  let id? := (parts.get? 0).bind (·.toNat?.map UInt64.ofNat)
-  let unique_frac? := (parts.get? 2).bind String.toFloat?
-  let swap_ratio? := (parts.get? 3).bind String.toFloat?
-  let reverse? := (parts.get? 4).bind stringToBool?
-  let size? := (parts.get? 5).bind String.toNat? |>.map Nat.toUSize
+  let id? := parts[0]?.bind (·.toNat?.map UInt64.ofNat)
+  let unique_frac? := parts[2]?.bind String.toFloat?
+  let swap_ratio? := parts[3]?.bind String.toFloat?
+  let reverse? := parts[4]?.bind String.toBool?
+  let size? := parts[5]?.bind String.toNat? |>.map Nat.toUSize
 
   let row ← match (id?, unique_frac?, swap_ratio?, reverse?, size?) with
     | (some id, some uf, some sr, some r, some s) =>
@@ -68,7 +63,7 @@ def processLine (line : String) (n : Nat) : IO (Row × Array UInt64) := do
 
   let mut numbers := Array.mkEmpty n
   for i in [6:6+n] do
-    match (parts.get? i).bind (·.toNat?.map UInt64.ofNat) with
+    match parts[i]?.bind (·.toNat?.map UInt64.ofNat) with
     | some num => numbers := numbers.push num
     | none => exitWithError s!"Error: Could not parse number at index {i} in line '{line}'."
   pure (row, numbers)
@@ -78,7 +73,7 @@ def getCurrentTimestampString : IO String := do
   return current_time.format "uuuu-MM-dd'T'HH:mm:ssXXX"
 
 def processFile (inputFile : System.FilePath) (resultsHandle : IO.FS.Handle) : IO Unit := do
-  let n ← parseNFromFileName inputFile
+  let n ← parseSizeFromFileName inputFile
   let outputDir := System.FilePath.mk "data" / "output"
   let some fileName := inputFile.fileName
     | exitWithError s!"Error: Could not get filename from path '{inputFile}'."
@@ -92,18 +87,17 @@ def processFile (inputFile : System.FilePath) (resultsHandle : IO.FS.Handle) : I
           break
 
         let (row, numbers) ← processLine line n
-        -- let mut numbers := numbers
         let timestamp ← getCurrentTimestampString
 
-        -- let mut dur : Std.Time.Duration := default
         let ⟨dur, numbers⟩ ← timeAx ((qs · (part := Partition.hoare.eager)) <$> pure numbers)
         let sortTimeMs := dur.toMilliseconds
 
 
-        let sortedNumbersStr := ",".intercalate (numbers.toList.map toString)
-        let outputLine := s!"{row.id},{timestamp},{row.unique_frac},{row.swap_ratio},{row.reverse},{row.size},{sortedNumbersStr}"
-        outputHandle.putStrLn outputLine
-        outputHandle.flush
+        if row.size ≤ 1000000 then
+          let sortedNumbersStr := ",".intercalate (numbers.toList.map toString)
+          let outputLine := s!"{row.id},{timestamp},{row.unique_frac},{row.swap_ratio},{row.reverse},{row.size},{sortedNumbersStr}"
+          outputHandle.putStrLn outputLine
+          outputHandle.flush
 
         let resultsLine := s!"{row.id},{timestamp},{row.unique_frac},{row.swap_ratio},{row.reverse},{row.size},{sortTimeMs},lean4_hoare_eager_sort"
         resultsHandle.putStrLn resultsLine
@@ -114,19 +108,20 @@ def main : IO UInt32 := do
   let outputDir := System.FilePath.mk "data" / "output"
   let resultsFile := System.FilePath.mk "data" / "results.csv"
 
-  -- try
-  IO.FS.createDirAll outputDir
-  if !(← inputDir.isDir) then
-    IO.eprintln s!"Input directory '{inputDir}' not found. Skipping processing."
-    return 0
+  try
+    IO.FS.createDirAll outputDir
+    if !(← inputDir.isDir) then
+      IO.eprintln s!"Input directory '{inputDir}' not found. Skipping processing."
+      return ↑0
 
-  IO.FS.withFile resultsFile IO.FS.Mode.append fun resultsHandle => do
-    let entries ← inputDir.readDir
-    for entry in entries do
-      let path := entry.path
-      if !(← path.isDir) then
-        processFile path resultsHandle
-  -- catch e =>
-  --   IO.eprintln s!"An unexpected error occurred: {e}"
-  --   return 1
-  return 0
+    IO.FS.withFile resultsFile IO.FS.Mode.append fun resultsHandle => do
+      let entries ← inputDir.readDir
+      for entry in entries do
+        let path := entry.path
+        if !(← path.isDir) then
+          processFile path resultsHandle
+    return 0
+  catch
+    e =>
+      IO.eprintln s!"An unexpected error occurred: {e}"
+      return 1

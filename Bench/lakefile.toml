@@ -1,30 +1,42 @@
-name = "Bench"
+name = "SortBench"
 version = "0.1.0"
 defaultTargets = ["bench"]
+testDriver = "test"
+
 
 [[lean_lib]]
-name = "Bench"
-
-
+name = "DataGen"
 
 [[lean_exe]]
 name = "datagen"
-root = "Make_Input"
+root = "Main"
+srcDir = "DataGen"
+
 
 [[lean_exe]]
-name = "lean_sort"
-root = "LeanSort"
-cflags = ["-O3", "-march=native"]
-lflags = ["-static"]
-release = true   # enable release mode by default
+name = "test"
+root = "Test"
+buildType = "relWithDebInfo"
 
-# [build]
+
+
+[[lean_lib]]
+name = "Bench"
+# roots = ["Basic"]
+# srcDir = "src/Lean"
 
 
 
 [[lean_exe]]
 name = "bench"
 root = "Main"
+buildType = "release"
+# cflags = ["-O3", "-march=native"]
+# lflags = ["-static"]
+# release = true 
+srcDir = "src/Lean"
+# needs = ["Bench"]
+
 
 
 
