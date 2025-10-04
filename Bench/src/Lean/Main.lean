@@ -1,23 +1,10 @@
-
 import Bench
 import Quicksort.Basic
 import Std.Time.DateTime.Timestamp
-import Batteries.Data.BinaryHeap
-
-
-import Lean.Data.Json.Parser
-
-def String.toFloat? (s : String) : Option Float :=
-  match Lean.Json.parse s with
-    | .ok (.num t) => some t.toFloat
-    | _ => none
-
-
 
 def exitWithError (msg : String) : IO α := do
   IO.eprintln msg
   IO.Process.exit 1
-
 
 def parseSizeFromFileName (path : System.FilePath) : IO Nat :=
   let stem : Option String := path.fileStem
@@ -27,42 +14,22 @@ def parseSizeFromFileName (path : System.FilePath) : IO Nat :=
 
 structure Row where
   id : UInt64
-  unique_frac : Float
-  swap_ratio : Float
-  reverse : Bool
-  size : USize
-
-def String.toBool? (s : String) : Option Bool :=
-  if s.toLower == "true" then
-    some true
-  else if s.toLower == "false" then
-    some false
-  else
-    none
-
-
+  datagen_method : String
 
 def processLine (line : String) (n : Nat) : IO (Row × Array UInt64) := do
   let parts := (line.trim.splitOn ",").toArray
-  if parts.size != 6 + n then
-    exitWithError s!"Error: Malformed line. Expected {6+n} columns, got {parts.size} in line: '{line}'."
+  if parts.size != 3 + n then
+    exitWithError s!"Error: Malformed line. Expected {3+n} columns, got {parts.size} in line: '{line}'."
 
   let id? := parts[0]?.bind (·.toNat?.map UInt64.ofNat)
-  let unique_frac? := parts[2]?.bind String.toFloat?
-  let swap_ratio? := parts[3]?.bind String.toFloat?
-  let reverse? := parts[4]?.bind String.toBool?
-  let size? := parts[5]?.bind String.toNat? |>.map Nat.toUSize
+  let datagen_method? := parts[2]?
 
-  let row ← match (id?, unique_frac?, swap_ratio?, reverse?, size?) with
-    | (some id, some uf, some sr, some r, some s) =>
-      if s.toNat != n then
-        exitWithError s!"Error: Size column ({s}) does not match filename value ({n})."
-      else
-        pure { id, unique_frac := uf, swap_ratio := sr, reverse := r, size := s }
+  let row ← match (id?, datagen_method?) with
+    | (some id, some dm) => pure { id, datagen_method := dm }
     | _ => exitWithError s!"Error: Malformed metadata in line '{line}'."
 
   let mut numbers := Array.mkEmpty n
-  for i in [6:6+n] do
+  for i in [3:3+n] do
     match parts[i]?.bind (·.toNat?.map UInt64.ofNat) with
     | some num => numbers := numbers.push num
     | none => exitWithError s!"Error: Could not parse number at index {i} in line '{line}'."
@@ -92,14 +59,13 @@ def processFile (inputFile : System.FilePath) (resultsHandle : IO.FS.Handle) : I
         let ⟨dur, numbers⟩ ← timeAx ((qs · (part := Partition.hoare.eager)) <$> pure numbers)
         let sortTimeMs := dur.toMilliseconds
 
-
-        if row.size ≤ 1000000 then
+        if n ≤ 100000 then
           let sortedNumbersStr := ",".intercalate (numbers.toList.map toString)
-          let outputLine := s!"{row.id},{timestamp},{row.unique_frac},{row.swap_ratio},{row.reverse},{row.size},{sortedNumbersStr}"
+          let outputLine := s!"{row.id},{timestamp},{row.datagen_method},{sortedNumbersStr}"
           outputHandle.putStrLn outputLine
           outputHandle.flush
 
-        let resultsLine := s!"{row.id},{timestamp},{row.unique_frac},{row.swap_ratio},{row.reverse},{row.size},{sortTimeMs},lean4_hoare_eager_sort"
+        let resultsLine := s!"{row.id},{timestamp},{row.datagen_method},lean_qs_hoare_eager,{sortTimeMs}"
         resultsHandle.putStrLn resultsLine
         resultsHandle.flush
 
@@ -111,17 +77,15 @@ def main : IO UInt32 := do
   try
     IO.FS.createDirAll outputDir
     if !(← inputDir.isDir) then
-      IO.eprintln s!"Input directory '{inputDir}' not found. Skipping processing."
-      return ↑0
+      exitWithError s!"Input directory '{inputDir}' not found."
 
     IO.FS.withFile resultsFile IO.FS.Mode.append fun resultsHandle => do
       let entries ← inputDir.readDir
       for entry in entries do
         let path := entry.path
-        if !(← path.isDir) then
+        if !(← path.isDir) && path.extension == some "csv" then
           processFile path resultsHandle
     return 0
-  catch
-    e =>
-      IO.eprintln s!"An unexpected error occurred: {e}"
-      return 1
+  catch e =>
+    IO.eprintln s!"An unexpected error occurred: {e}"
+    return 1

@@ -11,7 +11,7 @@ name = "DataGen"
 name = "datagen"
 root = "Main"
 srcDir = "DataGen"
-
+buildType = "release"
 
 [[lean_exe]]
 name = "test"
@@ -44,3 +44,12 @@ srcDir = "src/Lean"
 name = "quicksort"
 path = ".."
 
+
+[[require]]
+name = "Cli"
+path = ".."
+
+[[require]]
+name = "Cli"
+git = "https://github.com/leanprover/lean4-cli"
+rev = "v4.22.0+patch1"

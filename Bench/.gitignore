@@ -1,2 +1,4 @@
 /.lake
 **/*__delete/**/*
+data/output/*
+data/input/*

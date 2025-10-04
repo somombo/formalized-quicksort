@@ -33,7 +33,7 @@ def Array.sampleWithIndices {α : Type} (arr : Array α) (size : Nat := arr.size
     for i in indices do
       let (j, g') := randNat g i (arr.size - 1); g := g'
 
-      if indices.size < size - 1 then println! s!"swaps# {indices.size}, i: {i}, j: {j}"
+      -- if indices.size < size - 1 then println! s!"swaps# {indices.size}, i: {i}, j: {j}"
       arr := arr.swapIfInBounds i j
     IO.stdGenRef.set g
 

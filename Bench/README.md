@@ -1,13 +1,27 @@
+To Generate data
 run 
-`lake build hoaretest &&  lake build lomutotest`
+```bash
+lake build datagen -R
+```
+then 
 
-and then
+```bash
+time ./.lake/build/bin/datagen --unique-ratio=0.1,0.25,0.5,0.75,0.9,1 --swaps-ratio=0,0.001,0.01,0.05,0.1,0.5 --reverse --forward 1000 10000 100000 1000000
 
-`time ./.lake/build/bin/hoaretest && time ./.lake/build/bin/lomutotest`
+time ./.lake/build/bin/datagen --unique-ratio=0,0.1,0.25,0.5,0.75,0.9,1,1  1000 10000 100000 1000000
 
-OR 
-``` Measure-Command { .\.lake\build\bin\hoaretest.exe | Out-Default } && Measure-Command {  .\.lake\build\bin\lomutotest.exe | Out-Default }```
+```
 
 
-Try and adapt https://github.com/leanprover/lean4/tree/master/tests/bench/mergeSort 
-benchmarking code to this
+To benchmark Lean
+run 
+```bash
+time ./.lake/build/bin/bench
+```
+
+To benchmark C
+
+run 
+```bash
+time ./src/c/run.sh
+```

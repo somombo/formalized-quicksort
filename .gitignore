@@ -2,3 +2,4 @@
 .ignore/
 
 Bench/data/output/*
+Bench/data/input/*
