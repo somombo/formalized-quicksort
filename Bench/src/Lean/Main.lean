@@ -16,6 +16,8 @@ structure Row where
   id : UInt64
   datagen_method : String
 
+
+
 def processLine (line : String) (n : Nat) : IO (Row × Array UInt64) := do
   let parts := (line.trim.splitOn ",").toArray
   if parts.size != 3 + n then
@@ -39,12 +41,33 @@ def getCurrentTimestampString : IO String := do
   let current_time ← Std.Time.ZonedDateTime.now
   return current_time.format "uuuu-MM-dd'T'HH:mm:ssXXX"
 
+def formatMilliseconds (ms : Nat) : String :=
+  let minutes := ms / (60 * 1000)
+  let remainingMs := ms % (60 * 1000)
+  let seconds := remainingMs / 1000
+  let milliseconds := remainingMs % 1000
+  let msStr := toString milliseconds
+  let paddedMsStr := msStr --.leftpad 3 '0'
+  s!"{minutes}m{seconds}.{paddedMsStr}s"
+
+def IO.print' [ToString α] (s : α) : IO Unit := do
+  let out ← getStdout
+  out.putStr <| toString s
+  out.flush
+
+def IO.println' [ToString α] (s : α) : IO Unit :=
+  print ((toString s).push '\n')
+
 def processFile (inputFile : System.FilePath) (resultsHandle : IO.FS.Handle) : IO Unit := do
   let n ← parseSizeFromFileName inputFile
   let outputDir := System.FilePath.mk "data" / "output"
   let some fileName := inputFile.fileName
     | exitWithError s!"Error: Could not get filename from path '{inputFile}'."
   let outputFile := outputDir / fileName
+
+  let out ← IO.getStdout
+  let rec print (s : String) := do
+    out.putStr s
 
   IO.FS.withFile outputFile IO.FS.Mode.append fun outputHandle => do
     IO.FS.withFile inputFile IO.FS.Mode.read fun inputHandle => do
@@ -55,19 +78,28 @@ def processFile (inputFile : System.FilePath) (resultsHandle : IO.FS.Handle) : I
 
         let (row, numbers) ← processLine line n
         let timestamp ← getCurrentTimestampString
+        IO.print' s!"Benchmark of array with id:={row.id}, time={timestamp}, datagen_method:={row.datagen_method}"
 
-        let ⟨dur, numbers⟩ ← timeAx ((qs · (part := Partition.hoare.eager)) <$> pure numbers)
+        -- let dataList := numbers.toList
+        -- let ⟨dur, dataList⟩ ← timeAx (List.mergeSort <$> pure dataList)
+        -- let numbers := dataList.toArray
+
+        let ⟨dur, numbers⟩ ← timeAx (Array.qsort <$> pure numbers); let sort_method := "lean_Array.qsort"
+
+        -- let ⟨dur, numbers⟩ ← timeAx ((qs · (part := Partition.hoare.eager)) <$> pure numbers); let sort_method := "Partition.hoare.eager"
         let sortTimeMs := dur.toMilliseconds
 
-        if n ≤ 100000 then
+        IO.println' s!", sort_method:=\"{sort_method}\", sortTimeMs := \"{formatMilliseconds sortTimeMs.toInt.toNat}\""
+        if n ≤ 10000 then
           let sortedNumbersStr := ",".intercalate (numbers.toList.map toString)
           let outputLine := s!"{row.id},{timestamp},{row.datagen_method},{sortedNumbersStr}"
           outputHandle.putStrLn outputLine
           outputHandle.flush
 
-        let resultsLine := s!"{row.id},{timestamp},{row.datagen_method},lean_qs_hoare_eager,{sortTimeMs}"
+        let resultsLine := s!"{row.id},{timestamp},{row.datagen_method},{sort_method},{sortTimeMs}"
         resultsHandle.putStrLn resultsLine
         resultsHandle.flush
+
 
 def main : IO UInt32 := do
   let inputDir := System.FilePath.mk "data" / "input"

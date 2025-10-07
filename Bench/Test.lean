@@ -53,39 +53,39 @@ def main (args : List String): IO Unit := do
   let some size := arg.toNat? | throw <| IO.userError s!"specify size test array"
 
 
-  let data ← Array.randNats size (swaps_ratio := 0) -- (unique_ratio := 1)
+  let data ← Array.randNats size (swaps_ratio := 0) -- (duplicate_ratio := 0)
   let _ ← bench "Sorted Uniques" data
 
-  let data ← Array.randNats size (swaps_ratio := 0.0001) -- (unique_ratio := 1) (swaps_ratio := 1)
+  let data ← Array.randNats size (swaps_ratio := 0.0001) -- (duplicate_ratio := 0) (swaps_ratio := 1)
   let _ ← bench "Almost Sorted Uniques" data
 
-  let data ← Array.randNats size (swaps_ratio := 0) (reverse := true) -- (unique_ratio := 1)
+  let data ← Array.randNats size (swaps_ratio := 0) (reverse := true) -- (duplicate_ratio := 0)
   let _ ← bench "Reverse Sorted Uniques" data
 
-  let data ← Array.randNats size -- (unique_ratio := 1) (swaps_ratio := 1)
+  let data ← Array.randNats size -- (duplicate_ratio := 0) (swaps_ratio := 1)
   let _ ← bench "Unsorted Uniques" data
 
-  let data ← Array.randNats size (unique_ratio := 0.25) -- (swaps_ratio := 1)
+  let data ← Array.randNats size (duplicate_ratio := 0.5) -- (swaps_ratio := 1)
   let _ ← bench "High Duplicates" data
 
-  let data ← Array.randNats size (unique_ratio := 0.5) -- (swaps_ratio := 1)
+  let data ← Array.randNats size (duplicate_ratio := 0.25) -- (swaps_ratio := 1)
   let _ ← bench "Mid Duplicates" data
 
-  let data ← Array.randNats size (unique_ratio := 0) (swaps_ratio := 0)
+  let data ← Array.randNats size (duplicate_ratio := 1) (swaps_ratio := 0)
   let _ ← bench "All Duplicates" data
+
+
+
+  let data ← Array.randNatsWithDominantVal size (duplicate_ratio := 0.6) (swaps_ratio := 0)
+  let _ ← bench "Sorted With Duplicates" data
+
+  let data ← Array.randNatsWithDominantVal size (duplicate_ratio := 0.9)
+  let _ ← bench "Very High Duplicates" data
+
 
 
 #eval do main ["500"]
 -- --------------
-
---   let data ← Array.randNatsWithDominantVal size (duplicate_ratio := 0.6) (swaps_ratio := 0)
---   let _ ← bench "Sorted With Duplicates" data
-
---   let data ← Array.randNatsWithDominantVal size (duplicate_ratio := 0.9)
---   let _ ← bench "Very High Duplicates" data
-
-
-
 
 
 
