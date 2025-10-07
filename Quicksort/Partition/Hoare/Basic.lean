@@ -23,6 +23,6 @@ import Quicksort.Partition.Hoare.Eager.Basic
 --     panic! "non-asymmetric or non-transitive comparitor. falling back to eager version of hoare partition scheme"
 
 
-import Quicksort.Partition.Hoare.New.Basic
+-- import Quicksort.Partition.Hoare.New.Basic
 
-def Partition.hoare [Ord α] := @Partition.hoare.new α
+def Partition.hoare [Ord α] := @Partition.hoare.eager α

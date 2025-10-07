@@ -3,7 +3,7 @@ import Quicksort.Partition.Lomuto.Lemmas
 
 import Quicksort.Partition.Basic
 
-open Batteries Vector
+open Vector
 
 namespace Partition
 variable [Ord α]
