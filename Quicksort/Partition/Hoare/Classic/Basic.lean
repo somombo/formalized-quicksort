@@ -52,9 +52,9 @@ private theorem median_of_three_sorted {arr : Vector α n} {left mid right: Nat}
     simp only [arr_]
     unfold maybeSwap
     split
-    · have : (arr2.swap ⟨mid, ‹_›⟩ ⟨right, ‹_›⟩)[left] = _ :=
-        arr2.getElem_swap_of_ne _ hleqm hlneqr
-      simp only [this, arr2.getElem_swap_left, Fin.getElem_fin]
+    · have : (arr2.swap mid right)[left] = _ :=
+        arr2.getElem_swap_of_ne hleqm hlneqr
+      simp only [this, arr2.getElem_swap_left]
       assumption
     · exact
       if hmeqr : mid = right then by
@@ -65,9 +65,9 @@ private theorem median_of_three_sorted {arr : Vector α n} {left mid right: Nat}
         unfold maybeSwap
         split
 
-        · have : (arr1.swap ⟨left, by omega⟩ ⟨right, hr⟩)[mid] = _ :=
-            arr1.getElem_swap_of_ne (_ : mid < n) (Ne.symm hleqm) hmeqr
-          simp only [this, arr1.getElem_swap_left, Fin.getElem_fin]
+        · have : (arr1.swap left right)[mid] = _ :=
+            arr1.getElem_swap_of_ne (Ne.symm hleqm) hmeqr
+          simp only [this, arr1.getElem_swap_left]
           refine le_trans (lt_asymm ?_) hh1
           assumption
         · assumption

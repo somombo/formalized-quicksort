@@ -20,11 +20,13 @@ theorem qs.strict.permStabilizing [LawfulScheme part] {as : Vector α n} {left r
     unfold qs.strict; simp [*]
     apply Vector.PermStabilizing'.refl
 
-theorem qs.perm' [LawfulScheme part] {as : Array α} {left : Nat} {right : Nat}  : (qs as left right part) ~ as := by
+theorem qs.perm' [LawfulScheme part] {as : Array α} {left : Nat} {right : Nat}  : (qs as left right part).Perm as := by
   simp only [qs]; split
   any_goals simp only [panicWithPosWithDecl, panic, panicCore, *]
-  · sorry -- exact qs.strict.permStabilizing.1
-  · sorry -- exact qs.strict.permStabilizing.1
+  all_goals
+  have := qs.strict.permStabilizing (part := part) (as := Vector.mk as rfl) (left := left) (hsize' := by solve_by_elim) |>.1
+  grind [Vector.Perm]
+
 
 theorem qs.perm {as : Array α} : (qs as).Perm as := qs.perm'
 
@@ -65,11 +67,10 @@ theorem qs.strict.monotonic [StrictOrder α] [LawfulScheme part] {as : Vector α
       have hhh1 : ¬lt pivot as'''[i] :=
         suffices ¬lt pivot as''[i] by rwa [qs.strict.permStabilizing.2.left i (by omega)]
         if _ : i ≤ j' then by
-          apply Vector.PermStabilizing'.invariance (motive := (¬lt pivot ·)) (left := left) (hi := j' + 1) (h := ?_ )
+          apply Vector.PermStabilizing'.invariance (motive := (¬lt pivot ·)) (left := left) (hi := j' + 1) (hperm := qs.strict.permStabilizing) (h := ?_ )
           any_goals omega
-          · sorry -- exact qs.strict.permStabilizing
           · intro i_ _ _
-            sorry -- apply ih0.left i_ <;> omega
+            apply ih0.left i_ <;> omega
         else by
           rw [qs.strict.permStabilizing.2.right _ ?_]
           apply ih0.left i
@@ -77,12 +78,11 @@ theorem qs.strict.monotonic [StrictOrder α] [LawfulScheme part] {as : Vector α
 
       have hhh2 : ¬lt as'''[j] pivot :=
         if _ : i' ≤ j then by
-          apply Vector.PermStabilizing'.invariance (motive := (¬lt · pivot)) (left := i') (hi := right + 1) (h := ?_)
+          apply Vector.PermStabilizing'.invariance (motive := (¬lt · pivot)) (left := i') (hi := right + 1) (hperm := qs.strict.permStabilizing) (h := ?_)
           any_goals omega
-          · sorry -- exact qs.strict.permStabilizing
           · intro j_ _ _
-            -- rw [qs.strict.permStabilizing.2.right j_ (by omega)]
-            sorry -- apply ih0.right j_ <;> omega
+            rw [qs.strict.permStabilizing.2.right j_ (by omega)]
+            apply ih0.right j_ <;> omega
         else by
           rw [qs.strict.permStabilizing.2.left _ ?_, qs.strict.permStabilizing.2.right _ ?_]
           apply ih0.right j
