@@ -18,7 +18,7 @@ variable (le_trans : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x)
 
 theorem hoare.classic.while_i_elem_not_left_of_piv {arr : Vector α n} {harltp : ¬lt arr[right] pivot}
   : ¬lt arr[(hoare.classic.loop.while_i left right hr pivot arr i j hjr harltp ival hii hxi).1.val] pivot := by
-  induction ival, hii, hxi using hoare.classic.loop.while_i.induct left right hr pivot arr i j hjr harltp with
+  induction ival, hii, hxi using hoare.classic.loop.while_i.induct right hr pivot arr i j harltp with
   | case1 ival hii hxi hi hlt hir ih =>
     unfold hoare.classic.loop.while_i; simp [*]
   | case2 ival hii hxi hi hle =>
@@ -27,7 +27,7 @@ theorem hoare.classic.while_i_elem_not_left_of_piv {arr : Vector α n} {harltp :
 
 theorem hoare.classic.while_j_elem_not_right_of_piv {arr : Vector α n} {halgep : ¬lt pivot arr[left]} :
   ¬lt pivot arr[(hoare.classic.loop.while_j left right hr hl pivot arr i j hjr hli halgep   jval hxj hjj).1.val] := by
-  induction jval, hxj, hjj using hoare.classic.loop.while_j.induct left right hr hl pivot arr i j hjr hli halgep with
+  induction jval, hxj, hjj using hoare.classic.loop.while_j.induct left right hr hl pivot arr i j hjr halgep with
   | case1 jval hxj hjj hj hlt hjl ih =>
     unfold hoare.classic.loop.while_j; simp [*]
   | case2 jval hxj hjj hj  hle =>
@@ -38,7 +38,7 @@ theorem hoare.classic.while_j_elem_not_right_of_piv {arr : Vector α n} {halgep 
 
 theorem hoare.classic.while_i_before_is_left {arr : Vector α n} {harltp : ¬lt arr[right] pivot} :
   RangeHas n (lt arr[·] pivot) ival (hoare.classic.loop.while_i left right hr pivot arr i j hjr harltp ival hii hxi) := by
-  induction ival, hii, hxi using hoare.classic.loop.while_i.induct left right hr pivot arr i j hjr harltp with
+  induction ival, hii, hxi using hoare.classic.loop.while_i.induct right hr pivot arr i j harltp with
   | case1 ival hii hxi hi hlt hir ih =>
     unfold hoare.classic.loop.while_i; simp [*]
     apply RangeHas.prepend <;> assumption
@@ -49,7 +49,7 @@ theorem hoare.classic.while_i_before_is_left {arr : Vector α n} {harltp : ¬lt 
 
 theorem hoare.classic.while_j_before_is_right {arr : Vector α n} {halgep : ¬lt pivot arr[left]} :
   RangeHas n (lt pivot arr[·]) ((hoare.classic.loop.while_j left right hr hl pivot arr i j hjr hli halgep   jval hxj hjj) + 1) (jval + 1) := by
-  induction jval, hxj, hjj using hoare.classic.loop.while_j.induct left right hr hl pivot arr i j hjr hli halgep with
+  induction jval, hxj, hjj using hoare.classic.loop.while_j.induct left right hr hl pivot arr i j hjr halgep with
   | case1 jval hxj hjj hj hlt hjl ih =>
     unfold hoare.classic.loop.while_j; simp [*]
     replace ih := show (jval - 1 + 1) = jval by omega ▸ ih
@@ -58,11 +58,12 @@ theorem hoare.classic.while_j_before_is_right {arr : Vector α n} {halgep : ¬lt
     unfold hoare.classic.loop.while_j; simp [*]
     apply RangeHas.refl
 
-
+#check Partition.hoare.classic.loop.induct
 theorem hoare.classic.loop.partition_bounds {left right : Nat} {hr : right < n} {hl : left < n} {pivot : α} {arr : Vector α n} {i j : Nat} {hli : left < i} {hij : i ≤ j + 1} {hjr : j < right} {halgep : ¬lt pivot arr[left]} {harltp : ¬lt arr[right] pivot} : (loop left right hr hl pivot arr i j hli hij hjr halgep harltp).val.j' < (loop left right hr hl pivot arr i j hli hij hjr halgep harltp).val.i' := by
   induction arr, i, j, hli, hij, hjr, halgep, harltp using loop.induct left right hr hl pivot; all_goals unfold loop; simp [*]
-  -- · case  case1 arr i j hli hij hjr halgep harltp i' hi1' hi2' heq_i' j' hj' heq_j' hlt arr' halgep' harltp' ih =>
+  · case  case1 arr i j hli hij hjr halgep harltp i' hi1' hi2' heq_i' j' hj' heq_j' hlt arr' halgep' harltp' ih =>
     -- unfold loop; simp [*]
+    trivial
   · case case2 arr i j hli hij hjr halgep harltp i' hi1' hi2' heq_i' j' hj' heq_j' _ hlt' =>
     -- unfold loop; simp [*]
     simpa [←Fin.lt_def]
@@ -95,7 +96,7 @@ theorem hoare.classic.loop.sorted {left right : Nat} {hr : right < n} {hl : left
         simp only [h, Fin.getElem_fin, arr.getElem_swap_left, show j' = _ from Subtype.ext_iff.1 heq_j'.symm]
         exact hoare.classic.while_j_elem_not_right_of_piv
       else by
-        have := show (arr.swap ⟨i', _⟩ ⟨j', _⟩)[k] = _ by
+        have := show (arr.swap i' j')[k] = _ by
           apply arr.getElem_swap_of_ne; all_goals first | simp only ; omega | omega
         simp only [this]
         apply lt_asymm
@@ -108,7 +109,7 @@ theorem hoare.classic.loop.sorted {left right : Nat} {hr : right < n} {hl : left
         simp only [h, Fin.getElem_fin, arr.getElem_swap_right, show i' = _ from Subtype.ext_iff.1 heq_i'.symm]
         exact hoare.classic.while_i_elem_not_left_of_piv
       else by
-        have := show (arr.swap ⟨i', _⟩ ⟨j', _⟩)[k] = _ by
+        have := show (arr.swap i' j')[k] = _ by
           apply arr.getElem_swap_of_ne; all_goals first | simp only ; omega | omega
         simp only [this]
         apply lt_asymm
@@ -173,7 +174,7 @@ private theorem hoare.classic.sortAt_sorted (as : Vector α n) (low high : Nat) 
 include lt_asymm in
 include le_trans in
 private theorem hoare.classic.median_of_three_sorted {arr : Vector α n} {left mid right: Nat} (hlm : left ≤ mid) (hmr : mid ≤ right) (hr : right < n) :
-  let_fun arr_ := arr
+  have arr_ := arr
     |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
     |> (maybeSwap · ⟨left, by omega⟩ ⟨right, by omega⟩)
     |> (maybeSwap · ⟨mid, by omega⟩ ⟨right, by omega⟩)
@@ -201,9 +202,9 @@ private theorem hoare.classic.median_of_three_sorted {arr : Vector α n} {left m
     simp only [arr_]
     unfold maybeSwap
     split
-    · have : (arr2.swap ⟨mid, ‹_›⟩ ⟨right, ‹_›⟩)[left] = _ :=
-        arr2.getElem_swap_of_ne _ hleqm hlneqr
-      simp only [this, arr2.getElem_swap_left, Fin.getElem_fin]
+    · have : (arr2.swap mid right)[left] = _ :=
+        arr2.getElem_swap_of_ne hleqm hlneqr
+      simp only [this, arr2.getElem_swap_left]
       assumption
     · exact
       if hmeqr : mid = right then by
@@ -214,9 +215,9 @@ private theorem hoare.classic.median_of_three_sorted {arr : Vector α n} {left m
         unfold maybeSwap
         split
 
-        · have : (arr1.swap ⟨left, by omega⟩ ⟨right, hr⟩)[mid] = _ :=
-            arr1.getElem_swap_of_ne (_ : mid < n) (Ne.symm hleqm) hmeqr
-          simp only [this, arr1.getElem_swap_left, Fin.getElem_fin]
+        · have : (arr1.swap left right)[mid] = _ :=
+            arr1.getElem_swap_of_ne (Ne.symm hleqm) hmeqr
+          simp only [this, arr1.getElem_swap_left]
           refine le_trans (lt_asymm ?_) hh1
           assumption
         · assumption
@@ -233,7 +234,7 @@ include le_trans in
 include lt_asymm in
 protected theorem hoare.classic.permStabilizing' {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : PermStabilizing' left right (hoare.classic (lt_asymm := lt_asymm) (le_trans := le_trans) arr left right hlr hr).val.arr' arr := by
   apply PermStabilizing'.trans
-  · apply PermStabilizing'.mono hoare.classic.loop.permStabilizing <;> simp_arith
+  · apply PermStabilizing'.mono hoare.classic.loop.permStabilizing <;> omega
   · apply PermStabilizing'.trans
     apply PermStabilizing'.trans
     all_goals apply maybeSwap_permStabilizing
@@ -267,8 +268,8 @@ protected theorem hoare.classic.sorted {arr : Vector α n} {left : Nat} {right :
 
     have : PermStabilizing' (left + 1) (right - 1) x.arr' arr_ := hoare.classic.loop.permStabilizing
     replace hh2 : ¬lt pivot x.arr'[left] ∧ ¬lt x.arr'[right] pivot := by
-      have heq_left : x.arr'[left] = arr_[left] := this.2.1 ⟨left, by omega⟩ (by simp_arith)
-      have heq_right : x.arr'[right] = arr_[right] := this.2.2 ⟨right, by omega⟩ (by simp_arith; omega)
+      have heq_left : x.arr'[left] = arr_[left] := this.2.1 ⟨left, by omega⟩ (by grind)
+      have heq_right : x.arr'[right] = arr_[right] := this.2.2 ⟨right, by omega⟩ (by grind)
       rwa [heq_left, heq_right]
 
     have hh1_right : RangeHas n (¬lt x.arr'[·]  pivot) (x.j' + 1) right := by

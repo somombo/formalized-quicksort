@@ -20,14 +20,14 @@ open Vector
 --   while k ≤ j do
 --     if lt (as.get ⟨k, sorry⟩) pivot then
 --       -- Swap the elements at the equal and lesser indices
---       as := as.swap ⟨k, sorry⟩ ⟨i, sorry⟩
+--       as := as.swap k i sorry sorry
 --       -- Increase lesser index
 --       i := i + 1
 --       -- Increase equal index
 --       k := k + 1
 --     else if lt pivot (as.get ⟨k, sorry⟩) then
 --       -- Swap the elements at the equal and greater indices
---       as := as.swap ⟨k, sorry⟩ ⟨j, sorry⟩
+--       as := as.swap k j sorry sorry
 --       -- Decrease greater index
 --       j := j - 1
 --       -- k := k + 1
@@ -55,13 +55,13 @@ def Partition.dutch [Ord α] {n : Nat} (as : Vector α n) (left : Nat)  (right :
   let pivot := as_[mid] -- Choose the median-of-three element as the pivot
 
   -- Iterate and compare all elements with the pivot
-  let rec loop (as : Vector α n) (i k j : Nat) (hli : left < i) (hik : i ≤ k ) (hjr : j < right) (hlj : left ≤ j) (hir : i ≤  right ) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+  let rec @[specialize] loop (as : Vector α n) (i k j : Nat) (hli : left < i) (hik : i ≤ k ) (hjr : j < right) (hlj : left ≤ j) (hir : i ≤  right ) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
     if hkj : k ≤ j then
       have hk : k < n := by omega
       if lt as[k] pivot then
-        by apply loop (as.swap ⟨k, hk⟩ ⟨i, by omega⟩) (i + 1) (k + 1) j; all_goals omega
+        by apply loop (as.swap k i hk (by omega)) (i + 1) (k + 1) j; all_goals omega
       else if lt pivot as[k] then
-        by apply loop (as.swap ⟨k, hk⟩ ⟨j, by omega⟩) i k (j - 1); all_goals omega
+        by apply loop (as.swap k j hk (by omega)) i k (j - 1); all_goals omega
       else
         by apply loop as i (k + 1) j; all_goals omega
     else
@@ -87,14 +87,14 @@ def Partition.dutch_both [Ord α] {n : Nat} (as : Vector α n) (left : Nat)  (ri
   let pivot := as_[mid] -- Choose the median-of-three element as the pivot
 
   -- Iterate and compare all elements with the pivot
-  let rec loop (as : Vector α n) (i i_ j j_ : Nat) (hli : left < i) (hik : i ≤ i_ ) /- (hij : i ≤  j + 1) -/ (hik : j_ ≤ j ) (hjr : j < right) (hlj : left ≤ j) (hir : i ≤  right ) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+  let rec @[specialize] loop (as : Vector α n) (i i_ j j_ : Nat) (hli : left < i) (hik : i ≤ i_ ) /- (hij : i ≤  j + 1) -/ (hik : j_ ≤ j ) (hjr : j < right) (hlj : left ≤ j) (hir : i ≤  right ) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
     if hkj : i_ ≤ j_  then
       have hi_ : i_ < n := by omega
       have hj_ : j_ < n := by omega
       if lt as[i_] pivot then
-        by apply loop (as.swap ⟨i_, hi_⟩ ⟨i, by omega⟩) (i + 1) (i_ + 1) j j_; all_goals omega
+        by apply loop (as.swap i_ i hi_ (by omega)) (i + 1) (i_ + 1) j j_; all_goals omega
       else if lt pivot as[j_] then
-        by apply loop (as.swap ⟨j_, hj_⟩ ⟨j, by omega⟩) i i_ (j - 1) (j_ - 1); all_goals omega
+        by apply loop (as.swap j_ j hj_ (by omega)) i i_ (j - 1) (j_ - 1); all_goals omega
       else
         by apply loop as i (i_ + 1) j (j_ - 1); all_goals omega
     else

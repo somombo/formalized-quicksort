@@ -15,8 +15,8 @@ include lt_asymm in
 private theorem maybeSwap_sorted (as : Vector α n) (low high : Nat) (hlh : low ≤ high) (hn : high < n) : ¬ (lt (maybeSwap as ⟨low, by omega⟩ ⟨high, by omega⟩)[high] (maybeSwap as ⟨low, by omega⟩ ⟨high, by omega⟩)[low]) := by
   unfold maybeSwap; split
   · next h =>
-      simp only [lt_asymm h, as.getElem_swap_right, as.getElem_swap_left]
-      trivial
+      simp only [as.getElem_swap_right, as.getElem_swap_left]
+      exact lt_asymm h
   · assumption
 
 variable (le_trans : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x)
@@ -74,6 +74,7 @@ private theorem median_of_three_sorted {arr : Vector α n} {left mid right: Nat}
 
 -- set_option trace.profiler true in
 /-- `while_i` is equivalent to `while arr[i'] < pivot do i' := i' + 1` -/
+@[inline]
 def hoare.classic.loop.while_i (left right : Nat) (hr : right < n) (pivot : α) (arr : Vector α n) (i j : Nat) (hjr : j < right) (harltp : ¬lt arr[right] pivot)
   (ival : Nat) (hii : i ≤ ival) (hxi : ival ≤ right) : { i' : Fin n // i ≤ i' ∧ i' ≤ right } :=
   have hi : ival < n := by omega
@@ -84,7 +85,7 @@ def hoare.classic.loop.while_i (left right : Nat) (hr : right < n) (pivot : α) 
   else
     ⟨⟨ival, by omega⟩, hii, hxi⟩
 
-
+@[inline]
 def hoare.classic.loop.while_j (left right : Nat) (hr : right < n) (hl : left < n) (pivot : α) (arr : Vector α n) (i j : Nat)  (hjr : j < right) (hli : left < i) (halgep : ¬lt pivot arr[left])
   (jval : Nat) (hxj : left ≤ jval) (hjj : jval ≤ j) : { j' : Fin n // j' ≤ j } :=
   have hj : jval < n := by omega
@@ -100,10 +101,11 @@ def hoare.classic.loop.while_j (left right : Nat) (hr : right < n) (hl : left < 
 
 include lt_asymm in
 include le_trans in
+@[inline]
 def hoare.classic (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   have hl : left < n := by omega
 
-  let rec loop (pivot : α) (arr : Vector α n) (i j : Nat) (hli : left < i) (hij : i ≤ j + 1) (hjr : j < right) (halgep : ¬lt pivot arr[left]) (harltp : ¬lt arr[right] pivot) :=
+  let rec @[specialize] loop (pivot : α) (arr : Vector α n) (i j : Nat) (hli : left < i) (hij : i ≤ j + 1) (hjr : j < right) (halgep : ¬lt pivot arr[left]) (harltp : ¬lt arr[right] pivot) :=
 
     let ⟨i', _, _⟩ := hoare.classic.loop.while_i left right hr pivot arr i j (by omega) harltp
       i Nat.le.refl (by omega)

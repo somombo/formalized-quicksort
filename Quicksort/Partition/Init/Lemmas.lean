@@ -14,7 +14,7 @@ theorem maybeSwap_permStabilizing {as : Vector α n} {i j : Fin n} {left right :
 
 -- @[simp] theorem hoare.maybeSwap_swap_self (as : Vector α n) (i : Fin n ) : ∀ (x : Nat) (_ : x < n), (maybeSwap as i i)[x] =  as[x] := by unfold maybeSwap; split <;> simp
 
-
+-- given j' < i' then ∃ piv, ∀ i_ ∈ [i, i'), arr'[i_] ≤ piv ∧ ∀ j_ ∈ (j', j], arr'[j_] ≥ piv
 abbrev Partition.IsPartitioned (i j : Nat) (pivot : α) (x : Partition α n) :=
   RangeHas n (¬lt pivot  x.arr'[·]) i x.i' ∧ RangeHas n (¬lt x.arr'[·]  pivot) (x.j' + 1) (j + 1)
 

@@ -1,4 +1,6 @@
 import Quicksort.Basic
+-- import Quicksort.Partition.Yaroslavskiy.Basic
+-- import Quicksort.Partition.Dutch.Basic
 open Partition
 ------------------------ UNIT TESTS -------------------------------
 def hello := #[
@@ -15,6 +17,7 @@ def hello := #[
 ]
 
 #eval! qs hello (part := hoare)
+-- #eval! qs hello (part := Partition.dutch)
 
 /--
 info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17, 18, 19, 24, 24, 24, 25, 26, 27, 29, 29, 30,

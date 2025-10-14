@@ -3,6 +3,8 @@ abbrev lt [Ord α] (x y : α) : Bool :=
   | .lt => true
   | _ => false
 
+-- abbrev lt [Ord α] (x y : α) := compare x y |>.isLT
+
 def Vector.maybeSwap [Ord α] (as : Vector α n) (low high : Fin n) : Vector α n :=
   if lt as[high] as[low] then
     as.swap low high

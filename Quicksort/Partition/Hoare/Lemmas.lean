@@ -1,7 +1,7 @@
 
 import Quicksort.Partition.Hoare.Basic
 import Quicksort.Partition.Hoare.Eager.Lemmas
--- import Quicksort.Partition.Hoare.Classic.Lemmas
+import Quicksort.Partition.Hoare.Classic.Lemmas
 import Quicksort.Partition.Init.Lemmas
 
 open Vector
@@ -84,22 +84,22 @@ variable (le_trans : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x)
 
 
 protected theorem hoare.partition_bounds {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : (Partition.hoare arr left right hlr hr).val.j' < (Partition.hoare arr left right hlr hr).val.i' := by
-  -- unfold Partition.hoare; simp [*]; split
-  -- · apply hoare.classic.loop.partition_bounds
-  · apply hoare.eager.partition_bounds --; assumption
+  unfold Partition.hoare; simp [*]; split
+  · apply hoare.classic.loop.partition_bounds
+  · apply hoare.eager.partition_bounds; assumption
 
 
 
 
 protected theorem hoare.permStabilizing {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : PermStabilizing' left right (Partition.hoare arr left right hlr hr).val.arr' arr := by
-  -- unfold Partition.hoare; simp [*]; split
-  -- · apply PermStabilizing'.trans
-  --   · apply PermStabilizing'.mono hoare.classic.loop.permStabilizing <;> simp_arith
-  --   · apply PermStabilizing'.trans
-  --     apply PermStabilizing'.trans
-  --     all_goals apply maybeSwap_permStabilizing
-  --     all_goals simp only; omega
-  · apply hoare.eager.permStabilizing --; assumption
+  unfold Partition.hoare; simp [*]; split
+  · apply PermStabilizing'.trans
+    · apply PermStabilizing'.mono hoare.classic.loop.permStabilizing <;> omega
+    · apply PermStabilizing'.trans
+      apply PermStabilizing'.trans
+      all_goals apply maybeSwap_permStabilizing
+      all_goals simp only; omega
+  · apply hoare.eager.permStabilizing; assumption
 
 -- private abbrev Partition.IsPartitioned (i j : Nat) (pivot : α) (x : Partition α n) := RangeHas n (¬lt pivot  x.arr'[·]) i x.i' ∧ RangeHas n (¬lt x.arr'[·]  pivot) (x.j' + 1) (j + 1)
 
@@ -109,8 +109,8 @@ protected theorem hoare.permStabilizing {arr : Vector α n} {left : Nat} {right 
 include le_trans in
 include lt_asymm in
 protected theorem hoare.sorted {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : ∃ (pivot : α), IsPartitioned left right pivot (Partition.hoare arr left right hlr hr).val := by
-  -- unfold Partition.hoare; simp [*]; split
-  -- · apply hoare.classic.sorted <;> assumption
+  unfold Partition.hoare; simp [*]; split
+  · apply hoare.classic.sorted <;> assumption
   · apply hoare.eager.sorted <;> assumption
 
   -- let mid := left + ((right - left)/2)

@@ -9,7 +9,8 @@ instance [ToString α] : ToString (Vector α n) where
 /-
   imperetive implimentation of Single Pivot yaroslavskiy partitioning scheme
  -/
-def Partition.yaroslavskiy.example [Ord α] [ToString α]  {n : Nat} (as_ : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+@[inline]
+def Partition.yaroslavskiy.example [Ord α] /- [ToString α] -/  {n : Nat} (as_ : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   let mid := left + ((right - left)/2)
   have hl : left < n := by omega
   have hm : mid < n := by omega
@@ -21,15 +22,15 @@ def Partition.yaroslavskiy.example [Ord α] [ToString α]  {n : Nat} (as_ : Vect
 
   -- Pivot value --   pivot := as_[left]; pivot := as_[right]
   let pivot := as_[mid] -- Choose the middle element as the pivot (integer division)
-  let pivot := dbg s!"pivot {pivot}" pivot
+  -- let pivot := dbg s!"pivot {pivot}" pivot
 
-  let as_ := dbg s!"as_: {as_}" as_
+  -- let as_ := dbg s!"as_: {as_}" as_
   -- if pivot > pivot then Swap pivot and pivot end if
-  let rec outer_while_loop (as : Vector α n) (i k j : Nat): (Vector α n) × Nat × Nat := Id.run do
+  let rec @[specialize] outer_while_loop (as : Vector α n) (i k j : Nat): (Vector α n) × Nat × Nat := Id.run do
     let mut (as, i, k, j) := (as, i, k, j)
     while k ≤ j do
-      if lt (as.get ⟨k, sorry⟩) pivot then
-        as := as.swap ⟨k, sorry⟩ ⟨i, sorry⟩
+      if lt (as[k]'(sorry)) pivot then
+        as := as.swap k i sorry sorry
         i := i + 1
         k := k + 1
       else
@@ -45,7 +46,7 @@ def Partition.yaroslavskiy.example [Ord α] [ToString α]  {n : Nat} (as_ : Vect
         -- if ¬lt pivot (as.get ⟨k, sorry⟩) then
         --   k := k + 1
         -- else
-        as := as.swap ⟨k, sorry⟩ ⟨j, sorry⟩
+        as := as.swap k j sorry sorry
         j := j - 1
         -- k := k + 1
 
@@ -80,7 +81,8 @@ def Partition.yaroslavskiy.example [Ord α] [ToString α]  {n : Nat} (as_ : Vect
 /-
   imperetive implimentation of Single Pivot yaroslavskiy partitioning scheme
  -/
-def Partition.yaroslavskiy.debug [Ord α] [ToString α]  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := Id.run do
+@[inline]
+def Partition.yaroslavskiy.debug [Ord α] /- [ToString α] -/  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := Id.run do
   let mid := left + ((right - left)/2)
   let mut as := as
     |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
@@ -90,25 +92,25 @@ def Partition.yaroslavskiy.debug [Ord α] [ToString α]  {n : Nat} (as : Vector 
 
   let pivot := as[mid]
   -- let pivot := as[left]
-  let pivot := dbg s!"pivot: {pivot}" pivot
+  -- let pivot := dbg s!"pivot: {pivot}" pivot
   -- let pivot' := as[right]
   -- let pivot' := dbg s!"pivot': {pivot'}" pivot'
 
   let mut (i, k, j) := (left + 1, left + 1, right - 1)
-  as := dbg s!"as0: {as}  i={i}  k={k}  j={j}" as
+  -- as := dbg s!"as0: {as}  i={i}  k={k}  j={j}" as
   while k ≤ j do
     if lt (as.get ⟨k, sorry⟩) pivot then
-      as := as.swap ⟨k, sorry⟩ ⟨i, sorry⟩
+      as := as.swap k i  sorry sorry
       -- if k ≠ i then as := dbg s!"as_: {as}  i={i}  k={k}  j={j}" as
       i := i + 1
     else -- if (¬lt (as.get ⟨k, sorry⟩) pivot) then
       while (lt pivot (as.get ⟨j, sorry⟩))  ∧ (k < j) do  -- A[j] > pivR AND k < j
         j := j - 1
-      as := as.swap ⟨k, sorry⟩ ⟨j, sorry⟩
+      as := as.swap k j sorry sorry
       j := j - 1
       -- if k ≠ j then as := (dbg s!"as_: {as}  i={i}  k={k}  j={j}" as)
       if lt (as.get ⟨k, sorry⟩) pivot then
-        as := as.swap ⟨k, sorry⟩ ⟨i, sorry⟩
+        as := as.swap k i sorry sorry
         -- if k ≠ i then as := dbg s!"as_: {as}  i={i}  k={k}  j={j}" as
         i := i + 1
 
@@ -123,12 +125,13 @@ def Partition.yaroslavskiy.debug [Ord α] [ToString α]  {n : Nat} (as : Vector 
   -- i := i + 1
   -- j := j - 1
   -- as := as.swap ⟨right, sorry⟩ ⟨i, sorry⟩
-  as := dbg s!"i={i}  k={k}  j={j}" as
+  -- as := dbg s!"i={i}  k={k}  j={j}" as
   ⟨⟨as, j, i⟩, by simp only; sorry, by simp only; sorry⟩
 /-
   imperetive implimentation of Single Pivot yaroslavskiy partitioning scheme
  -/
-def Partition.yaroslavskiy.debug_func [Ord α] [ToString α]  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := Id.run do
+@[inline]
+def Partition.yaroslavskiy.debug_func [Ord α] /- [ToString α] -/  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := Id.run do
   let mid := left + ((right - left)/2)
   let mut as := as
     |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
@@ -138,15 +141,15 @@ def Partition.yaroslavskiy.debug_func [Ord α] [ToString α]  {n : Nat} (as : Ve
 
   let pivot := as[mid]
   -- let pivot := as[left]
-  let pivot := dbg s!"pivot: {pivot}" pivot
+  -- let pivot := dbg s!"pivot: {pivot}" pivot
   -- let pivot' := as[right]
   -- let pivot' := dbg s!"pivot': {pivot'}" pivot'
 
   let mut (i, k, j) := (left + 1, left + 1, right - 1)
-  as := dbg s!"as0: {as}  i={i}  k={k}  j={j}" as
+  -- as := dbg s!"as0: {as}  i={i}  k={k}  j={j}" as
   while k ≤ j do
     if lt (as.get ⟨k, sorry⟩) pivot then
-      as := as.swap ⟨k, sorry⟩ ⟨i, sorry⟩
+      as := as.swap k i  sorry sorry
       -- if k ≠ i then as := dbg s!"as_: {as}  i={i}  k={k}  j={j}" as
       i := i + 1
       k := k + 1
@@ -156,7 +159,7 @@ def Partition.yaroslavskiy.debug_func [Ord α] [ToString α]  {n : Nat} (as : Ve
       -- as := (as.swap ⟨k, sorry⟩ ⟨j, sorry⟩)
       -- if k ≠ j then as := (dbg s!"as_: {as}  i={i}  k={k}  j={j}" as)
       if lt (as.get ⟨j, sorry⟩) pivot then
-        as := (as.swap ⟨k, sorry⟩ ⟨j, sorry⟩).swap ⟨k, sorry⟩ ⟨i, sorry⟩
+        as := (as.swap k j  sorry sorry).swap k i  sorry sorry
         -- if k ≠ i then as := dbg s!"as_: {as}  i={i}  k={k}  j={j}" as
         j := j - 1
         k := k + 1
@@ -174,7 +177,7 @@ def Partition.yaroslavskiy.debug_func [Ord α] [ToString α]  {n : Nat} (as : Ve
   -- i := i + 1
   -- j := j - 1
   -- as := as.swap ⟨right, sorry⟩ ⟨i, sorry⟩
-  as := dbg s!"i={i}  k={k}  j={j}" as
+  -- as := dbg s!"i={i}  k={k}  j={j}" as
   ⟨⟨as, j, i⟩, by simp only; sorry, by simp only; sorry⟩
 
 #eval! Partition.yaroslavskiy.debug #v[0, 1]  0 1 (by omega) (by omega)
@@ -200,9 +203,10 @@ def Partition.yaroslavskiy.debug_func [Ord α] [ToString α]  {n : Nat} (as : Ve
 /-
   imperetive declarative of Single Pivot yaroslavskiy partitioning scheme
  -/
-def Partition.yaroslavskiy.debug' [Ord α] [ToString α]  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := Id.run do
+@[inline]
+def Partition.yaroslavskiy.debug' [Ord α] [ToString α]  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   let mid := left + ((right - left)/2)
-  let mut as_ := as
+  let as_ := as
     |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
     |> (maybeSwap · ⟨left, by omega⟩ ⟨right, by omega⟩)
     |> (maybeSwap · ⟨mid, by omega⟩ ⟨right, by omega⟩)
@@ -211,13 +215,13 @@ def Partition.yaroslavskiy.debug' [Ord α] [ToString α]  {n : Nat} (as : Vector
   let pivot := as_[mid]
   let pivot := dbg s!"pivot: {pivot}" pivot
 
-  let rec loop (as : Vector α n) (i k j : Nat) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+  let rec @[specialize] loop (as : Vector α n) (i k j : Nat) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
     if  (lt pivot (as.get ⟨j, sorry⟩))  ∧ (k < j) then
       loop as i k (j - 1)
     else
       if k ≤ j then
         if lt (as.get ⟨j, sorry⟩) pivot then
-          loop ((as.swap ⟨k, sorry⟩ ⟨j, sorry⟩).swap ⟨k, sorry⟩ ⟨i, sorry⟩) (i + 1) (k + 1) (j - 1)
+          loop ((as.swap k j sorry sorry).swap k i sorry sorry) (i + 1) (k + 1) (j - 1)
         else
         loop as i (k + 1) (j - 1)
       else
@@ -230,7 +234,7 @@ def Partition.yaroslavskiy.debug' [Ord α] [ToString α]  {n : Nat} (as : Vector
 
   loop as_ (left + 1) (left + 1) (right - 1)
 
-
+example [ToString α] : Partition.Scheme α := Partition.yaroslavskiy.debug'
 
 
 #eval! Partition.yaroslavskiy.debug' #v[0, 1]  0 1 (by omega) (by omega)
@@ -253,35 +257,74 @@ def Partition.yaroslavskiy.debug' [Ord α] [ToString α]  {n : Nat} (as : Vector
 
 
 
--- /--
---   Single Pivot yaroslavskiy partitioning scheme
---  -/
--- @[inline]
--- def Partition.yaroslavskiy [Ord α] {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
---   let mid := left + ((right - left)/2)
---   have hl : left < n := by omega
---   have hm : mid < n := by omega
---   let as_ := as
---     |> (maybeSwap · ⟨left, hl⟩ ⟨mid, hm⟩)
---     |> (maybeSwap · ⟨left, hl⟩ ⟨right, hr⟩)
---     |> (maybeSwap · ⟨mid, hm⟩ ⟨right, hr⟩)
+/--
+  Single Pivot yaroslavskiy partitioning scheme
+ -/
+@[inline]
+def Partition.yaroslavskiy.onepiv [Ord α] {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+  let mid := left + ((right - left)/2)
+  have hl : left < n := by omega
+  have hm : mid < n := by omega
+  let as_ := as
+    |> (maybeSwap · ⟨left, hl⟩ ⟨mid, hm⟩)
+    |> (maybeSwap · ⟨left, hl⟩ ⟨right, hr⟩)
+    |> (maybeSwap · ⟨mid, hm⟩ ⟨right, hr⟩)
 
---   let pivot := as_[mid] -- Choose the median-of-three element as the pivot
+  let pivot := as_[mid] -- Choose the median-of-three element as the pivot
 
---   -- Iterate and compare all elements with the pivot
---   let rec loop (as : Vector α n) (i k j : Nat) (hli : left < i) (hik : i ≤ k ) (hjr : j < right) (hlj : left ≤ j) (hir : i ≤  right ) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
---     if hkj : k ≤ j then
---       have hk : k < n := by omega
---       if lt as[k] pivot then
---         by apply loop (as.swap ⟨k, hk⟩ ⟨i, by omega⟩) (i + 1) (k + 1) j; all_goals omega
---       else if lt pivot as[k] then
---         by apply loop (as.swap ⟨k, hk⟩ ⟨j, by omega⟩) i k (j - 1); all_goals omega
---       else
---         by apply loop as i (k + 1) j; all_goals omega
---     else
---       ⟨⟨as, i - 1, j + 1⟩, by simp only; omega, by simp only; omega⟩
---   termination_by j + n - i - k
+  -- Iterate and compare all elements with the pivot
+  let rec @[specialize] loop (as : Vector α n) (i k j : Nat) (hli : left < i) (hik : i ≤ k ) (hjr : j < right) (hlj : left ≤ j) (hir : i ≤  right ) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+    if hkj : k ≤ j then
+      -- have hk : k < n := by omega
+      if lt as[k] pivot then
+        by apply loop (as.swap k i) (i + 1) (k + 1) j; all_goals omega
+      else if lt pivot as[k] then
+        by apply loop (as.swap k j) i k (j - 1); all_goals omega
+      else
+        by apply loop as i (k + 1) j; all_goals omega
+    else
+      ⟨⟨as, i - 1, j + 1⟩, by simp only; omega, by simp only; omega⟩
+  termination_by j + n - i - k
 
---   by apply loop as_ (left + 1) (left + 1) (right - 1); all_goals omega
+  by apply loop as_ (left + 1) (left + 1) (right - 1); all_goals omega
 
--- -- #eval Partition.yaroslavskiy #v[3, 1, 3] 0 2 (by omega) (by omega)
+-- #eval Partition.yaroslavskiy.onepiv #v[3, 1, 3] 0 2 (by omega) (by omega)
+#eval Partition.yaroslavskiy.onepiv #v[9,  3,  1,  8,  6,  2,  5,  0,  7,  4]  0 9 (by omega) (by omega)
+
+@[inline]
+def Partition.yaroslavskiy.twopiv /- [ToString α] -/  [Ord α] {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+  let as_ :=
+    if hltrl : lt as[right] as[left] then
+      as.swap left right
+    else
+      as
+  have pivot1 := as_[left]
+  have pivot2 := as_[right]
+  -- have pivot1 := dbg s!"pivot1: {pivot1}" pivot1
+  -- have pivot2 := dbg s!"pivot2: {pivot2}" pivot2
+  let rec @[specialize] loop (as : Vector α n) (i j k : Nat)
+      (hli : left < i) (hik : i ≤ k ) (hjr : j < right) (hlj : left ≤ j) (hir : i ≤  right ) :
+      {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+    if hkj : k ≤ j then
+      if lt as[k] pivot1 then
+        loop (as.swap k i) (i + 1) j (k + 1) (by omega) (by omega) (by omega) (by omega) (by omega)
+      else if lt pivot2 as[k] then
+        loop (as.swap k j) i (j - 1) k (by omega) (by omega) (by omega) (by omega) (by omega)
+      else
+        loop as i j (k + 1) (by omega) (by omega) (by omega) (by omega) (by omega)
+    else
+
+      let j' := i - 1
+      let i' := j + 1
+
+      have _ :  left ≤ j' := by omega -- since: left < i ≤ right
+      have _ :  i' ≤ right := by omega -- since: left ≤ j < right
+
+      let arr' := as |>.swap left j' |>.swap right i'
+      ⟨{arr', j', i'}, by simp only; omega, by simp only; omega⟩
+    termination_by j + n - i - k
+  loop as_ (i := left + 1) (k := left + 1) (j := right - 1) (by omega) (by omega) (by omega) (by omega) (by omega)
+
+
+
+#eval Partition.yaroslavskiy.twopiv #v[9,  3,  1,  8,  6,  2,  5,  0,  7,  4]  0 9 (by omega) (by omega)

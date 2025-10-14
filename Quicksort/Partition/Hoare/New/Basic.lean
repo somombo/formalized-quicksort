@@ -7,37 +7,40 @@ variable [Ord α]
 instance : Nonempty ([Ord α] → {n j left : Nat} → α → Vector α n → (jval : Nat) → jval ≤ j → left ≤ jval → j < n → { j' // j' ≤ j }) :=
   ⟨fun _ _ jval _ _ _ => ⟨jval, by grind⟩⟩
 
--- set_option warn.sorry false
+set_option warn.sorry false
 
+@[inline]
 def hoare.new.loop.while_j' (pivot : α)  (arr : Vector α n) (jval : Nat)  (hjj : jval ≤ j)
     (hxj : left ≤ jval) (hj : j < n) : { j' : Nat // j' ≤ j }:=
-  if h' : jval ≠ left ∧ lt pivot arr[jval] then
-    -- have _ : jval ≠ left := sorry
+  if h' : /- jval ≠ left ∧ -/ lt pivot arr[jval] then
+    have _ : jval ≠ left := sorry
     while_j' (left:=left) pivot  arr (jval - 1) (by omega) (by omega) (by omega)
   else
     ⟨jval, by grind⟩
--- partial_fixpoint
+partial_fixpoint
 -- termination_by jval
 -- decreasing_by
 --   have hterm_strong_precon : ∃ (left : Nat) (hj' : left < n), left ≤ jval ∧ ¬ lt pivot arr[left] := sorry
 --   grind
 
+@[inline]
 def hoare.new.loop.while_i' (pivot : α)  (arr : Vector α n) (ival : Nat) (hli : left < ival) (hxi : ival ≤ right)
     (hr : right < n)  : { i' : Nat // left < i' } :=
   -- NOTEvv: @somombo: ival = right → lt pivot arr[ival] if lt is asymmetric
-  if _ : ival ≠ right ∧  lt arr[ival] pivot then
-    -- have _ : ival ≠ right := sorry
+  if _ : /- ival ≠ right ∧ -/  lt arr[ival] pivot then
+    have _ : ival ≠ right := sorry
     while_i' (right:=right) pivot  arr (ival + 1)  (by omega) (by omega) hr
   else
     ⟨ival, hli⟩
 
 
 open Vector in
+@[inline]
 def hoare.new (arr : Vector α n) (left : Nat) (right : Nat) (hlr : left < right)
     (hr : right < n) : { x : Partition α n  // left < x.i' ∧ x.j' < right } :=
   have hl : left < n := by omega
 
-  let rec loop (pivot : α) (arr : Vector α n) (i j : Nat) /- (hj : j < n) -/ (hli : left < i)
+  let rec @[specialize] loop (pivot : α) (arr : Vector α n) (i j : Nat) /- (hj : j < n) -/ (hli : left < i)
       (hir : i ≤ right) (hlj : left ≤ j) (hjr : j < right) : { x : Partition α n  // left < x.i' ∧ x.j' < right } :=
 
     let ⟨j', _⟩ := new.loop.while_j' pivot  arr j  Nat.le.refl hlj (by omega)
