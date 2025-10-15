@@ -8,6 +8,8 @@ instance : Nonempty ([Ord α] → {n j left : Nat} → α → Vector α n → (j
   ⟨fun _ _ jval _ _ _ => ⟨jval, by grind⟩⟩
 
 set_option warn.sorry false
+open Vector
+
 
 @[inline]
 def hoare.new.loop.while_j' (pivot : α)  (arr : Vector α n) (jval : Nat)  (hjj : jval ≤ j)
@@ -34,7 +36,7 @@ def hoare.new.loop.while_i' (pivot : α)  (arr : Vector α n) (ival : Nat) (hli 
     ⟨ival, hli⟩
 
 
-open Vector in
+
 @[inline]
 def hoare.new (arr : Vector α n) (left : Nat) (right : Nat) (hlr : left < right)
     (hr : right < n) : { x : Partition α n  // left < x.i' ∧ x.j' < right } :=
@@ -69,6 +71,63 @@ def hoare.new (arr : Vector α n) (left : Nat) (right : Nat) (hlr : left < right
 
   let pivot := arr_[mid]
   loop pivot arr_ (left + 1) (right - 1) (by omega) (by omega) (by omega) (by omega)
+
+
+@[inline]
+def hoare.new'.loop.while_j'' [Inhabited α] (pivot : α)  (arr : Vector α n) (jval : Nat)  : Nat :=
+  if h' : /- jval ≠ left ∧ -/ lt pivot arr[jval]! then
+    -- have _ : jval ≠ left := sorry
+    while_j'' pivot  arr (jval - 1)
+  else
+    jval
+-- partial_fixpoint
+termination_by jval
+decreasing_by
+  sorry
+--   have hterm_strong_precon : ∃ (left : Nat) (hj' : left < n), left ≤ jval ∧ ¬ lt pivot arr[left] := sorry
+--   grind
+
+@[inline]
+def hoare.new'.loop.while_i'' [Inhabited α] (pivot : α)  (arr : Vector α n) (ival : Nat) : Nat :=
+
+  if _ : /- ival ≠ right ∧ -/  lt arr[ival]! pivot then
+    -- have _ : ival ≠ right := sorry
+    while_i''  pivot  arr (ival + 1)
+  else
+    ival
+termination_by n - ival
+decreasing_by
+  sorry
+
+-- @[inline]
+def hoare.new' [Inhabited α] (arr : Vector α n) (left : Nat) (right : Nat) (hlr : left < right)
+    (hr : right < n) : { x : Partition α n  // left < x.i' ∧ x.j' < right } :=
+
+
+  let rec @[specialize] loop (pivot : α) (arr : Vector α n) (i j : Nat)  :=
+
+    let i := new'.loop.while_i'' pivot  arr i
+    let j := new'.loop.while_j'' pivot  arr j
+
+    if _ : i < j then
+      let arr' := arr.swap i j sorry sorry
+      loop pivot arr' (i + 1) (j - 1)
+    else if _ : j < i then
+      ⟨⟨arr, j, i⟩, by sorry, by sorry⟩
+    else
+      ⟨⟨arr, j - 1, i + 1⟩, by sorry, by sorry⟩
+  termination_by j + n  + 1 - i
+  decreasing_by
+    sorry
+
+  let mid := left + ((right - left)/2)
+  let arr_ := arr
+    |> (maybeSwap · ⟨left, sorry⟩ ⟨mid, sorry⟩)
+    |> (maybeSwap · ⟨left, sorry⟩ ⟨right, sorry⟩)
+    |> (maybeSwap · ⟨mid, sorry⟩ ⟨right, sorry⟩)
+
+  let pivot := arr_[mid]
+  loop pivot arr_ (left + 1) (right - 1)
 
 
 

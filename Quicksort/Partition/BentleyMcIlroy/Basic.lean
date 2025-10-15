@@ -10,87 +10,65 @@ open Vector
 
 
 
-
-
 @[inline]
 def Partition.bentleyMcIlroy [Inhabited α] /- [ToString α] -/ [Ord α] {n : Nat}
     (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) :
-    {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
-
-
-  let rec @[specialize] loop (pivot : α) (arr : Vector α n) (i j p q : Nat) : Vector α n × Nat × Nat × Nat × Nat :=
-    let rec @[specialize] findI (i : Nat) :=
-      -- i < n
-      have right := right
-      if /- i < right ∧ -/ lt arr[i]! pivot then
-        findI (i + 1)
-      else
-        i
-    termination_by right - i
-    decreasing_by sorry
-
-    let rec @[specialize] findJ (j : Nat) :=
-      -- 0 < j
-      if /- left < j ∧ -/ lt pivot arr[j]! then
-        findJ (j - 1)
-      else
-        j
-      termination_by j
-      decreasing_by sorry
-
-    let i' := findI (i + 1)
-    let j' := findJ (j - 1)
-
-    if i' < j' then Id.run do
-      let mut arr := arr.swap i' j' sorry sorry
-      let mut p := p
-      let mut q := q
-
-      -- if ¬ (lt arr[i]! pivot) ∧ ¬ (lt pivot arr[i]!) then
-      if ¬ lt arr[i']! pivot then
-        p := p + 1
-        arr := arr.swap p i' sorry sorry
-
-      -- if ¬ (lt arr[j]! pivot) ∧ ¬ (lt pivot arr[j]!) then
-      if ¬ lt pivot arr[j']! then
-        q := q - 1
-        arr := arr.swap q j' sorry sorry
-
-      loop pivot arr i' j' p q
-
-    else
-      (arr, i', j', p, q)
-    termination_by j + 1 - i
-    decreasing_by sorry
-
+    {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := Id.run do
 
   let mid := left + (right - left) / 2
-  let arr_ := arr
-    |> (Vector.maybeSwap . ⟨left, (by omega)⟩ ⟨right, (by omega)⟩)
-    |> (Vector.maybeSwap . ⟨mid, (by omega)⟩ ⟨right, (by omega)⟩)
-    |> (Vector.maybeSwap . ⟨mid, (by omega)⟩ ⟨left, (by omega)⟩)
 
-  -- let arr := arr.swap left mid (by omega) (by omega)
-  let pivot := arr_[left]
+  let mut arr := arr
+    |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
+    |> (maybeSwap · ⟨left, by omega⟩ ⟨right, by omega⟩)
+    |> (maybeSwap · ⟨mid, by omega⟩ ⟨right, by omega⟩)
 
+  arr := arr.swap left mid (by omega) (by omega)
+  let pivot := arr[left]
 
-  Id.run do
-    -- let mut (arr', i', j', p, q) := loop pivot arr_ left (right + 1) left (right + 1)
-    let mut (arr', i', j', p, q) := loop pivot arr_ left (right + 1) left (right + 1)
-
-    -- arr := arr.swap left j (sorry) (sorry)
-    -- j := j - 1
-
-    for k in [left : p + 1] do
-      arr' := arr'.swap k j' sorry sorry
-      j' := j' - 1
+  -- let pivot := arr[mid]
 
 
-    for k in [q : right + 1] do
-      arr' := arr'.swap k i' sorry sorry
-      i' := i' + 1
+  let mut i := left
+  let mut j := right + 1
+  let mut p := left
+  let mut q := right + 1
 
-    return ⟨⟨arr', j', i'⟩, by sorry, by sorry⟩
+  while true do
+
+    i := i + 1
+    while /- i < right ∧ -/ lt arr[i]! pivot do
+      i := i + 1
+
+
+    j := j - 1
+    while /- left < j ∧ -/ lt pivot arr[j]! do
+      j := j - 1
+
+    if i < j then
+      arr := arr.swap i j sorry sorry
+
+      if ¬ lt arr[i]! pivot then
+        p := p + 1
+        arr := arr.swap p i sorry sorry
+
+      if ¬ lt pivot arr[j]! then
+        q := q - 1
+        arr := arr.swap q j sorry sorry
+    else
+      arr := arr.swap left j (sorry) (sorry)
+      j := j - 1
+
+      for k in [left + 1 : p + 1] do
+        arr := arr.swap k j sorry sorry
+        j := j - 1
+
+
+      for k in [q : right + 1] do
+        arr := arr.swap k i sorry sorry
+        i := i + 1
+      break
+
+  return ⟨⟨arr, j, i⟩, by sorry, by sorry⟩
 
 
 
@@ -100,7 +78,8 @@ def Partition.bentleyMcIlroy [Inhabited α] /- [ToString α] -/ [Ord α] {n : Na
 
 #eval! Partition.bentleyMcIlroy #v[9,  3,  1,  8,  6,  2,  5,  0,  7,  4]  0 9 (by omega) (by omega)
 #eval! Partition.bentleyMcIlroy #v[9,  3,  1,  8,  6,  2,  6,  0,  7,  4]  0 9 (by omega) (by omega)
-#eval! Partition.bentleyMcIlroy #v[0, 2, 2, 1, 2]  0 4 (by omega) (by omega)
+#eval! Partition.bentleyMcIlroy #v[9,  3,  1,  8,  6,  2,  6,  0,  7,  4]  0 9 (by omega) (by omega)
+#eval! Partition.bentleyMcIlroy #v[2, 0, 0, 1, 0]  0 4 (by omega) (by omega)
 
 
 
