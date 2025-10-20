@@ -19,7 +19,29 @@ variable (le_trans : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x)
 --   ⟨fun _ _ jval _ _ _ => ⟨jval, by grind⟩⟩
 
 
+def move_pivots_back (left right : Nat) (hlr : left < right) (hr : right < n) (p q : Nat) (hp : p < n)
+    (x : { x : Partition α n // left < x.i' ∧ x.j' < right ∧ x.i' ≤ q + 1 }) :
+    { x : Partition α n // left < x.i' ∧ x.j' < right } :=
+  let ⟨⟨arr', j', i'⟩, (_ : left < i'), (_ : j' < right), (_ : i' ≤ q + 1)⟩ := x
+  let rec move_p_back (k : Nat) (arr : Vector α n) (j : Nat) (hjr : j < right) (_ : j < right): Vector α n × Subtype (· < right) :=
+    if h : k < p then
+      move_p_back (k + 1) (arr.swap k j (by omega) (by omega)) (j - 1) (by omega)  (by omega)
+    else
+      (arr, ⟨j, by omega⟩)
+  let (arr'', ⟨j'', _⟩) := move_p_back (left + 1) arr' j' (by omega)  (by omega)
 
+  let rec move_q_forward (k : Nat) (arr : Vector α n) (i : Nat) (hkq : q + 1 ≤ k) (hli : left < i)
+      (hieqk_invar : i = k - (q + 1) + i') : Vector α n × Subtype (left < ·) :=
+
+    if h : k < right then
+      move_q_forward (k + 1) (arr.swap k i (by omega) (by omega) ) (i + 1) (by omega) (by omega) (by omega)
+    else
+      (arr, ⟨i, by omega⟩)
+
+
+  let (arr''', ⟨i'', _⟩) := move_q_forward (q + 1) arr'' i' (by omega) (by omega) (by omega)
+
+  ⟨⟨arr''', j'', i''⟩, by omega, by omega⟩
 @[inline]
 def loop.while_j' (left right : Nat) (hr : right < n) (hl : left < n) (pivot : α) (arr : Vector α n) (i j : Nat)  (hjr : j < right) (hli : left < i)
   (jval : Nat) (hxj : left ≤ jval) (hjj : jval ≤ j) (halgep : ¬lt pivot arr[left]) : { j' : Fin n // j' ≤ j ∧ ¬ lt pivot arr[j'.val] } :=
@@ -148,35 +170,14 @@ where
           loop pivot arr''' (i' + 1) (j' - 1) (p + 1) (q - 1) (by omega) (by omega) (by omega) (by omega) (by omega) (by omega) (by grind only) (by grind only)
 
     else
-      move_pivots_back  p q (by omega) (by omega) <|
+      move_pivots_back  left right hlr hr p q (by omega)  <|
         if _ : j' < i' then
           ⟨⟨arr, j', i'⟩, by simp only; omega, by simp only; omega, by simp only; omega⟩
         else
           ⟨⟨arr, j' - 1, i' + 1⟩, by simp only; omega, by simp only; omega, by simp only; omega⟩
   termination_by j + 1 - i
 
-  @[specialize] move_pivots_back (p q : Nat) (hp : p < n) (hq : q  ≤ right - 1) (x : { x : Partition α n  // left < x.i' ∧ x.j' < right ∧ x.i' ≤ q + 1 })  :
-      { x : Partition α n  // left < x.i' ∧ x.j' < right } :=
-    let ⟨⟨arr', j', i'⟩, (_ : left < i'), (_ : j' < right), (_ : i' ≤ q + 1)⟩ := x
-    let rec move_p_back (k : Nat) (arr : Vector α n) (j : Nat) (hjr : j < right) (_ : j < right): Vector α n × Subtype (· < right) :=
-      if h : k < p then
-        move_p_back (k + 1) (arr.swap k j (by omega) (by omega)) (j - 1) (by omega)  (by omega)
-      else
-        (arr, ⟨j, by omega⟩)
-    let (arr'', ⟨j'', _⟩) := move_p_back (left + 1) arr' j' (by omega)  (by omega)
 
-    let rec move_q_forward (k : Nat) (arr : Vector α n) (i : Nat) (hkq : q + 1 ≤ k) (hli : left < i)
-        (hieqk_invar : i = k - (q + 1) + i') : Vector α n × Subtype (left < ·) :=
-
-      if h : k < right then
-        move_q_forward (k + 1) (arr.swap k i (by omega) (by omega) ) (i + 1) (by omega) (by omega) (by omega)
-      else
-        (arr, ⟨i, by omega⟩)
-
-
-    let (arr''', ⟨i'', _⟩) := move_q_forward (q + 1) arr'' i' (by omega) (by omega) (by omega)
-
-    ⟨⟨arr''', j'', i''⟩, by omega, by omega⟩
 
 
 
