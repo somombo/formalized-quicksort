@@ -1,5 +1,2 @@
 /.lake
 .ignore/
-
-/Bench/.lake
-/Bench/data/*/

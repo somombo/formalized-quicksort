@@ -1,7 +1,12 @@
 import Quicksort.Basic
--- import Quicksort.Partition.Yaroslavskiy.Basic
--- import Quicksort.Partition.Dutch.Basic
+-- import Quicksort.Partition.Hoare.New.Basic
+import Quicksort.Partition.Yaroslavskiy.Basic
+import Quicksort.Partition.BentleyMcIlroy.Basic
+import Quicksort.Partition.Dutch.Basic
+import Quicksort.Adapt
 open Partition
+
+set_option pp.deepTerms true
 ------------------------ UNIT TESTS -------------------------------
 def hello := #[
 56, 69, 30, 11, 34, 14, 95, 81, 96, 76,
@@ -16,8 +21,68 @@ def hello := #[
 84, 75, 99, 4, 91, 50, 53, 60, 56, 24
 ]
 
-#eval! qs hello (part := hoare)
--- #eval! qs hello (part := Partition.dutch)
+#eval qs hello (part := hoare)
+
+
+/--
+info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17, 18, 19, 24, 24, 24, 25, 26, 27, 29, 29, 30,
+  30, 32, 33, 34, 34, 35, 37, 37, 39, 39, 39, 39, 40, 40, 41, 42, 42, 43, 43, 46, 47, 49, 50, 50, 52, 53, 53, 53, 54,
+  56, 56, 57, 58, 60, 60, 61, 63, 65, 68, 69, 70, 73, 75, 76, 77, 78, 79, 81, 84, 84, 85, 86, 88, 89, 90, 90, 91, 91,
+  91, 91, 93, 94, 95, 95, 96, 99, 99]
+-/
+#guard_msgs in
+#eval qs hello (part := Partition.bentleyMcIlroy.eager)
+
+/--
+info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17, 18, 19, 24, 24, 24, 25, 26, 27, 29, 29, 30,
+  30, 32, 33, 34, 34, 35, 37, 37, 39, 39, 39, 39, 40, 40, 41, 42, 42, 43, 43, 46, 47, 49, 50, 50, 52, 53, 53, 53, 54,
+  56, 56, 57, 58, 60, 60, 61, 63, 65, 68, 69, 70, 73, 75, 76, 77, 78, 79, 81, 84, 84, 85, 86, 88, 89, 90, 90, 91, 91,
+  91, 91, 93, 94, 95, 95, 96, 99, 99]
+-/
+#guard_msgs(info) in
+#eval! qs hello (part := Partition.bentleyMcIlroy.classic sorry sorry)
+
+
+
+
+/--
+info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17, 18, 19, 24, 24, 24, 25, 26, 27, 29, 29, 30,
+  30, 32, 33, 34, 34, 35, 37, 37, 39, 39, 39, 39, 40, 40, 41, 42, 42, 43, 43, 46, 47, 49, 50, 50, 52, 53, 53, 53, 54,
+  56, 56, 57, 58, 60, 60, 61, 63, 65, 68, 69, 70, 73, 75, 76, 77, 78, 79, 81, 84, 84, 85, 86, 88, 89, 90, 90, 91, 91,
+  91, 91, 93, 94, 95, 95, 96, 99, 99]
+-/
+#guard_msgs in
+#eval! qs hello (part := Partition.yaroslavskiy.example)
+
+/--
+info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17, 18, 19, 24, 24, 24, 25, 26, 27, 29, 29, 30,
+  30, 32, 33, 34, 34, 35, 37, 37, 39, 39, 39, 39, 40, 40, 41, 42, 42, 43, 43, 46, 47, 49, 50, 50, 52, 53, 53, 53, 54,
+  56, 56, 57, 58, 60, 60, 61, 63, 65, 68, 69, 70, 73, 75, 76, 77, 78, 79, 81, 84, 84, 85, 86, 88, 89, 90, 90, 91, 91,
+  91, 91, 93, 94, 95, 95, 96, 99, 99]
+-/
+#guard_msgs in
+#eval! qs hello (part := Partition.yaroslavskiy.debug)
+
+/--
+info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17, 18, 19, 24, 24, 24, 25, 26, 27, 29, 29, 30,
+  30, 32, 33, 34, 34, 35, 37, 37, 39, 39, 39, 39, 40, 40, 41, 42, 42, 43, 43, 46, 47, 49, 50, 50, 52, 53, 53, 53, 54,
+  56, 56, 57, 58, 60, 60, 61, 63, 65, 68, 69, 70, 73, 75, 76, 77, 78, 79, 81, 84, 84, 85, 86, 88, 89, 90, 90, 91, 91,
+  91, 91, 93, 94, 95, 95, 96, 99, 99]
+-/
+#guard_msgs in
+#eval! qs hello (part := Partition.yaroslavskiy.debug_func)
+
+/--
+info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17, 18, 19, 24, 24, 24, 25, 26, 27, 29, 29, 30,
+  30, 32, 33, 34, 34, 35, 37, 37, 39, 39, 39, 39, 40, 40, 41, 42, 42, 43, 43, 46, 47, 49, 50, 50, 52, 53, 53, 53, 54,
+  56, 56, 57, 58, 60, 60, 61, 63, 65, 68, 69, 70, 73, 75, 76, 77, 78, 79, 81, 84, 84, 85, 86, 88, 89, 90, 90, 91, 91,
+  91, 91, 93, 94, 95, 95, 96, 99, 99]
+-/
+#guard_msgs in
+#eval! qs hello (part := dutch)
+
+
+
 
 /--
 info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17, 18, 19, 24, 24, 24, 25, 26, 27, 29, 29, 30,
@@ -60,7 +125,17 @@ info: #[1, 2, 2, 3]
   -- Expect: #["amet", "dolor", "ipsum", "lorem", "sit"]
 
 #eval qs.strict (as := #v[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4]) (hsize' := by omega)  (part := hoare)
+
+/--
+error: Unknown identifier `x`
+-/
+#guard_msgs in
+example : α := x
+
+
+#guard_msgs(drop info) in
 #eval! qs #[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4] (part := hoare) (left := 1) (right := 1000) -- EXPECT ERROR: "index out of bounds" with partially sorted output
+#guard_msgs(drop info) in
 #eval! qs #[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4] (part := lomuto) (left := 1) (right := 1000) -- EXPECT ERROR: "index out of bounds" with partially sorted output
 
 /- run as ` ./.lake/build/bin/example world hello` -/

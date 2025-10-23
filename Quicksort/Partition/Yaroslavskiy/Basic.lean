@@ -257,40 +257,6 @@ example [ToString α] : Partition.Scheme α := Partition.yaroslavskiy.debug'
 
 
 
-/--
-  Single Pivot yaroslavskiy partitioning scheme
- -/
-@[inline]
-def Partition.yaroslavskiy.onepiv [Ord α] {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
-  let mid := left + ((right - left)/2)
-  have hl : left < n := by omega
-  have hm : mid < n := by omega
-  let as_ := as
-    |> (maybeSwap · ⟨left, hl⟩ ⟨mid, hm⟩)
-    |> (maybeSwap · ⟨left, hl⟩ ⟨right, hr⟩)
-    |> (maybeSwap · ⟨mid, hm⟩ ⟨right, hr⟩)
-
-  let pivot := as_[mid] -- Choose the median-of-three element as the pivot
-
-  -- Iterate and compare all elements with the pivot
-  let rec @[specialize] loop (as : Vector α n) (i k j : Nat) (hli : left < i) (hik : i ≤ k ) (hjr : j < right) (hlj : left ≤ j) (hir : i ≤  right ) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
-    if hkj : k ≤ j then
-      -- have hk : k < n := by omega
-      if lt as[k] pivot then
-        by apply loop (as.swap k i) (i + 1) (k + 1) j; all_goals omega
-      else if lt pivot as[k] then
-        by apply loop (as.swap k j) i k (j - 1); all_goals omega
-      else
-        by apply loop as i (k + 1) j; all_goals omega
-    else
-      ⟨⟨as, i - 1, j + 1⟩, by simp only; omega, by simp only; omega⟩
-  termination_by j + n - i - k
-
-  by apply loop as_ (left + 1) (left + 1) (right - 1); all_goals omega
-
--- #eval Partition.yaroslavskiy.onepiv #v[3, 1, 3] 0 2 (by omega) (by omega)
-#eval Partition.yaroslavskiy.onepiv #v[9,  3,  1,  8,  6,  2,  5,  0,  7,  4]  0 9 (by omega) (by omega)
-
 @[inline]
 def Partition.yaroslavskiy.twopiv /- [ToString α] -/  [Ord α] {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   let as_ :=
