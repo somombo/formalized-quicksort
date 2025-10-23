@@ -187,73 +187,79 @@ where
 
     have hapivi : ¬lt arr[i'] pivot := hapivi
 
-    if _ : i' < j' then by -- FIXME: somombo> remove all of the exact tactics before the recursing below
-      have _ : q - 1 + 1 = q := by omega
-      have _ : p + 1 - 1 = p := by omega
+    if _ : i' < j' then
+      have hqsimp : q - 1 + 1 = q := by omega
+      have hpsimp : p + 1 - 1 = p := by omega
       let arr' := arr.swap i' j' (by omega) (by omega)
 
-      if ha'ipiv : lt arr'[i'] pivot then
-        if ha'pivj : lt pivot arr'[j'] then
-          have harleq_ : ¬ lt arr'[q + 1] pivot := by
-            simp only [arr', arr.getElem_swap_of_ne (show q + 1 ≠ i' by omega) (show q + 1 ≠ j' by omega)]
-            assumption
-          have halgep_ : ¬lt pivot arr'[p - 1] := by
-            simp only [arr', arr.getElem_swap_of_ne (show p - 1 ≠ i' by omega) (show p - 1 ≠ j' by omega)]
-            assumption
-          exact
+      if _ : lt arr'[i'] pivot then
+        if _ : lt pivot arr'[j'] then
           loop pivot arr' (i' + 1) (j' - 1) p q
-            (by omega) (by omega) (by omega) (by omega)
-            (by omega) (by omega) (by grind only) (by grind only)
+            (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
+            (by
+              -- change ¬lt pivot arr'[p - 1]
+              simp only [arr', arr.getElem_swap_of_ne (show p - 1 ≠ i' by omega) (show p - 1 ≠ j' by omega)]
+              assumption
+            )
+            (by
+              -- change ¬ lt arr'[q + 1] pivot
+              simp only [arr', arr.getElem_swap_of_ne (show q + 1 ≠ i' by omega) (show q + 1 ≠ j' by omega)]
+              assumption
+            )
         else
           let arr'' := arr'.swap q j' (by omega) (by omega)
-          have harleq_ : ¬ lt arr''[q] pivot := by
-            simp only [arr'', Vector.getElem_swap_left]
-            simp only [arr', Vector.getElem_swap_right]
-            assumption
 
-          have halgep_ : ¬lt pivot arr''[p - 1] := by
-            simp only [arr'', Vector.getElem_swap_of_ne (show p - 1 ≠ q by omega) (show p - 1 ≠ j' by omega)]
-            simp only [arr', Vector.getElem_swap_of_ne (show p - 1 ≠ i' by omega) (show p - 1 ≠ j' by omega)]
-            assumption
-
-          exact
           loop pivot arr'' (i' + 1) (j' - 1) p (q - 1)
-            (by omega) (by omega) (by omega) (by omega)
-            (by omega) (by omega) (by grind only) (by grind only)
+            (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
+            (by
+              -- change ¬lt pivot arr''[p - 1]
+              simp only [arr'', Vector.getElem_swap_of_ne (show p - 1 ≠ q by omega) (show p - 1 ≠ j' by omega)]
+              simp only [arr', Vector.getElem_swap_of_ne (show p - 1 ≠ i' by omega) (show p - 1 ≠ j' by omega)]
+              assumption
+            )
+            (by
+              suffices ¬ lt arr''[q] pivot by simpa only [hqsimp]
+              simp only [arr'', Vector.getElem_swap_left]
+              simp only [arr', Vector.getElem_swap_right]
+              assumption
+            )
       else
         let arr'' := arr'.swap p i' (by omega) (by omega)
         if ha'pivj : lt pivot arr''[j'] then
-          have harleq_ : ¬ lt arr''[q + 1] pivot := by
-            simp only [arr'', Vector.getElem_swap_of_ne (show q + 1 ≠ p by omega) (show q + 1 ≠ i' by omega)]
-            simp only [arr', Vector.getElem_swap_of_ne (show q + 1 ≠ i' by omega) (show q + 1 ≠ j' by omega)]
-            assumption
 
-          have halgep_ : ¬lt pivot arr''[p] := by
-            simp only [arr'', Vector.getElem_swap_left]
-            simp only [arr', Vector.getElem_swap_left]
-            assumption
-
-          exact
           loop pivot arr'' (i' + 1) (j' - 1) (p + 1) q
-            (by omega) (by omega) (by omega) (by omega)
-            (by omega) (by omega) (by grind only) (by grind only)
+            (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
+            (by
+              suffices ¬lt pivot arr''[p] by simpa only [hpsimp]
+              simp only [arr'', Vector.getElem_swap_left]
+              simp only [arr', Vector.getElem_swap_left]
+              assumption
+            )
+            (by
+              -- change ¬ lt arr''[q + 1] pivot
+              simp only [arr'', Vector.getElem_swap_of_ne (show q + 1 ≠ p by omega) (show q + 1 ≠ i' by omega)]
+              simp only [arr', Vector.getElem_swap_of_ne (show q + 1 ≠ i' by omega) (show q + 1 ≠ j' by omega)]
+              assumption
+            )
         else
           let arr''' := arr''.swap q j' (by omega) (by omega)
-          have harleq_ : ¬ lt arr'''[q] pivot := by
-            simp only [arr''', Vector.getElem_swap_left]
-            simp only [arr'', Vector.getElem_swap_of_ne (show j' ≠ p by omega) (show j' ≠ i' by omega)]
-            simp only [arr', Vector.getElem_swap_right]
-            assumption
-          have halgep_ : ¬lt pivot arr'''[p] := by
-            simp only [arr''', Vector.getElem_swap_of_ne (show p ≠ q by omega) (show p ≠ j' by omega)]
-            simp only [arr'', Vector.getElem_swap_left]
-            simp only [arr', Vector.getElem_swap_left]
-            assumption
 
-          exact
           loop pivot arr''' (i' + 1) (j' - 1) (p + 1) (q - 1)
-            (by omega) (by omega) (by omega) (by omega)
-            (by omega) (by omega) (by grind only) (by grind only)
+            (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
+            (by
+              suffices ¬lt pivot arr'''[p] by simpa only [hpsimp]
+              simp only [arr''', Vector.getElem_swap_of_ne (show p ≠ q by omega) (show p ≠ j' by omega)]
+              simp only [arr'', Vector.getElem_swap_left]
+              simp only [arr', Vector.getElem_swap_left]
+              assumption
+            )
+            (by
+              suffices ¬ lt arr'''[q] pivot by simpa only [hqsimp]
+              simp only [arr''', Vector.getElem_swap_left]
+              simp only [arr'', Vector.getElem_swap_of_ne (show j' ≠ p by omega) (show j' ≠ i' by omega)]
+              simp only [arr', Vector.getElem_swap_right]
+              assumption
+            )
 
     else
       move_pivots_back  left right hlr hr p q (by omega)  <|
