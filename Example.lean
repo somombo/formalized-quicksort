@@ -59,7 +59,7 @@ info: #[1, 2, 2, 3]
 #eval qs #["lorem", "ipsum", "dolor", "sit", "amet"]
   -- Expect: #["amet", "dolor", "ipsum", "lorem", "sit"]
 
-#eval qs.strict (as := #v[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4]) (hsize' := by omega)
+#eval qs.strict (as := #v[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4]) (hsize' := by omega)  (part := hoare)
 #eval! qs #[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4] (part := hoare) (left := 1) (right := 1000) -- EXPECT ERROR: "index out of bounds" with partially sorted output
 #eval! qs #[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4] (part := lomuto) (left := 1) (right := 1000) -- EXPECT ERROR: "index out of bounds" with partially sorted output
 

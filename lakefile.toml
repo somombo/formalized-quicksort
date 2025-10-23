@@ -1,6 +1,10 @@
 name = "quicksort"
 testDriver = "test"
-defaultTargets = ["Quicksort", "quicksort", "Bench"]
+defaultTargets = [
+  "Quicksort", 
+  "quicksort", 
+  # "Bench",
+]
 
 [[lean_lib]]
 name = "Quicksort"
@@ -9,19 +13,19 @@ name = "Quicksort"
 name = "quicksort"
 root = "Example"
 
-[[lean_exe]]
-name = "timer"
-root = "Timer_Issue"
-srcDir = "Bench"
+# [[lean_exe]]
+# name = "timer"
+# root = "Timer_Issue"
+# srcDir = "Bench"
 
-[[lean_exe]]
-name = "test"
-srcDir = "Bench"
-root = "Main"
+# [[lean_exe]]
+# name = "test"
+# srcDir = "Bench"
+# root = "Main"
 
-[[lean_lib]]
-name = "Bench"
-defaultFacets = ["shared"]    # defaultFacets := #[LeanLib.sharedFacet]
+# [[lean_lib]]
+# name = "Bench"
+# defaultFacets = ["shared"]    # defaultFacets := #[LeanLib.sharedFacet]
 
 # [[lean_exe]]
 # name = "hoaretest"
