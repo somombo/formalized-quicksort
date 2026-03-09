@@ -54,7 +54,7 @@ where
       xs
 
 @[inline]
-private def Vector.insertionSort [Ord α] {n : Nat} (xs : Vector α n) -- (lt : α → α → Bool := by exact (· < ·))
+def Vector.insertionSort [Ord α] {n : Nat} (xs : Vector α n) -- (lt : α → α → Bool := by exact (· < ·))
     (left := 0) (right := n - 1) (hr : right ≤ n - 1 := by omega) : Vector α n :=
   traverse xs (left + 1)
 where

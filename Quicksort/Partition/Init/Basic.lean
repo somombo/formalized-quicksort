@@ -1,4 +1,4 @@
-abbrev lt [Ord α] (x y : α) : Bool :=
+def lt [Ord α] (x y : α) : Bool :=
   match compare x y with
   | .lt => true
   | _ => false
