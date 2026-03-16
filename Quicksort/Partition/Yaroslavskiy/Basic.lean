@@ -10,14 +10,14 @@ instance [ToString α] : ToString (Vector α n) where
   imperetive implimentation of Single Pivot yaroslavskiy partitioning scheme
  -/
 @[inline]
-def Partition.yaroslavskiy.example [Ord α] /- [ToString α] -/  {n : Nat} (as_ : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+def Partition.yaroslavskiy.example /- [ToString α] -/  {n : Nat} (as_ : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) (lt : α → α → Bool := by exact (· < ·)) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   let mid := left + ((right - left)/2)
   have hl : left < n := by omega
   have hm : mid < n := by omega
   let as_ := as_
-    |> (maybeSwap · ⟨left, hl⟩ ⟨mid, hm⟩)
-    |> (maybeSwap · ⟨left, hl⟩ ⟨right, hr⟩)
-    |> (maybeSwap · ⟨mid, hm⟩ ⟨right, hr⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, hl⟩ ⟨mid, hm⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, hl⟩ ⟨right, hr⟩)
+    |> (maybeSwap (lt := lt) · ⟨mid, hm⟩ ⟨right, hr⟩)
 
 
   -- Pivot value --   pivot := as_[left]; pivot := as_[right]
@@ -82,13 +82,13 @@ def Partition.yaroslavskiy.example [Ord α] /- [ToString α] -/  {n : Nat} (as_ 
   imperetive implimentation of Single Pivot yaroslavskiy partitioning scheme
  -/
 @[inline]
-def Partition.yaroslavskiy.debug [Ord α] /- [ToString α] -/  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := Id.run do
+def Partition.yaroslavskiy.debug /- [ToString α] -/  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) (lt : α → α → Bool := by exact (· < ·)) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := Id.run do
   let mid := left + ((right - left)/2)
   let mut as := as
-    |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
-    |> (maybeSwap · ⟨left, by omega⟩ ⟨right, by omega⟩)
-    |> (maybeSwap · ⟨mid, by omega⟩ ⟨right, by omega⟩)
-    -- |> (maybeSwap · ⟨right, by omega⟩ ⟨mid, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, by omega⟩ ⟨mid, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, by omega⟩ ⟨right, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨mid, by omega⟩ ⟨right, by omega⟩)
+    -- |> (maybeSwap (lt := lt) · ⟨right, by omega⟩ ⟨mid, by omega⟩)
 
   let pivot := as[mid]
   -- let pivot := as[left]
@@ -131,13 +131,13 @@ def Partition.yaroslavskiy.debug [Ord α] /- [ToString α] -/  {n : Nat} (as : V
   imperetive implimentation of Single Pivot yaroslavskiy partitioning scheme
  -/
 @[inline]
-def Partition.yaroslavskiy.debug_func [Ord α] /- [ToString α] -/  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := Id.run do
+def Partition.yaroslavskiy.debug_func /- [ToString α] -/  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) (lt : α → α → Bool := by exact (· < ·)) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := Id.run do
   let mid := left + ((right - left)/2)
   let mut as := as
-    |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
-    |> (maybeSwap · ⟨left, by omega⟩ ⟨right, by omega⟩)
-    |> (maybeSwap · ⟨mid, by omega⟩ ⟨right, by omega⟩)
-    -- |> (maybeSwap · ⟨right, by omega⟩ ⟨mid, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, by omega⟩ ⟨mid, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, by omega⟩ ⟨right, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨mid, by omega⟩ ⟨right, by omega⟩)
+    -- |> (maybeSwap (lt := lt) · ⟨right, by omega⟩ ⟨mid, by omega⟩)
 
   let pivot := as[mid]
   -- let pivot := as[left]
@@ -204,13 +204,13 @@ def Partition.yaroslavskiy.debug_func [Ord α] /- [ToString α] -/  {n : Nat} (a
   imperetive declarative of Single Pivot yaroslavskiy partitioning scheme
  -/
 @[inline]
-def Partition.yaroslavskiy.debug' [Ord α] [ToString α]  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+def Partition.yaroslavskiy.debug' [ToString α]  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) (lt : α → α → Bool := by exact (· < ·)) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   let mid := left + ((right - left)/2)
   let as_ := as
-    |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
-    |> (maybeSwap · ⟨left, by omega⟩ ⟨right, by omega⟩)
-    |> (maybeSwap · ⟨mid, by omega⟩ ⟨right, by omega⟩)
-    -- |> (maybeSwap · ⟨right, by omega⟩ ⟨mid, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, by omega⟩ ⟨mid, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, by omega⟩ ⟨right, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨mid, by omega⟩ ⟨right, by omega⟩)
+    -- |> (maybeSwap (lt := lt) · ⟨right, by omega⟩ ⟨mid, by omega⟩)
 
   let pivot := as_[mid]
   let pivot := dbg s!"pivot: {pivot}" pivot
@@ -234,7 +234,7 @@ def Partition.yaroslavskiy.debug' [Ord α] [ToString α]  {n : Nat} (as : Vector
 
   loop as_ (left + 1) (left + 1) (right - 1)
 
-example [ToString α] : Partition.Scheme α := Partition.yaroslavskiy.debug'
+example [ToString α] : Partition.Scheme α := @Partition.yaroslavskiy.debug' ‹_› (α := α)
 
 
 #eval! Partition.yaroslavskiy.debug' #v[0, 1]  0 1 (by omega) (by omega)
@@ -258,7 +258,7 @@ example [ToString α] : Partition.Scheme α := Partition.yaroslavskiy.debug'
 
 
 @[inline]
-def Partition.yaroslavskiy.twopiv /- [ToString α] -/  [Ord α] {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+def Partition.yaroslavskiy.twopiv /- [ToString α] -/  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) (lt : α → α → Bool := by exact (· < ·)) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   let as_ :=
     if hltrl : lt as[right] as[left] then
       as.swap left right

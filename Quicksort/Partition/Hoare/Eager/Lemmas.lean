@@ -5,7 +5,8 @@ import Quicksort.Partition.Init.Lemmas
 open Vector
 
 namespace Partition
-variable [Ord α]
+variable (lt : α → α → Bool := by exact (· < ·))
+
 variable (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x)
 
 include lt_asymm in
@@ -17,7 +18,7 @@ variable (le_trans : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x)
 
 
 include lt_asymm in
-private theorem hoare.eager.maybeSwap_sorted (as : Vector α n) (low high : Nat) (hlh : low ≤ high) (hn : high < n) : ¬lt (maybeSwap as ⟨low, by omega⟩ ⟨high, by omega⟩)[high] (maybeSwap as ⟨low, by omega⟩ ⟨high, by omega⟩)[low] := by
+private theorem hoare.eager.maybeSwap_sorted (as : Vector α n) (low high : Nat) (hlh : low ≤ high) (hn : high < n) : ¬lt (maybeSwap (lt := lt) as ⟨low, by omega⟩ ⟨high, by omega⟩)[high] (maybeSwap (lt := lt) as ⟨low, by omega⟩ ⟨high, by omega⟩)[low] := by
   unfold maybeSwap; split
   · next h =>
       have _ := lt_asymm h
@@ -31,28 +32,28 @@ include lt_asymm in
 include le_trans in
 private theorem hoare.eager.median_of_three_sorted {arr : Vector α n} {left mid right: Nat} (hlm : left ≤ mid) (hmr : mid ≤ right) (hr : right < n) :
   have arr_ := arr
-    |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
-    |> (maybeSwap · ⟨left, by omega⟩ ⟨right, by omega⟩)
-    |> (maybeSwap · ⟨mid, by omega⟩ ⟨right, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, by omega⟩ ⟨mid, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, by omega⟩ ⟨right, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨mid, by omega⟩ ⟨right, by omega⟩)
 -- ∀ {k_ : Nat} (_ : left ≤ k_) (_ : k_ ≤ right),
   ¬lt arr_[mid] arr_[left] ∧ ¬lt arr_[right] arr_[mid]
   :=
   have _ : left < n := by omega
   have _ : mid < n := by omega
 
-  let arr1 : Vector α n := maybeSwap arr ⟨left, by omega⟩ ⟨mid, by omega⟩
-  let arr2 : Vector α n := maybeSwap arr1 ⟨left, by omega⟩ ⟨right, by omega⟩
-  let arr_ : Vector α n := maybeSwap arr2 ⟨mid, by omega⟩ ⟨right, by omega⟩
+  let arr1 : Vector α n := maybeSwap (lt := lt) arr ⟨left, by omega⟩ ⟨mid, by omega⟩
+  let arr2 : Vector α n := maybeSwap (lt := lt) arr1 ⟨left, by omega⟩ ⟨right, by omega⟩
+  let arr_ : Vector α n := maybeSwap (lt := lt) arr2 ⟨mid, by omega⟩ ⟨right, by omega⟩
 
-  have hh1 : ¬lt arr1[mid] arr1[left] := maybeSwap_sorted lt_asymm arr left mid (by omega) (by omega)
-  have hh2 : ¬lt arr2[right] arr2[left] := maybeSwap_sorted lt_asymm arr1 left right (by omega) (by omega)
-  have hh_ : ¬lt arr_[right] arr_[mid] := maybeSwap_sorted lt_asymm arr2 mid right (by omega) (by omega)
+  have hh1 : ¬lt arr1[mid] arr1[left] := maybeSwap_sorted (lt := lt) lt_asymm arr left mid (by omega) (by omega)
+  have hh2 : ¬lt arr2[right] arr2[left] := maybeSwap_sorted (lt := lt) lt_asymm arr1 left right (by omega) (by omega)
+  have hh_ : ¬lt arr_[right] arr_[mid] := maybeSwap_sorted (lt := lt) lt_asymm arr2 mid right (by omega) (by omega)
 
   suffices ¬lt arr_[mid] arr_[left] from ⟨this, hh_⟩
 
   if hleqm : left = mid then by
     simp only [hleqm]
-    exact lt_irrefl lt_asymm arr_[mid]
+    exact (lt_irrefl (lt := lt)) lt_asymm arr_[mid]
   else by
     have hlneqr : left ≠ right := by omega
     simp only [arr_]
@@ -79,8 +80,8 @@ private theorem hoare.eager.median_of_three_sorted {arr : Vector α n} {left mid
 
 
 
-protected theorem hoare.eager.loop.partition_bounds {left right : Nat} {hr : right < n} {pivot : α} {arr : Vector α n} {i j : Nat} {hli : left < i} {hjr : j < right} {hij : i ≤ j + 1} : (loop left right hr pivot arr i j hli hij hjr).val.j' < (loop left right hr pivot arr i j hli hij hjr).val.i' := by
-  induction arr, i, j, hli, hij, hjr using loop.induct (hr := hr) (pivot := pivot) with
+protected theorem hoare.eager.loop.partition_bounds {left right : Nat} {hr : right < n} {pivot : α} {arr : Vector α n} {i j : Nat} {hli : left < i} {hjr : j < right} {hij : i ≤ j + 1} : (loop (lt := lt) left right hr pivot arr i j hli hij hjr).val.j' < (loop (lt := lt) left right hr pivot arr i j hli hij hjr).val.i' := by
+  induction arr, i, j, hli, hij, hjr using loop.induct (lt := lt) (hr := hr) (pivot := pivot) with
   | case1 arr i j hli hjr hij hgt =>
     unfold loop; simp [*]
   | case2 arr i j hli hjr hij hgt hh_ne ih =>
@@ -93,13 +94,13 @@ protected theorem hoare.eager.loop.partition_bounds {left right : Nat} {hr : rig
     unfold loop; simp [*]
     omega
 
-protected theorem hoare.eager.partition_bounds {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : (Partition.hoare.eager arr left right hlr hr).val.j' < (Partition.hoare.eager arr left right hlr hr).val.i' := by
+protected theorem hoare.eager.partition_bounds {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : (Partition.hoare.eager (lt := lt) arr left right hlr hr).val.j' < (Partition.hoare.eager (lt := lt) arr left right hlr hr).val.i' := by
   unfold Partition.hoare.eager
   apply Partition.hoare.eager.loop.partition_bounds
 
-protected theorem hoare.eager.loop.permStabilizing {left right : Nat} {hr : right < n} {pivot : α} {arr : Vector α n} {i j : Nat}  {hli : left < i} {hjr : j < right} {hij : i ≤ j + 1} : PermStabilizing' i j (loop left right hr pivot arr i j hli hij hjr).val.arr' arr
+protected theorem hoare.eager.loop.permStabilizing {left right : Nat} {hr : right < n} {pivot : α} {arr : Vector α n} {i j : Nat}  {hli : left < i} {hjr : j < right} {hij : i ≤ j + 1} : PermStabilizing' i j (loop (lt := lt) left right hr pivot arr i j hli hij hjr).val.arr' arr
 := by
-  induction arr, i, j, hli, hij, hjr using hoare.eager.loop.induct (hr := hr) (pivot := pivot)
+  induction arr, i, j, hli, hij, hjr using hoare.eager.loop.induct  (lt := lt) (hr := hr) (pivot := pivot)
   all_goals unfold loop; simp [*]
   · case case1 arr i j hli hjr hij hgt =>
     apply PermStabilizing'.refl
@@ -115,9 +116,9 @@ protected theorem hoare.eager.loop.permStabilizing {left right : Nat} {hr : righ
     apply PermStabilizing'.refl
 
 
-protected theorem hoare.eager.permStabilizing {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : PermStabilizing' left right (Partition.hoare.eager arr left right hlr hr).val.arr' arr := by
+protected theorem hoare.eager.permStabilizing {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : PermStabilizing' left right (Partition.hoare.eager (lt := lt) arr left right hlr hr).val.arr' arr := by
   apply PermStabilizing'.trans
-  · apply PermStabilizing'.mono hoare.eager.loop.permStabilizing <;> omega
+  · apply PermStabilizing'.mono (hoare.eager.loop.permStabilizing  (lt := lt)) <;> omega
   ·
     -- apply sortAt_of_sortAt_of_sortAt_permStabilizing <;> omega
     apply PermStabilizing'.trans
@@ -132,10 +133,10 @@ protected theorem hoare.eager.permStabilizing {arr : Vector α n} {left : Nat} {
 
 include lt_asymm in
 -- protected theorem Partition.loop.sorted {left right : Nat} {hr : right < n} {pivot : α} {arr : Vector α n} {i j : Nat}  {hli : left < i} {hjr : j < right} {hij : i ≤ j + 1} : let x := (Partition.loop left right hr pivot arr i j hli hjr hij).val; RangeHas n (¬lt pivot  x.arr'[·]) i x.i' ∧ RangeHas n (¬lt x.arr'[·] pivot) (x.j' + 1) (j + 1)
-protected theorem hoare.eager.loop.sorted {left right : Nat} {hr : right < n} {pivot : α} {arr : Vector α n} {i j : Nat}  {hli : left < i} {hjr : j < right} {hij : i ≤ j + 1} : IsPartitioned i j pivot (Partition.hoare.eager.loop left right hr pivot arr i j hli hij hjr).val
+protected theorem hoare.eager.loop.sorted {left right : Nat} {hr : right < n} {pivot : α} {arr : Vector α n} {i j : Nat}  {hli : left < i} {hjr : j < right} {hij : i ≤ j + 1} : IsPartitioned (lt := lt) i j pivot (Partition.hoare.eager.loop (lt := lt) left right hr pivot arr i j hli hij hjr).val
 := by
   -- show Partition.IsPartitioned i j pivot (Partition.loop left right hr pivot arr i j hli hjr hij).val
-  induction arr, i, j, hli, hij, hjr using hoare.eager.loop.induct (hr := hr) (pivot := pivot) with
+  induction arr, i, j, hli, hij, hjr using hoare.eager.loop.induct (lt := lt) (hr := hr) (pivot := pivot) with
   | case1 arr i j hli hjr hij hgt =>
     unfold loop; simp [*]
     constructor <;> (simp; apply RangeHas.refl)
@@ -148,7 +149,7 @@ protected theorem hoare.eager.loop.sorted {left right : Nat} {hr : right < n} {p
     constructor
     · replace ih := ih.1
       apply RangeHas.prepend (ha := hi) (pred := (¬lt pivot (loop ..).val.arr'[·] = true))
-      · simp_all [loop.permStabilizing.2.1]
+      · simp_all [(loop.permStabilizing (lt := lt)).2.1]
       · assumption
     · exact ih.2
   | case3 arr i j hli hjr hij hgt hh_ne hhne ih =>
@@ -162,7 +163,7 @@ protected theorem hoare.eager.loop.sorted {left right : Nat} {hr : right < n} {p
       replace ih := ih.2
       rw [this] at ih
       apply RangeHas.append (hb := hj) (pred := (¬lt (loop ..).val.arr'[·] pivot = true))
-      · simp_all [loop.permStabilizing.2.2 ⟨j, hj⟩ (by omega : j - 1 < j)]
+      · simp_all [(loop.permStabilizing (lt := lt)).2.2 ⟨j, hj⟩ (by omega : j - 1 < j)]
       · assumption
   | case4 arr i j hli hjr hij hgt hh_ne hhne hlt ih =>
     unfold loop; simp [*]
@@ -171,11 +172,11 @@ protected theorem hoare.eager.loop.sorted {left right : Nat} {hr : right < n} {p
 
     constructor
     · apply RangeHas.prepend (ha := hi) (pred := (¬lt pivot (loop ..).val.arr'[·] = true))
-      · simp_all [loop.permStabilizing.2.1, arr.getElem_swap_left]
+      · simp_all [(loop.permStabilizing (lt := lt)).2.1, arr.getElem_swap_left]
       · exact ih.1
 
     · apply RangeHas.append (hb := hj) (pred := (¬lt (loop ..).val.arr'[·] pivot = true))
-      · simp_all [loop.permStabilizing.2.2 ⟨j, hj⟩ (by omega : j - 1 < j), arr.getElem_swap_right]
+      · simp_all [(loop.permStabilizing (lt := lt)).2.2 ⟨j, hj⟩ (by omega : j - 1 < j), arr.getElem_swap_right]
       · have _ := show j - 1 + 1 = j by omega ▸ ih.2; assumption
 
   | case5 arr i j hli hjr hij hgt hh_ne hhne hlt =>
@@ -193,7 +194,7 @@ protected theorem hoare.eager.loop.sorted {left right : Nat} {hr : right < n} {p
 
 include le_trans in
 include lt_asymm in
-protected theorem hoare.eager.sorted {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : ∃ (pivot : α), IsPartitioned left right pivot (Partition.hoare.eager arr left right hlr hr).val :=
+protected theorem hoare.eager.sorted {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : ∃ (pivot : α), IsPartitioned (lt := lt) left right pivot (Partition.hoare.eager (lt := lt) arr left right hlr hr).val :=
 
   let mid := left + ((right - left)/2)
   have hlm : left ≤ mid := Nat.le_add_right left ((right - left) / 2)
@@ -205,18 +206,18 @@ protected theorem hoare.eager.sorted {arr : Vector α n} {left : Nat} {right : N
   have hm :  mid < n := Trans.trans hmr hr
 
   let arr_ := arr
-    |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
-    |> (maybeSwap · ⟨left, by omega⟩ ⟨right, by omega⟩)
-    |> (maybeSwap · ⟨mid, by omega⟩ ⟨right, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, by omega⟩ ⟨mid, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, by omega⟩ ⟨right, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨mid, by omega⟩ ⟨right, by omega⟩)
   let pivot := arr_[mid]
 
-  let x : Partition α n := (loop left right hr pivot  arr_ (left + 1) (right - 1) (by omega) (by omega) (by omega)).val
-  have : IsPartitioned left right pivot x := by
-    have hh1 : IsPartitioned (left + 1) (right - 1) pivot x := hoare.eager.loop.sorted (lt_asymm := lt_asymm)
+  let x : Partition α n := (loop (lt := lt) left right hr pivot  arr_ (left + 1) (right - 1) (by omega) (by omega) (by omega)).val
+  have : IsPartitioned (lt := lt) left right pivot x := by
+    have hh1 : IsPartitioned (lt := lt) (left + 1) (right - 1) pivot x := hoare.eager.loop.sorted  (lt := lt) (lt_asymm := lt_asymm)
 
-    have hh2 : ¬lt pivot arr_[left] ∧ ¬lt arr_[right] pivot := hoare.eager.median_of_three_sorted (lt_asymm := lt_asymm) (le_trans := le_trans) hlm hmr hr
+    have hh2 : ¬lt pivot arr_[left] ∧ ¬lt arr_[right] pivot := hoare.eager.median_of_three_sorted  (lt := lt) (lt_asymm := lt_asymm) (le_trans := le_trans) hlm hmr hr
 
-    have : PermStabilizing' (left + 1) (right - 1) x.arr' arr_ := hoare.eager.loop.permStabilizing
+    have : PermStabilizing' (left + 1) (right - 1) x.arr' arr_ := hoare.eager.loop.permStabilizing (lt := lt)
     replace hh2 : ¬lt pivot x.arr'[left] ∧ ¬lt x.arr'[right] pivot := by
       have heq_left : x.arr'[left] = arr_[left] := this.2.1 ⟨left, by omega⟩ (by grind)
       have heq_right : x.arr'[right] = arr_[right] := this.2.2 ⟨right, by omega⟩ (by grind)

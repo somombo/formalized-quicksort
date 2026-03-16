@@ -4,7 +4,7 @@ open Vector
 
 namespace Partition
 
-variable [Ord α]
+variable (lt : α → α → Bool := by exact (· < ·))
 variable (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x)
 
 include lt_asymm in
@@ -12,7 +12,7 @@ private theorem lt_irrefl : ∀ (x : α), ¬lt x x :=
   fun _ h => (lt_asymm h) h
 
 include lt_asymm in
-theorem maybeSwap_sorted (as : Vector α n) (low high : Nat) (hlh : low ≤ high) (hn : high < n) : ¬ (lt (maybeSwap as ⟨low, by omega⟩ ⟨high, by omega⟩)[high] (maybeSwap as ⟨low, by omega⟩ ⟨high, by omega⟩)[low]) := by
+theorem maybeSwap_sorted (as : Vector α n) (low high : Nat) (hlh : low ≤ high) (hn : high < n) : ¬ (lt (maybeSwap (lt := lt) as ⟨low, by omega⟩ ⟨high, by omega⟩)[high] (maybeSwap (lt := lt) as ⟨low, by omega⟩ ⟨high, by omega⟩)[low]) := by
   unfold maybeSwap; split
   · next h =>
       simp only [as.getElem_swap_right, as.getElem_swap_left]
@@ -25,28 +25,28 @@ include lt_asymm in
 include le_trans in
 theorem median_of_three_sorted {arr : Vector α n} {left mid right: Nat} (hlm : left ≤ mid) (hmr : mid ≤ right) (hr : right < n) :
   let arr_ := arr
-    |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
-    |> (maybeSwap · ⟨left, by omega⟩ ⟨right, by omega⟩)
-    |> (maybeSwap · ⟨mid, by omega⟩ ⟨right, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, by omega⟩ ⟨mid, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, by omega⟩ ⟨right, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨mid, by omega⟩ ⟨right, by omega⟩)
 
   ¬lt arr_[mid] arr_[left] ∧ ¬lt arr_[right] arr_[mid]
   :=
   have _ : left < n := by omega
   have _ : mid < n := by omega
 
-  let arr1 : Vector α n := maybeSwap arr ⟨left, by omega⟩ ⟨mid, by omega⟩
-  let arr2 : Vector α n := maybeSwap arr1 ⟨left, by omega⟩ ⟨right, by omega⟩
-  let arr_ : Vector α n := maybeSwap arr2 ⟨mid, by omega⟩ ⟨right, by omega⟩
+  let arr1 : Vector α n := maybeSwap (lt := lt) arr ⟨left, by omega⟩ ⟨mid, by omega⟩
+  let arr2 : Vector α n := maybeSwap (lt := lt) arr1 ⟨left, by omega⟩ ⟨right, by omega⟩
+  let arr_ : Vector α n := maybeSwap (lt := lt) arr2 ⟨mid, by omega⟩ ⟨right, by omega⟩
 
-  have hh1 : ¬lt arr1[mid] arr1[left] := maybeSwap_sorted lt_asymm arr left mid (by omega) (by omega)
-  have hh2 : ¬lt arr2[right] arr2[left] := maybeSwap_sorted lt_asymm arr1 left right (by omega) (by omega)
-  have hh_ : ¬lt arr_[right] arr_[mid] := maybeSwap_sorted lt_asymm arr2 mid right (by omega) (by omega)
+  have hh1 : ¬lt arr1[mid] arr1[left] := maybeSwap_sorted (lt := lt) lt_asymm arr left mid (by omega) (by omega)
+  have hh2 : ¬lt arr2[right] arr2[left] := maybeSwap_sorted (lt := lt) lt_asymm arr1 left right (by omega) (by omega)
+  have hh_ : ¬lt arr_[right] arr_[mid] := maybeSwap_sorted (lt := lt) lt_asymm arr2 mid right (by omega) (by omega)
 
   suffices ¬lt arr_[mid] arr_[left] from ⟨this, hh_⟩
 
   if hleqm : left = mid then by
     simp only [hleqm]
-    exact lt_irrefl lt_asymm arr_[mid]
+    exact lt_irrefl (lt := lt) lt_asymm arr_[mid]
   else by
     have hlneqr : left ≠ right := by omega
     simp only [arr_]

@@ -4,15 +4,15 @@ import Quicksort.Partition.Init.Lemmas
 open Vector
 
 namespace Partition
-variable [Ord α]
+variable (lt : α → α → Bool := by exact (· < ·))
 variable (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x)
 
 include lt_asymm in
 private theorem lt_irrefl : ∀ (x : α), ¬lt x x :=
   fun _ h => (lt_asymm h) h
 
-protected theorem lomuto.loop.partition_bounds {left right : Nat}  {hlr : left < right} {hr : right < n} {pivot : α} {arr : Vector α n} {i j : Nat} {hli : left ≤ i} {hij : i ≤ j} {hjr : j ≤ right} : (loop left right hlr hr pivot arr i j hli hij hjr).val.j' < (loop left right hlr hr pivot arr i j hli hij hjr).val.i' := by
-  induction arr, i, j, hli, hij, hjr using lomuto.loop.induct (hr := hr) (pivot := pivot)  with
+protected theorem lomuto.loop.partition_bounds {left right : Nat}  {hlr : left < right} {hr : right < n} {pivot : α} {arr : Vector α n} {i j : Nat} {hli : left ≤ i} {hij : i ≤ j} {hjr : j ≤ right} : (loop (lt := lt) left right hlr hr pivot arr i j hli hij hjr).val.j' < (loop (lt := lt) left right hlr hr pivot arr i j hli hij hjr).val.i' := by
+  induction arr, i, j, hli, hij, hjr using lomuto.loop.induct (lt := lt) (hr := hr) (pivot := pivot)  with
   | case1 arr i j hli hij hjr' hjr hhlt ih  =>
     unfold loop; simp [*]
   | case2 arr i j hli hij hjr' hjr hhle ih =>
@@ -21,13 +21,13 @@ protected theorem lomuto.loop.partition_bounds {left right : Nat}  {hlr : left <
     unfold loop; simp [*]
     omega
 
-protected theorem lomuto.partition_bounds {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : (lomuto arr left right hlr hr).val.j' < (lomuto arr left right hlr hr).val.i' := by
+protected theorem lomuto.partition_bounds {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : (lomuto (lt := lt) arr left right hlr hr).val.j' < (lomuto (lt := lt) arr left right hlr hr).val.i' := by
   unfold lomuto
   apply lomuto.loop.partition_bounds
 
-protected theorem lomuto.loop.permStabilizing {left right : Nat} {hlr : left < right} {hr : right < n} {pivot : α} {arr : Vector α n} {i j : Nat} {hli : left ≤ i} {hij :  i ≤ j} {hjr : j ≤ right} : PermStabilizing' i right (loop left right hlr hr pivot arr i j hli hij hjr).val.arr' arr
+protected theorem lomuto.loop.permStabilizing {left right : Nat} {hlr : left < right} {hr : right < n} {pivot : α} {arr : Vector α n} {i j : Nat} {hli : left ≤ i} {hij :  i ≤ j} {hjr : j ≤ right} : PermStabilizing' i right (loop (lt := lt) left right hlr hr pivot arr i j hli hij hjr).val.arr' arr
 := by
-  induction arr, i, j, hli, hij, hjr using lomuto.loop.induct (hr := hr) (pivot := pivot) with
+  induction arr, i, j, hli, hij, hjr using lomuto.loop.induct (lt := lt) (hr := hr) (pivot := pivot) with
   | case1 arr i j hli hij hjr' hjr hhlt ih  =>
     unfold loop; simp [*]
 
@@ -48,9 +48,9 @@ protected theorem lomuto.loop.permStabilizing {left right : Nat} {hlr : left < r
 
 
 -- set_option trace.profiler true in
-protected theorem lomuto.permStabilizing {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : PermStabilizing' left right (lomuto arr left right hlr hr).val.arr' arr := by
+protected theorem lomuto.permStabilizing {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : PermStabilizing' left right (lomuto (lt := lt) arr left right hlr hr).val.arr' arr := by
   apply PermStabilizing'.trans
-  · apply PermStabilizing'.mono lomuto.loop.permStabilizing <;> omega
+  · apply PermStabilizing'.mono (lomuto.loop.permStabilizing (lt := lt)) <;> omega
   · -- apply sortAt_of_sortAt_of_sortAt_permStabilizing <;>  omega
     apply PermStabilizing'.trans
     apply PermStabilizing'.trans
@@ -95,9 +95,9 @@ variable (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x)
 
 include lt_asymm in
 -- protected theorem lomuto.loop.sorted {left right : Nat} {hr : right < n} {pivot : α} {arr : Vector α n} {i j : Nat} {hli : left ≤ i} {hij :  i ≤ j} {hjr : j ≤ right} (hxij : i < j → RangeHas n (¬lt arr[·] pivot) i j ) (hxr : ¬lt arr[right] pivot) (hxr' : ¬lt pivot arr[right]) : let x := (loop left right hr pivot arr i j hli hij hjr).val; RangeHas n (¬lt pivot x.arr'[·]) i x.i' ∧  RangeHas n (¬lt x.arr'[·] pivot) (x.j' + 1) (right + 1) := by
-protected theorem lomuto.loop.sorted {left right : Nat} {hlr : left < right} {hr : right < n} {pivot : α} {arr : Vector α n} {i j : Nat} {hli : left ≤ i} {hij :  i ≤ j} {hjr : j ≤ right} (hxij : i < j → RangeHas n (¬lt arr[·] pivot) i j ) (hxr : ¬lt arr[right] pivot) (hxr' : ¬lt pivot arr[right]) : IsPartitioned i right pivot (loop left right hlr hr pivot arr i j hli hij hjr).val := by
+protected theorem lomuto.loop.sorted {left right : Nat} {hlr : left < right} {hr : right < n} {pivot : α} {arr : Vector α n} {i j : Nat} {hli : left ≤ i} {hij :  i ≤ j} {hjr : j ≤ right} (hxij : i < j → RangeHas n (¬lt arr[·] pivot) i j ) (hxr : ¬lt arr[right] pivot) (hxr' : ¬lt pivot arr[right]) : IsPartitioned (lt := lt) i right pivot (loop (lt := lt) left right hlr hr pivot arr i j hli hij hjr).val := by
 
-  induction arr, i, j, hli, hij, hjr using lomuto.loop.induct (hr := hr) (pivot := pivot) with
+  induction arr, i, j, hli, hij, hjr using lomuto.loop.induct (lt := lt) (hr := hr) (pivot := pivot) with
   | case1 arr i j hli hij hjr' hjr hhlt ih =>
     let i_fin : Fin n := ⟨i, by omega⟩
     unfold loop; simp [-Fin.getElem_fin, *]
@@ -108,8 +108,8 @@ protected theorem lomuto.loop.sorted {left right : Nat} {hlr : left < right} {hr
 
     constructor
     apply RangeHas.prepend (ha := hi) (pred := (¬lt _ _[·] = _))
-    · let x : Partition α n := (loop left right hlr hr pivot (arr.swap i j (by omega) (by omega)) (i + 1) (j + 1) (by omega) (by omega) (by omega)).val
-      have hperm : PermStabilizing' _ _ x.arr' _ := lomuto.loop.permStabilizing
+    · let x : Partition α n := (loop (lt := lt) left right hlr hr pivot (arr.swap i j (by omega) (by omega)) (i + 1) (j + 1) (by omega) (by omega) (by omega)).val
+      have hperm : PermStabilizing' _ _ x.arr' _ := lomuto.loop.permStabilizing (lt := lt)
       simp only [x, show x.arr'[i] = (arr.swap i j hi hj)[i] from  hperm.2.1 i_fin (by grind), Fin.getElem_fin, arr.getElem_swap_left]
       exact lt_asymm hhlt
 
@@ -120,7 +120,7 @@ protected theorem lomuto.loop.sorted {left right : Nat} {hlr : left < right} {hr
       -- any_goals simp only [i_fin]
       any_goals omega
       · intro hij'
-        simp only [Vector.inclusive_swap hij']
+        simp only [Vector.inclusive_swap (lt := lt) hij']
         exact hxij hij'
       · simp only [show (arr.swap i j)[right] = _ by
           apply arr.getElem_swap_of_ne; all_goals simp; omega]
@@ -168,7 +168,7 @@ protected theorem lomuto.loop.sorted {left right : Nat} {hlr : left < right} {hr
         show RangeHas _ _ i (j + 1)
         apply RangeHas.prepend (ha := hi) (pred := (¬lt _[·] _ = _))
         · simpa only [Fin.getElem_fin, arr.getElem_swap_left]
-        · simp only [Vector.inclusive_swap (hi := hi) (hj := hr) hlt]
+        · simp only [Vector.inclusive_swap (lt := lt) (hi := hi) (hj := hr) hlt]
           exact hxij hlt
         all_goals omega
       | inl heq =>
@@ -179,15 +179,15 @@ protected theorem lomuto.loop.sorted {left right : Nat} {hlr : left < right} {hr
 variable (le_trans : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x)
 
 include lt_asymm in
-protected theorem lomuto.sorted {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : ∃ (pivot : α), IsPartitioned left right pivot (lomuto arr left right hlr hr).val := by
+protected theorem lomuto.sorted {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : ∃ (pivot : α), IsPartitioned (lt := lt) left right pivot (lomuto (lt := lt) arr left right hlr hr).val := by
   let mid := left + ((right - left)/2)
   let arr_ := arr
-    |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
-    |> (maybeSwap · ⟨left, by omega⟩ ⟨right, by omega⟩)
-    |> (maybeSwap · ⟨right, by omega⟩ ⟨mid, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, by omega⟩ ⟨mid, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, by omega⟩ ⟨right, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨right, by omega⟩ ⟨mid, by omega⟩)
 
   refine ⟨arr_[right], ?_⟩
   unfold lomuto
 
-  apply lomuto.loop.sorted lt_asymm (by intro _ ; omega)
-  all_goals apply lt_irrefl lt_asymm arr_[right]
+  apply lomuto.loop.sorted (lt := lt) lt_asymm (by intro _ ; omega)
+  all_goals apply (lt_irrefl (lt := lt)) lt_asymm arr_[right]

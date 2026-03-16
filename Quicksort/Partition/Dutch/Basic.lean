@@ -5,7 +5,7 @@ open Vector
 /-
   imperetive implimentation of Three-Way "Dutch National Flag" Partition
  -/
--- def dutch.example [Ord α] {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := Id.run do
+-- def dutch.example {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) (lt : α → α → Bool := by exact (· < ·)) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := Id.run do
 --   let mid := left + ((right - left)/2)
 --   have _ : left < n := by omega
 --   have _ : right < n := hr
@@ -43,14 +43,14 @@ open Vector
   Three-Way "Dutch National Flag" Partitioning Scheme
  -/
 @[inline]
-def Partition.dutch [Ord α] {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+def Partition.dutch  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) (lt : α → α → Bool := by exact (· < ·)) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   let mid := left + ((right - left)/2)
   have hl : left < n := by omega
   have hm : mid < n := by omega
   let as_ := as
-    |> (maybeSwap · ⟨left, hl⟩ ⟨mid, hm⟩)
-    |> (maybeSwap · ⟨left, hl⟩ ⟨right, hr⟩)
-    |> (maybeSwap · ⟨mid, hm⟩ ⟨right, hr⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, hl⟩ ⟨mid, hm⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, hl⟩ ⟨right, hr⟩)
+    |> (maybeSwap (lt := lt) · ⟨mid, hm⟩ ⟨right, hr⟩)
 
   let pivot := as_[mid] -- Choose the median-of-three element as the pivot
 
@@ -75,14 +75,14 @@ def Partition.dutch [Ord α] {n : Nat} (as : Vector α n) (left : Nat)  (right :
   Three-Way "Dutch National Flag" Partitioning Scheme
  -/
 @[inline]
-def Partition.dutch_both [Ord α] {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+def Partition.dutch_both {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) (lt : α → α → Bool := by exact (· < ·)) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   let mid := left + ((right - left)/2)
   have hl : left < n := by omega
   have hm : mid < n := by omega
   let as_ := as
-    |> (maybeSwap · ⟨left, hl⟩ ⟨mid, hm⟩)
-    |> (maybeSwap · ⟨left, hl⟩ ⟨right, hr⟩)
-    |> (maybeSwap · ⟨mid, hm⟩ ⟨right, hr⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, hl⟩ ⟨mid, hm⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, hl⟩ ⟨right, hr⟩)
+    |> (maybeSwap (lt := lt) · ⟨mid, hm⟩ ⟨right, hr⟩)
 
   let pivot := as_[mid] -- Choose the median-of-three element as the pivot
 

@@ -6,7 +6,7 @@ open Vector
 
 namespace Partition
 
-variable [Ord α]
+variable (lt : α → α → Bool := by exact (· < ·))
 variable (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x)
 variable (le_trans : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x)
 
@@ -39,20 +39,21 @@ def hoare.classic.loop.while_j (left right : Nat) (hr : right < n) (hl : left < 
 
 
 
-include lt_asymm in
-include le_trans in
 @[inline]
 def hoare.classic (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right)
-    (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+    (hr : right < n) (lt : α → α → Bool := by exact (· < ·))
+    (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x := by grind)
+    (le_trans : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x := by grind)
+    : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   have hl : left < n := by omega
 
   let rec @[specialize] loop (pivot : α) (arr : Vector α n) (i j : Nat) (hli : left < i)
-      (hij : i ≤ j + 1) (hjr : j < right) (halgep : ¬lt pivot arr[left]) (harltp : ¬lt arr[right] pivot) :=
+      (hij : i ≤ j + 1) (hjr : j < right) (lt : α → α → Bool) (halgep : ¬lt pivot arr[left]) (harltp : ¬lt arr[right] pivot) :=
 
-    let ⟨i', _, _⟩ := hoare.classic.loop.while_i left right hr pivot arr i j (by omega) harltp
+    let ⟨i', _, _⟩ := hoare.classic.loop.while_i (lt := lt) left right hr pivot arr i j (by omega) harltp
       i Nat.le.refl (by omega)
 
-    let ⟨j', _⟩  := hoare.classic.loop.while_j left right hr hl pivot arr i' j hjr (by omega) halgep
+    let ⟨j', _⟩  := hoare.classic.loop.while_j (lt := lt) left right hr hl pivot arr i' j hjr (by omega) halgep
       j (by omega) Nat.le.refl
 
     if _ : i' < j' then
@@ -64,7 +65,7 @@ def hoare.classic (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < 
         simp only [show arr'[right] = _ by apply Vector.getElem_swap_of_ne ..; all_goals omega]
         exact harltp
 
-      loop pivot arr' (i' + 1) (j' - 1) (by omega) (by omega) (by omega) halgep' harltp'
+      loop (lt := lt) pivot arr' (i' + 1) (j' - 1) (by omega) (by omega) (by omega) halgep' harltp'
     else if _ : j' < i' then
       ⟨⟨arr, j', i'⟩, by simp; omega, by simp; omega⟩
     else -- have _ : j' = i' := by omega
@@ -75,12 +76,26 @@ def hoare.classic (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < 
   let mid := left + ((right - left)/2)
   have hm : mid < n := by omega
   let arr_ := arr
-    |> (maybeSwap · ⟨left, hl⟩ ⟨mid, hm⟩)
-    |> (maybeSwap · ⟨left, hl⟩ ⟨right, hr⟩)
-    |> (maybeSwap · ⟨mid, hm⟩ ⟨right, hr⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, hl⟩ ⟨mid, hm⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, hl⟩ ⟨right, hr⟩)
+    |> (maybeSwap (lt := lt) · ⟨mid, hm⟩ ⟨right, hr⟩)
 
   let pivot := arr_[mid]
 
   have : ¬lt pivot arr_[left] ∧ ¬lt arr_[right] pivot :=
-    median_of_three_sorted lt_asymm le_trans (by omega) (by omega) hr
-  loop pivot arr_ (left + 1) (right - 1) Nat.le.refl (by omega) (by omega) this.left this.right
+    median_of_three_sorted (lt := lt) lt_asymm le_trans (by omega) (by omega) hr
+  loop (lt := lt) pivot arr_ (left + 1) (right - 1) Nat.le.refl (by omega) (by omega) this.left this.right
+
+
+
+/-- info: { arr' := { toArray := #[4, 3, 1, 0, 5, 2, 6, 8, 7, 9], size_toArray := _ }, j' := 5, i' := 6 } -/
+#guard_msgs(info) in #eval Partition.hoare.classic #v[9,  3,  1,  8,  6,  2,  5,  0,  7,  4]  0 9 (by omega) (by omega)
+
+/-- info: { arr' := { toArray := #[4, 3, 1, 0, 6, 2, 6, 8, 7, 9], size_toArray := _ }, j' := 5, i' := 6 } -/
+#guard_msgs(info) in #eval Partition.hoare.classic #v[9,  3,  1,  8,  6,  2,  6,  0,  7,  4]  0 9 (by omega) (by omega)
+
+/-- info: { arr' := { toArray := #[4, 3, 1, 0, 6, 2, 6, 8, 7, 9], size_toArray := _ }, j' := 5, i' := 6 } -/
+#guard_msgs(info) in #eval Partition.hoare.classic #v[9,  3,  1,  8,  6,  2,  6,  0,  7,  4]  0 9 (by omega) (by omega)
+
+/-- info: { arr' := { toArray := #[0, 0, 0, 1, 2], size_toArray := _ }, j' := 1, i' := 2 } -/
+#guard_msgs(info) in #eval Partition.hoare.classic #v[2, 0, 0, 1, 0]  0 4 (by omega) (by omega)

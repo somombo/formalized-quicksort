@@ -4,7 +4,7 @@ import Quicksort.Partition.Yaroslavskiy.Basic
 import Quicksort.Partition.Dutch.Basic
 
 @[inline]
-def Array.insertionSort_left_right [Ord α]  (xs : Array α) -- (lt : α → α → Bool := by exact (· < ·))
+def Array.insertionSort_left_right (xs : Array α) (lt : α → α → Bool := by exact (· < ·))
     : Array α :=
   traverse xs.toVector 1 (left := 0) (right := xs.size - 1) (hr := by omega)  |>.toArray
 
@@ -30,8 +30,9 @@ where
 
 
 @[inline]
-def Array.insertionSort_without_fuel [Ord α]  (xs : Array α)  -- (lt : α → α → Bool := by exact (· < ·))
-    /- (_left := 0) (right := n - 1) (_hr : right ≤ n - 1 := by omega) -/ : Array α :=
+def Array.insertionSort_without_fuel (xs : Array α)
+    /- (_left := 0) (right := n - 1) (_hr : right ≤ n - 1 := by omega) -/
+    (lt : α → α → Bool := by exact (· < ·)) : Array α :=
   traverse xs.toVector (0 + 1) |>.toArray
 where
   @[specialize]
@@ -54,8 +55,9 @@ where
       xs
 
 @[inline]
-def Vector.insertionSort [Ord α] {n : Nat} (xs : Vector α n) -- (lt : α → α → Bool := by exact (· < ·))
-    (left := 0) (right := n - 1) (hr : right ≤ n - 1 := by omega) : Vector α n :=
+def Vector.insertionSort {n : Nat} (xs : Vector α n)
+    (left := 0) (right := n - 1) (hr : right ≤ n - 1 := by omega)
+    (lt : α → α → Bool := by exact (· < ·)) : Vector α n :=
   traverse xs (left + 1)
 where
   @[specialize]
@@ -78,17 +80,17 @@ where
       xs
 
 @[inline]
-def qs_adapt [Ord α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0) (part : Partition.Scheme α ) : Array α :=
+def qs_adapt (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0) (part : Partition.Scheme α ) (lt : α → α → Bool := by exact (· < ·)) : Array α :=
   -- let part := @Partition.dutch α
   let rec @[specialize]
   strict {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1) : Vector α n :=
     if hlr : left + M < right then
-      let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ := part as left right (by omega) (by omega)
+      let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ := part (lt := lt) as left right (by omega) (by omega)
       let as := qs_adapt.strict as' left j' (by omega)
       let as := qs_adapt.strict as i' right (by omega)
       as
     else
-      as.insertionSort left right
+      as.insertionSort (lt := lt) left right
     termination_by right - left
 
   let right' : Nat := if right ≤ arr.size - 1 then right else

@@ -3,12 +3,12 @@ import Quicksort.Partition.Init.Basic
 open Vector
 
 @[inline]
-def Partition.hoare.eager [Ord α] {n : Nat} (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+def Partition.hoare.eager {n : Nat} (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) (lt : α → α → Bool := by exact (· < ·)) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   let mid := left + ((right - left)/2)
   let arr_ := arr
-    |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
-    |> (maybeSwap · ⟨left, by omega⟩ ⟨right, by omega⟩)
-    |> (maybeSwap · ⟨mid, by omega⟩ ⟨right, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, by omega⟩ ⟨mid, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨left, by omega⟩ ⟨right, by omega⟩)
+    |> (maybeSwap (lt := lt) · ⟨mid, by omega⟩ ⟨right, by omega⟩)
   have pivot := arr_[mid]
 
   let rec @[specialize] loop (arr : Vector α n) (i j : Nat) (hli : left < i) (hij : i ≤ j + 1) (hjr : j < right) : { x : Partition α n // left < x.i' ∧ x.j' < right } :=

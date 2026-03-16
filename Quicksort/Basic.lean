@@ -3,11 +3,11 @@ import Quicksort.Partition.Basic
 
 
 @[inline]
-def qs [Ord α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (part : Partition.Scheme α := @default _ _) : Array α :=
+def qs (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (part : Partition.Scheme α := @default _ _) (lt : α → α → Bool := by exact (· < ·)): Array α :=
   let rec @[specialize]
   strict {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1) : Vector α n :=
     if hlr : left < right then
-      let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ := part as left right hlr (by omega)
+      let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ := part (lt := lt) as left right hlr (by omega)
       let as := qs.strict as' left j' (by omega)
       let as := qs.strict as i' right (by omega)
       as

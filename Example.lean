@@ -21,7 +21,7 @@ def hello := #[
 84, 75, 99, 4, 91, 50, 53, 60, 56, 24
 ]
 
-#eval qs hello (part := hoare)
+#eval qs hello (part := @hoare _)
 
 
 /--
@@ -31,7 +31,7 @@ info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17
   91, 91, 93, 94, 95, 95, 96, 99, 99]
 -/
 #guard_msgs in
-#eval qs hello (part := Partition.bentleyMcIlroy.eager)
+#eval qs hello (part := @Partition.bentleyMcIlroy.eager _)
 
 /--
 info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17, 18, 19, 24, 24, 24, 25, 26, 27, 29, 29, 30,
@@ -40,7 +40,7 @@ info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17
   91, 91, 93, 94, 95, 95, 96, 99, 99]
 -/
 #guard_msgs(info) in
-#eval! qs hello (part := Partition.bentleyMcIlroy.classic sorry sorry)
+#eval! qs hello (part := (@Partition.bentleyMcIlroy.classic _ _ · · · · · · sorry sorry))
 
 
 
@@ -52,7 +52,7 @@ info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17
   91, 91, 93, 94, 95, 95, 96, 99, 99]
 -/
 #guard_msgs in
-#eval! qs hello (part := Partition.yaroslavskiy.example)
+#eval! qs hello (part := @Partition.yaroslavskiy.example _)
 
 /--
 info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17, 18, 19, 24, 24, 24, 25, 26, 27, 29, 29, 30,
@@ -61,7 +61,7 @@ info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17
   91, 91, 93, 94, 95, 95, 96, 99, 99]
 -/
 #guard_msgs in
-#eval! qs hello (part := Partition.yaroslavskiy.debug)
+#eval! qs hello (part := @Partition.yaroslavskiy.debug _)
 
 /--
 info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17, 18, 19, 24, 24, 24, 25, 26, 27, 29, 29, 30,
@@ -70,7 +70,7 @@ info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17
   91, 91, 93, 94, 95, 95, 96, 99, 99]
 -/
 #guard_msgs in
-#eval! qs hello (part := Partition.yaroslavskiy.debug_func)
+#eval! qs hello (part := @Partition.yaroslavskiy.debug_func _)
 
 /--
 info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17, 18, 19, 24, 24, 24, 25, 26, 27, 29, 29, 30,
@@ -79,7 +79,7 @@ info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17
   91, 91, 93, 94, 95, 95, 96, 99, 99]
 -/
 #guard_msgs in
-#eval! qs hello (part := dutch)
+#eval! qs hello (part := @dutch _)
 
 
 
@@ -91,8 +91,8 @@ info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17
   91, 91, 93, 94, 95, 95, 96, 99, 99]
 -/
 #guard_msgs in
-#eval qs hello (part := hoare)
-#eval qs hello (part := lomuto)
+#eval qs hello (part := @hoare _)
+#eval qs hello (part := @lomuto _)
 def arr_example : Array Int :=  #[2,1,2,3]
 
 set_option guard_msgs.diff false
@@ -124,7 +124,7 @@ info: #[1, 2, 2, 3]
 #eval qs #["lorem", "ipsum", "dolor", "sit", "amet"]
   -- Expect: #["amet", "dolor", "ipsum", "lorem", "sit"]
 
-#eval qs.strict (as := #v[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4]) (hsize' := by omega)  (part := hoare)
+#eval qs.strict (lt := (· < ·)) (as := #v[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4]) (hsize' := by omega)  (part := @hoare _)
 
 /--
 error: Unknown identifier `x`
@@ -134,9 +134,9 @@ example : α := x
 
 
 #guard_msgs(drop info) in
-#eval! qs #[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4] (part := hoare) (left := 1) (right := 1000) -- EXPECT ERROR: "index out of bounds" with partially sorted output
+#eval! qs #[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4] (part := @hoare _) (left := 1) (right := 1000) -- EXPECT ERROR: "index out of bounds" with partially sorted output
 #guard_msgs(drop info) in
-#eval! qs #[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4] (part := lomuto) (left := 1) (right := 1000) -- EXPECT ERROR: "index out of bounds" with partially sorted output
+#eval! qs #[9,  3,  1,  8,  6,  2,  5,  -0,  7,  4] (part := @lomuto _) (left := 1) (right := 1000) -- EXPECT ERROR: "index out of bounds" with partially sorted output
 
 /- run as ` ./.lake/build/bin/example world hello` -/
 def main (args : List String) : IO UInt32 := do
