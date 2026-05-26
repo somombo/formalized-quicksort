@@ -37,8 +37,8 @@ root = "Example"
 
 [[require]]
 name = "batteries"
-git = "https://github.com/leanprover-community/batteries.git"
-rev = "v4.28.0"
+scope = "leanprover-community"
+rev = "v4.30.0"
 
 
 
