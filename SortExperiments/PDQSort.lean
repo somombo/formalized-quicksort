@@ -1,56 +1,59 @@
 
-import Quicksort.Basic
-import Quicksort.Partition.BentleyMcIlroy.Basic
+import Quicksort.Init.Ord
 import SortExperiments.HeapSort
--- import SortExperiments.Adapt
 import SortExperiments.InsertionSort
+import SortExperiments.Partitioning.Hoare
+import SortExperiments.Partitioning.BentleyMcIlroy
+import SortExperiments.Pivot.MedianOfThree
 
 
+open Ord
 @[inline]
-public def pdqsort1 [Ord α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0) : Array α :=
+public def pdqsort [Ord α] [Std.TransOrd α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0) : Array α :=
   let rec
     @[specialize]
-    strict {n : Nat} (as : Vector α n) (_left : Nat := 0) (_right : Nat := n - 1) (hsize' : _right ≤ n - 1)
-        (allowed_bad_partitions : Nat := n.log2)
+    strict {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1)
+        (allowed_bad_partitions : Nat := (right - left + 1).log2)
         (parent_pivot : Option α := none) : Vector α n :=
 
-      let len := _right - _left + 1
+      let len := right - left + 1
 
       if hlr : M + 1 < len then
         if allowed_bad_partitions > 0 then
 
-          have hl : _left < n := by omega
-          have hr : _right < n := by omega
-          let mid := _left + ((_right - _left)/2)
-          have hm : mid < n := by omega
-          let as_ := as
-            |> (Vector.maybeSwap · ⟨_left, hl⟩ ⟨mid, hm⟩)
-            |> (Vector.maybeSwap · ⟨_left, hl⟩ ⟨_right, hr⟩)
-            |> (Vector.maybeSwap · ⟨mid, hm⟩ ⟨_right, hr⟩)
-          let pivot := as_[mid]
+          -- have hl : left < n := by omega
+          have hlr : left < right := by omega
+          have hr : right < n := by omega
+
+          -- let mid := left + (len/2)
+          -- have hm : mid < n := by omega
+          -- let as_ := as
+          --   |> (Vector.maybeSwap · ⟨_left, hl⟩ ⟨mid, hm⟩)
+          --   |> (Vector.maybeSwap · ⟨_left, hl⟩ ⟨_right, hr⟩)
+          --   |> (Vector.maybeSwap · ⟨mid, hm⟩ ⟨_right, hr⟩)
+          -- let pivot := as_[mid]
+
+          let v := Pivot.median_of_three as left right hlr hr
+          have : ¬(compare v.piv' v.arr'[left] |>.isLT) ∧ ¬(compare v.arr'[right] v.piv' |>.isLT) :=
+            Pivot.median_of_three_sorted not_lt le_trans hlr hr
 
           let is_duplicate_run : Bool :=
             match parent_pivot with
-            | some p => compare pivot p == .eq
+            | some p => compare v.piv' p |>.isEq
             | none => false
 
 
-          let ⟨⟨as', j', i'⟩, (_ : _left < i'), (_ : j' < _right )⟩ :=
+          let ⟨⟨as', j', i'⟩, (_ : left < i'), (_ : j' < right )⟩ :=
             if is_duplicate_run then
-              Partition.bentleyMcIlroy.classic.loop _left _right (by omega) (by omega) pivot as_
-                (i := _left + 1)
-                (j := _right - 1)
-                (p := _left + 1)
-                (q := _right - 1)
-                (by omega) (by omega) (by omega) (by omega)  (by omega) (by omega) sorry sorry
+              Partitioning.bentleyMcIlroy v.arr' v.piv' left right hlr hr  this.left this.right
             else
-              Partition.hoare.classic.loop _left _right (by omega) (by omega) pivot as_
-                (_left + 1)
-                (_right - 1)
-                (by omega) (by omega) (by omega) sorry sorry
+              Partitioning.hoare v.arr' v.piv' left right hlr hr  this.left this.right
 
-          let left_len := (j' - _left) + 1
-          let right_len := (_right - i') + 1
+
+
+
+          let left_len := (j' - left) + 1
+          let right_len := (right - i') + 1
 
           let unbalanced := !is_duplicate_run && (left_len < (len / 8) || right_len < (len / 8))
 
@@ -59,19 +62,19 @@ public def pdqsort1 [Ord α] (arr : Array α) (left : Nat := 0) (right : Nat := 
 
           let as''' :=
             if left_len < right_len then
-              let as'' := strict as' _left j' (by omega) next_bad_left none
-              strict as'' i' _right (by omega) next_bad_right (some pivot)
+              let as'' := strict as' left j' (by omega) next_bad_left none
+              strict as'' i' right (by omega) next_bad_right (some v.piv')
             else
-              let as'' := strict as' i' _right (by omega) next_bad_right (some pivot)
-              strict as'' _left j' (by omega) next_bad_left none
+              let as'' := strict as' i' right (by omega) next_bad_right (some v.piv')
+              strict as'' left j' (by omega) next_bad_left none
 
           as'''
 
         else
-          as.heapSort _left _right (by omega) (by omega)
+          as.heapSort left right (by omega) (by omega)
       else
-        as.insertionSort _left _right
-      termination_by _right - _left
+        as.insertionSort left right
+      termination_by right - left
 
 
   let right' : Nat := if right ≤ arr.size - 1 then right else
@@ -81,7 +84,7 @@ public def pdqsort1 [Ord α] (arr : Array α) (left : Nat := 0) (right : Nat := 
   have : right' ≤ arr.size - 1 := by
     simp [right']; split <;> simp [panicWithPosWithDecl, panic, panicCore, *]
 
-  strict ⟨arr, rfl⟩ left right' this arr.size.log2 none  |>.1
+  strict ⟨arr, rfl⟩ left right' this (right' - left + 1).log2 none  |>.1
 
 def test_array := #[
   56, 69, 30, 11, 34, 14, 95, 81, 96, 76,
@@ -116,94 +119,97 @@ info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17
   91, 91, 93, 94, 95, 95, 96, 99, 99]
 -/
 #guard_msgs in
-#eval! pdqsort1 (M := 34) test_array
-
-
--- @[inline]
--- private def filter_equals [Ord α] (pivot : α) (arr : Vector α n) (left right : Nat) (hr : right < n) : Vector α n × Subtype (left < ·) :=
---   let rec
---     @[specialize]
---     loop (arr : Vector α n) (i eq_end : Nat) (hir : eq_end ≤ i) (h_progress : left < eq_end) :=
---       if hir : i ≤ right then
---         have _ : i < n := by omega
---         if _ : compare arr[i] pivot = .eq then
---           let arr' := arr.swap i eq_end (by omega) (by omega)
---           loop arr' (i + 1) (eq_end + 1) (by omega) (by omega)
---         else
---           loop arr (i + 1) eq_end (by omega) (by omega)
---       else
---         (arr, ⟨eq_end, h_progress⟩)
---   loop arr (left + 1) (left + 1) (by omega) (by omega)
+#eval! pdqsort (M := 34) test_array
 
 
 @[inline]
-public def pdqsort2 [Ord α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0)  : Array α :=
+private def filter_equals [Ord α] (pivot : α) (arr : Vector α n) (left right : Nat) (hr : right < n) : Vector α n × Subtype (left < ·) :=
+  let rec
+    @[specialize]
+    loop (arr : Vector α n) (i eq_end : Nat) (hir : eq_end ≤ i) (h_progress : left < eq_end) :=
+      if hir : i ≤ right then
+        have _ : i < n := by omega
+        if _ : compare arr[i] pivot = .eq then
+          let arr' := arr.swap i eq_end (by omega) (by omega)
+          loop arr' (i + 1) (eq_end + 1) (by omega) (by omega)
+        else
+          loop arr (i + 1) eq_end (by omega) (by omega)
+      else
+        (arr, ⟨eq_end, h_progress⟩)
+  loop arr (left + 1) (left + 1) (by omega) (by omega)
+
+open Ord
+@[inline]
+public def pdqsort2 [Ord α] [Std.TransOrd α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0)  : Array α :=
   let rec
     @[specialize]
     strict {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1 := by omega)
-        -- (allowed_bad_partitions : Nat := n.log2)
-        -- (parent_pivot : Option α := none)
+        (allowed_bad_partitions : Nat := (right - left + 1).log2)
+        (parent_pivot : Option α := none)
         : Vector α n :=
 
       let len := right - left + 1
+      if _ : M + 1 < len then
+        if allowed_bad_partitions > 0 then
 
-      -- have _ : _left + M < _right ↔ M + 1 < len := by omega
-      have hl : left < n := by sorry
-      have hr : right < n := by omega
-      let mid := left + ((right - left)/2)
+          -- have hl : left < n := by omega
+          have hlr : left < right := by omega
+          have hr : right < n := by omega
 
-      -- have _ :  left + ((right - left)/2) =  left + (len/2) := by grind
-      have hm : mid < n := by omega
-      let as_ := as
-        |> (Vector.maybeSwap · ⟨left, hl⟩ ⟨mid, hm⟩)
-        |> (Vector.maybeSwap · ⟨left, hl⟩ ⟨right, hr⟩)
-        |> (Vector.maybeSwap · ⟨mid, hm⟩ ⟨right, hr⟩)
-      if hlr : M + 1 < len then
-        -- if allowed_bad_partitions > 0 then
+          -- let mid := left + (len/2)
+          -- have hm : mid < n := by omega
+          -- let as_ := as
+          --   |> (Vector.maybeSwap · ⟨left, hl⟩ ⟨mid, hm⟩)
+          --   |> (Vector.maybeSwap · ⟨left, hl⟩ ⟨right, hr⟩)
+          --   |> (Vector.maybeSwap · ⟨mid, hm⟩ ⟨right, hr⟩)
+          -- let pivot := as_[mid]
 
-          let pivot := as_[mid]
+          let v := Pivot.median_of_three as left right hlr hr
+          have : ¬(compare v.piv' v.arr'[left] |>.isLT) ∧ ¬(compare v.arr'[right] v.piv' |>.isLT) :=
+            Pivot.median_of_three_sorted not_lt le_trans hlr hr
 
-          -- let is_duplicate_run : Bool :=
-          --   match parent_pivot with
-          --   | some p => compare pivot p == .eq
-          --   | none => false
-
-
-          -- if !is_duplicate_run then
-            let ⟨⟨as, j', i'⟩, (_ : left < i'), (_ : j' < right )⟩ :=
-                Partition.hoare.classic.loop left right (by omega) (by omega) pivot as_
-                  (left + 1)
-                  (right - 1)
-                  (by omega) (by omega) (by omega) sorry sorry
-
-            -- let left_len := (j' - _left) + 1
-            -- let right_len := (_right - i') + 1
-
-            -- let unbalanced := /- !is_duplicate_run && -/ (left_len < (len / 8) || right_len < (len / 8))
-
-            -- let next_bad_left := if unbalanced then allowed_bad_partitions - 1 else allowed_bad_partitions
-            -- let next_bad_right := if unbalanced then allowed_bad_partitions - 1 else allowed_bad_partitions
+          let is_duplicate_run : Bool :=
+            match parent_pivot with
+            | some p => compare v.piv' p == .eq
+            | none => false
 
 
-              let as := strict as left j' (by omega)
-              let as := strict as i' right (by omega)
-              as
+          if !is_duplicate_run then
+            -- let ⟨⟨as', j', i'⟩, (_ : left < i'), (_ : j' < right )⟩ :=
+            --     Partition.hoare.classic.loop left right (by omega) (by omega) pivot as_
+            --       (left + 1)
+            --       (right - 1)
+            --       (by omega) (by omega) (by omega) sorry sorry
 
 
-            -- if left_len < right_len then
-            --   let as'' := strict as' _left j' (by omega) /- next_bad_left -/ /- none -/
-            --   strict as'' i' _right (by omega) /- next_bad_right -/ /- (some pivot) -/
-            -- else
-            --   let as'' := strict as' i' _right (by omega) next_bad_right /- (some pivot) -/
-            --   strict as'' _left j' (by omega) next_bad_left /- none -/
+            let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ :=
+              Partitioning.hoare v.arr' v.piv' left right hlr hr  this.left this.right
 
 
-          -- else
-          --   let ⟨as', ⟨next_left, _⟩⟩ := filter_equals pivot as_ _left _right (by omega)
-          --   strict as' next_left _right (by omega) (allowed_bad_partitions := allowed_bad_partitions) (parent_pivot := none)
 
-        -- else
-        --   Vector.heapSort as _left _right (by omega) (by omega)
+            let left_len := (j' - left) + 1
+            let right_len := (right - i') + 1
+
+            let unbalanced := !is_duplicate_run && (left_len < (len / 8) || right_len < (len / 8))
+
+            let next_bad_left := if unbalanced then allowed_bad_partitions - 1 else allowed_bad_partitions
+            let next_bad_right := if unbalanced then allowed_bad_partitions - 1 else allowed_bad_partitions
+
+
+            if left_len < right_len then
+              let as'' := strict as' left j' (by omega) next_bad_left none
+              strict as'' i' right (by omega) next_bad_right (some v.piv')
+            else
+              let as'' := strict as' i' right (by omega) next_bad_right (some v.piv')
+              strict as'' left j' (by omega) next_bad_left none
+
+
+          else
+            let ⟨as', ⟨next_left, _⟩⟩ := filter_equals v.piv' v.arr' left right (by omega)
+            strict as' next_left right (by omega) -- (allowed_bad_partitions := allowed_bad_partitions) (parent_pivot := none)
+
+        else
+          Vector.heapSort as left right (by omega) (by omega)
       else
         as.insertionSort left right
       termination_by right - left
@@ -216,7 +222,7 @@ public def pdqsort2 [Ord α] (arr : Array α) (left : Nat := 0) (right : Nat := 
   have : right' ≤ arr.size - 1 := by
     simp [right']; split <;> simp [panicWithPosWithDecl, panic, panicCore, *]
 
-  strict ⟨arr, rfl⟩ left right' this /- arr.size.log2 -/ /- none -/  |>.1
+  strict ⟨arr, rfl⟩ left right' this (right' - left + 1).log2 none  |>.1
 
 
 /--
@@ -226,4 +232,4 @@ info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17
   91, 91, 93, 94, 95, 95, 96, 99, 99]
 -/
 #guard_msgs in
-#eval! pdqsort2 (M := 34) test_array
+#eval pdqsort2 (M := 34) test_array
