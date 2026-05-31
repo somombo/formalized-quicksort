@@ -5,6 +5,7 @@ open Partition
 open Array
 
 variable [Ord α]
+open Ord
 
 theorem qs.strict.permStabilizing [LawfulScheme part] {as : Vector α n} {left right : Nat} {hsize' : right ≤ n - 1} : Vector.PermStabilizing' left right (qs.strict part as left right hsize') as := by
   induction as, left, right, hsize' using qs.strict.induct (part := part) with
@@ -35,8 +36,8 @@ theorem qs.perm {as : Array α} : (qs as).Perm as := qs.perm'
 theorem qs.qs_size [LawfulScheme part] {as : Array α} :
     (qs as left right part).size = as.size := qs.perm'.size_eq
 
-
-theorem qs.strict.monotonic [StrictOrder α] [LawfulScheme part] {as : Vector α n} {hsize' : right ≤ n - 1} : let q := (qs.strict part as left right hsize'); ∀ (i j : Fin n), (left ≤ i) → (i < j) → (j ≤ right) → ¬lt q[j] q[i] := by
+variable [Std.TransOrd α]
+theorem qs.strict.monotonic [LawfulScheme part] {as : Vector α n} {hsize' : right ≤ n - 1} : let q := (qs.strict part as left right hsize'); ∀ (i j : Fin n), (left ≤ i) → (i < j) → (j ≤ right) → ¬lt q[j] q[i] := by
   induction as, left, right, hsize' using qs.strict.induct (part := part) with
   | case1 as left right hsize' hlr as' j' i' hli' hjr' heq as'' ih1 _ih1 ih2 =>
     unfold qs.strict; simp only [↓reduceDIte, hlr, heq]
@@ -87,12 +88,10 @@ theorem qs.strict.monotonic [StrictOrder α] [LawfulScheme part] {as : Vector α
           rw [qs.strict.permStabilizing.2.left _ ?_, qs.strict.permStabilizing.2.right _ ?_]
           apply ih0.right j
           all_goals omega
-      exact le_trans hhh1 hhh2
+      exact le_trans' hhh1 hhh2
   | case2 => omega
 
--- variable (lt_asymm : ∀ {x y : α}, (lt x y) → ¬lt y x)
-
-theorem qs.monotonic' [StrictOrder α] {as : Array α} {left : Nat} {right : Nat} {part : Partition.Scheme α} [LawfulScheme part] :  let q := (qs as left right part); ∀ (i j : Fin q.size), (left ≤ i) → (i < j) → (j ≤ right) → ¬lt q[j] q[i] := by
+theorem qs.monotonic' {as : Array α} {left : Nat} {right : Nat} {part : Partition.Scheme α} [LawfulScheme part] :  let q := (qs as left right part); ∀ (i j : Fin q.size), (left ≤ i) → (i < j) → (j ≤ right) → ¬lt q[j] q[i] := by
   simp only
   intro  i j _ _ _
   have _ : j.cast qs.qs_size ≤ as.size - 1 := by omega
@@ -100,7 +99,7 @@ theorem qs.monotonic' [StrictOrder α] {as : Array α} {left : Nat} {right : Nat
   any_goals simp only [panicWithPosWithDecl, panic, panicCore, *]
   all_goals apply qs.strict.monotonic (i.cast qs.qs_size) (j.cast qs.qs_size) <;> assumption
 
-theorem qs.monotonic [StrictOrder α] {as : Array α} {part : Partition.Scheme α} [LawfulScheme part]: ∀ (i j : Fin (qs (part := part) as).size), i < j → ¬lt (qs (part := part) as)[j] (qs (part := part) as)[i] := by
+theorem qs.monotonic {as : Array α} {part : Partition.Scheme α} [LawfulScheme part]: ∀ (i j : Fin (qs (part := part) as).size), i < j → ¬lt (qs (part := part) as)[j] (qs (part := part) as)[i] := by
   intro i j h
   apply qs.monotonic'
   · omega
@@ -108,10 +107,10 @@ theorem qs.monotonic [StrictOrder α] {as : Array α} {part : Partition.Scheme �
   · have := j.2; simp only [qs.qs_size] at this; omega
 
 
-theorem qs.monotonic_with_defaults [StrictOrder α] {as : Array α} : ∀ (i j : Fin (qs as).size), i < j → ¬lt (qs as)[j] (qs as)[i] := qs.monotonic
+theorem qs.monotonic_with_defaults {as : Array α} : ∀ (i j : Fin (qs as).size), i < j → ¬lt (qs as)[j] (qs as)[i] := qs.monotonic
 
-example [StrictOrder α] {as : Array α} : let q := (qs (part := Partition.hoare) as); ∀ (i j : Fin q.size), i < j → ¬lt q[j] q[i] := qs.monotonic
-example [StrictOrder α] {as : Array α} : let q := (qs (part := Partition.lomuto) as); ∀ (i j : Fin q.size), i < j → ¬lt q[j] q[i] := qs.monotonic
+example {as : Array α} : let q := (qs (part := Partition.hoare) as); ∀ (i j : Fin q.size), i < j → ¬lt q[j] q[i] := qs.monotonic
+example {as : Array α} : let q := (qs (part := Partition.lomuto) as); ∀ (i j : Fin q.size), i < j → ¬lt q[j] q[i] := qs.monotonic
 
 -- def unlawful_partition [Ord α] {n : Nat} (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := sorry
 

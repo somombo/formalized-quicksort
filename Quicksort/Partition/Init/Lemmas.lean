@@ -1,5 +1,5 @@
-import Quicksort.Utils.RangeHas
-import Quicksort.Utils.PermStabalizing
+import Quicksort.Init.RangeHas
+import Quicksort.Init.PermStabalizing
 import Quicksort.Partition.Init.Basic
 
 open Vector

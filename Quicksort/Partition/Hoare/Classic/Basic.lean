@@ -7,8 +7,6 @@ open Vector
 namespace Partition
 
 variable [Ord α]
-variable (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x)
-variable (le_trans : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x)
 
 
 -- set_option trace.profiler true in
@@ -38,12 +36,12 @@ def hoare.classic.loop.while_j (left right : Nat) (hr : right < n) (hl : left < 
     ⟨⟨jval, by omega⟩, hjj⟩
 
 
-
-include lt_asymm in
-include le_trans in
+open Ord in
 @[inline]
-def hoare.classic (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right)
+def hoare.classic  [inst_le_trans : Std.TransOrd α] (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right)
     (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+  -- have lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x := by grind
+  -- have le_trans' : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x := by grind
   have hl : left < n := by omega
 
   let rec @[specialize] loop (pivot : α) (arr : Vector α n) (i j : Nat) (hli : left < i)
@@ -82,5 +80,19 @@ def hoare.classic (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < 
   let pivot := arr_[mid]
 
   have : ¬lt pivot arr_[left] ∧ ¬lt arr_[right] pivot :=
-    median_of_three_sorted lt_asymm le_trans (by omega) (by omega) hr
+    median_of_three_sorted  (by omega) (by omega) hr
   loop pivot arr_ (left + 1) (right - 1) Nat.le.refl (by omega) (by omega) this.left this.right
+
+
+
+/-- info: { arr' := { toArray := #[4, 3, 1, 0, 5, 2, 6, 8, 7, 9], size_toArray := _ }, j' := 5, i' := 6 } -/
+#guard_msgs(info) in #eval Partition.hoare.classic #v[9,  3,  1,  8,  6,  2,  5,  0,  7,  4]  0 9 (by omega) (by omega)
+
+/-- info: { arr' := { toArray := #[4, 3, 1, 0, 6, 2, 6, 8, 7, 9], size_toArray := _ }, j' := 5, i' := 6 } -/
+#guard_msgs(info) in #eval Partition.hoare.classic #v[9,  3,  1,  8,  6,  2,  6,  0,  7,  4]  0 9 (by omega) (by omega)
+
+/-- info: { arr' := { toArray := #[4, 3, 1, 0, 6, 2, 6, 8, 7, 9], size_toArray := _ }, j' := 5, i' := 6 } -/
+#guard_msgs(info) in #eval Partition.hoare.classic #v[9,  3,  1,  8,  6,  2,  6,  0,  7,  4]  0 9 (by omega) (by omega)
+
+/-- info: { arr' := { toArray := #[0, 0, 0, 1, 2], size_toArray := _ }, j' := 1, i' := 2 } -/
+#guard_msgs(info) in #eval Partition.hoare.classic #v[2, 0, 0, 1, 0]  0 4 (by omega) (by omega)

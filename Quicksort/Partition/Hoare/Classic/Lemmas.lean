@@ -6,14 +6,8 @@ open Vector
 
 namespace Partition
 variable [Ord α]
-variable (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x)
-
-include lt_asymm in
-private theorem lt_irrefl : ∀ (x : α), ¬lt x x :=
-  fun _ h => (lt_asymm h) h
 
 
-variable (le_trans : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x)
 
 
 theorem hoare.classic.while_i_elem_not_left_of_piv {arr : Vector α n} {harltp : ¬lt arr[right] pivot}
@@ -41,7 +35,7 @@ theorem hoare.classic.while_i_before_is_left {arr : Vector α n} {harltp : ¬lt 
   induction ival, hii, hxi using hoare.classic.loop.while_i.induct right hr pivot arr i j harltp with
   | case1 ival hii hxi hi hlt hir ih =>
     unfold hoare.classic.loop.while_i; simp [*]
-    apply RangeHas.prepend <;> assumption
+    apply RangeHas.prepend <;> grind [Ordering.isLT]
   | case2 ival hii hxi hi hle =>
     unfold hoare.classic.loop.while_i; simp [*]
     apply RangeHas.refl
@@ -53,12 +47,12 @@ theorem hoare.classic.while_j_before_is_right {arr : Vector α n} {halgep : ¬lt
   | case1 jval hxj hjj hj hlt hjl ih =>
     unfold hoare.classic.loop.while_j; simp [*]
     replace ih := show (jval - 1 + 1) = jval by omega ▸ ih
-    apply RangeHas.append <;> assumption
+    apply RangeHas.append <;> grind [Ordering.isLT]
   | case2 jval hxj hjj hj  hle =>
     unfold hoare.classic.loop.while_j; simp [*]
     apply RangeHas.refl
 
-#check Partition.hoare.classic.loop.induct
+-- #check Partition.hoare.classic.loop.induct
 theorem hoare.classic.loop.partition_bounds {left right : Nat} {hr : right < n} {hl : left < n} {pivot : α} {arr : Vector α n} {i j : Nat} {hli : left < i} {hij : i ≤ j + 1} {hjr : j < right} {halgep : ¬lt pivot arr[left]} {harltp : ¬lt arr[right] pivot} : (loop left right hr hl pivot arr i j hli hij hjr halgep harltp).val.j' < (loop left right hr hl pivot arr i j hli hij hjr halgep harltp).val.i' := by
   induction arr, i, j, hli, hij, hjr, halgep, harltp using loop.induct left right hr hl pivot; all_goals unfold loop; simp [*]
   · case  case1 arr i j hli hij hjr halgep harltp i' hi1' hi2' heq_i' j' hj' heq_j' hlt arr' halgep' harltp' ih =>
@@ -82,8 +76,13 @@ theorem hoare.classic.loop.permStabilizing {left right : Nat} {hr : right < n} {
   · case case3 arr i j hli hij hjr halgep harltp i' hi1' hi2' heq_i' j' hj' heq_j' _hij' _hij' =>
     apply PermStabilizing'.refl
 
+section lt_asymm
+variable (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x)
 
--- set_option trace.profiler true in
+include lt_asymm in
+private theorem lt_irrefl : ∀ (x : α), ¬lt x x :=
+  fun _ h => (lt_asymm h) h
+
 include lt_asymm in
 theorem hoare.classic.loop.sorted {left right : Nat} {hr : right < n} {hl : left < n} {pivot : α} {arr : Vector α n} {i j : Nat} {hli : left < i} {hij : i ≤ j + 1} {hjr : j < right} {halgep : ¬lt pivot arr[left]} {harltp : ¬lt arr[right] pivot} : IsPartitioned i j pivot (loop left right hr hl pivot arr i j hli hij hjr halgep harltp).val := by
   induction arr, i, j, hli, hij, hjr, halgep, harltp using loop.induct left right hr hl pivot; all_goals unfold loop; simp [*]
@@ -169,10 +168,11 @@ private theorem hoare.classic.sortAt_sorted (as : Vector α n) (low high : Nat) 
       have _ := lt_asymm h
       simp_all [as.getElem_swap_right, as.getElem_swap_left]
   · assumption
+end lt_asymm
 
--- set_option trace.profiler true in
-include lt_asymm in
-include le_trans in
+
+open Ord
+variable [Std.TransOrd α]
 private theorem hoare.classic.median_of_three_sorted {arr : Vector α n} {left mid right: Nat} (hlm : left ≤ mid) (hmr : mid ≤ right) (hr : right < n) :
   have arr_ := arr
     |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
@@ -218,21 +218,17 @@ private theorem hoare.classic.median_of_three_sorted {arr : Vector α n} {left m
         · have : (arr1.swap left right)[mid] = _ :=
             arr1.getElem_swap_of_ne (Ne.symm hleqm) hmeqr
           simp only [this, arr1.getElem_swap_left]
-          refine le_trans (lt_asymm ?_) hh1
+          refine le_trans' (lt_asymm ?_) hh1
           assumption
         · assumption
 
 
-include le_trans in
-include lt_asymm in
-protected theorem hoare.classic.partition_bounds' {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : (hoare.classic (lt_asymm := lt_asymm) (le_trans := le_trans) arr left right hlr hr).val.j' < (hoare.classic (lt_asymm := lt_asymm) (le_trans := le_trans) arr left right hlr hr).val.i' := by
+protected theorem hoare.classic.partition_bounds' {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : (hoare.classic arr left right hlr hr).val.j' < (hoare.classic arr left right hlr hr).val.i' := by
   unfold hoare.classic
   apply Partition.hoare.classic.loop.partition_bounds
 
 
-include le_trans in
-include lt_asymm in
-protected theorem hoare.classic.permStabilizing' {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : PermStabilizing' left right (hoare.classic (lt_asymm := lt_asymm) (le_trans := le_trans) arr left right hlr hr).val.arr' arr := by
+protected theorem hoare.classic.permStabilizing' {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : PermStabilizing' left right (hoare.classic arr left right hlr hr).val.arr' arr := by
   apply PermStabilizing'.trans
   · apply PermStabilizing'.mono hoare.classic.loop.permStabilizing <;> omega
   · apply PermStabilizing'.trans
@@ -241,9 +237,7 @@ protected theorem hoare.classic.permStabilizing' {arr : Vector α n} {left : Nat
     all_goals simp only; omega
 
 
-include le_trans in
-include lt_asymm in
-protected theorem hoare.classic.sorted {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : ∃ (pivot : α), IsPartitioned left right pivot (hoare.classic (lt_asymm := lt_asymm) (le_trans := le_trans) arr left right hlr hr).val :=
+protected theorem hoare.classic.sorted {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : ∃ (pivot : α), IsPartitioned left right pivot (hoare.classic arr left right hlr hr).val :=
 
   let mid := left + ((right - left)/2)
   have hlm : left ≤ mid := Nat.le_add_right left ((right - left) / 2)
@@ -260,7 +254,7 @@ protected theorem hoare.classic.sorted {arr : Vector α n} {left : Nat} {right :
     |> (maybeSwap · ⟨mid, by omega⟩ ⟨right, by omega⟩)
   let pivot := arr_[mid]
 
-  have hh2 : ¬lt pivot arr_[left] ∧ ¬lt arr_[right] pivot := hoare.classic.median_of_three_sorted (lt_asymm := lt_asymm) (le_trans := le_trans) hlm hmr hr
+  have hh2 : ¬lt pivot arr_[left] ∧ ¬lt arr_[right] pivot := hoare.classic.median_of_three_sorted hlm hmr hr
   let x : Partition α n := (hoare.classic.loop left right hr (by omega) pivot  arr_ (left + 1) (right - 1) (by omega) (by omega) (by omega) hh2.left hh2.right).val
 
   have : IsPartitioned left right pivot x := by

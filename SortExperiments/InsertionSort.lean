@@ -1,7 +1,8 @@
 
-import Quicksort.Partition.Basic
-import Quicksort.Partition.Yaroslavskiy.Basic
-import Quicksort.Partition.Dutch.Basic
+import Quicksort.Init.Ord
+
+#check Array.insertionSort
+
 
 @[inline]
 def Array.insertionSort_left_right [Ord α]  (xs : Array α) -- (lt : α → α → Bool := by exact (· < ·))
@@ -77,25 +78,28 @@ where
     else
       xs
 
+
 @[inline]
-def qs_adapt [Ord α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0) (part : Partition.Scheme α ) : Array α :=
-  -- let part := @Partition.dutch α
-  let rec @[specialize]
-  strict {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1) : Vector α n :=
-    if hlr : left + M < right then
-      let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ := part as left right (by omega) (by omega)
-      let as := qs_adapt.strict as' left j' (by omega)
-      let as := qs_adapt.strict as i' right (by omega)
-      as
+def Vector.insertionSort' {n : Nat} (xs : Vector α n)
+    (left := 0) (right := n - 1) (hr : right ≤ n - 1 := by omega)
+    [Ord α] : Vector α n :=
+  traverse xs (left + 1)
+where
+  @[specialize]
+  traverse (xs : Vector α n) (i : Nat)  : Vector α n :=
+    if h : i ≤ right then
+      traverse (swapLoop xs i (by omega)) (i+1)
     else
-      as.insertionSort left right
-    termination_by right - left
+      xs
+    termination_by right + 1 - i
 
-  let right' : Nat := if right ≤ arr.size - 1 then right else
-    have := Inhabited.mk (arr.size - 1)
-    panic! "index out of bounds"
-
-  have : right' ≤ arr.size - 1 := by
-    simp [right']; split <;> simp [panicWithPosWithDecl, panic, panicCore, *]
-
-  qs_adapt.strict ⟨arr, rfl⟩ left right' this |>.1
+  @[specialize]
+  swapLoop (xs : Vector α n) (j : Nat) (h : j ≤ n - 1) :  Vector α n :=
+    if _ : left < j then
+      let j' := j - 1
+      if compare xs[j] xs[j'] |>.isLT then
+        swapLoop (xs.swap j j') j' (by omega)
+      else
+        xs
+    else
+      xs

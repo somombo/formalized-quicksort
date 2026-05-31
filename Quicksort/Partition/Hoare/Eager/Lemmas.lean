@@ -6,6 +6,7 @@ open Vector
 
 namespace Partition
 variable [Ord α]
+open Ord
 variable (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x)
 
 include lt_asymm in
@@ -13,7 +14,7 @@ private theorem lt_irrefl : ∀ (x : α), ¬lt x x :=
   fun _ h => (lt_asymm h) h
 
 
-variable (le_trans : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x)
+variable (le_trans' : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x)
 
 
 include lt_asymm in
@@ -27,9 +28,7 @@ private theorem hoare.eager.maybeSwap_sorted (as : Vector α n) (low high : Nat)
 
 
 -- set_option trace.profiler true in
-include lt_asymm in
-include le_trans in
-private theorem hoare.eager.median_of_three_sorted {arr : Vector α n} {left mid right: Nat} (hlm : left ≤ mid) (hmr : mid ≤ right) (hr : right < n) :
+private theorem hoare.eager.median_of_three_sorted [Std.TransOrd α] {arr : Vector α n} {left mid right: Nat} (hlm : left ≤ mid) (hmr : mid ≤ right) (hr : right < n) :
   have arr_ := arr
     |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
     |> (maybeSwap · ⟨left, by omega⟩ ⟨right, by omega⟩)
@@ -73,7 +72,7 @@ private theorem hoare.eager.median_of_three_sorted {arr : Vector α n} {left mid
         · have : (arr1.swap left right)[mid] = _ :=
             arr1.getElem_swap_of_ne (Ne.symm hleqm) hmeqr
           simp only [this, arr1.getElem_swap_left]
-          refine le_trans (lt_asymm ?_) hh1
+          refine le_trans' (lt_asymm ?_) hh1
           assumption
         · assumption
 
@@ -183,17 +182,15 @@ protected theorem hoare.eager.loop.sorted {left right : Nat} {hr : right < n} {p
     have heq : i = j := by omega
     have hi : i < n := by omega
     constructor ; all_goals simp
-    · simp_all only [RangeHas.singular]
+    · simp_all [RangeHas.singular]
     · have : j - 1 + 1 = j + 1 ∨ j - 1 + 1 = j := by omega
       cases this with
       | inl h => simp only [h]; apply RangeHas.refl
-      | inr _ => simp_all only [RangeHas.singular]
+      | inr _ => simp_all [RangeHas.singular]
 
--- variable (le_trans : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x)
+-- variable (le_trans' : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x)
 
-include le_trans in
-include lt_asymm in
-protected theorem hoare.eager.sorted {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : ∃ (pivot : α), IsPartitioned left right pivot (Partition.hoare.eager arr left right hlr hr).val :=
+protected theorem hoare.eager.sorted  [Std.TransOrd α] {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : ∃ (pivot : α), IsPartitioned left right pivot (Partition.hoare.eager arr left right hlr hr).val :=
 
   let mid := left + ((right - left)/2)
   have hlm : left ≤ mid := Nat.le_add_right left ((right - left) / 2)
@@ -214,7 +211,7 @@ protected theorem hoare.eager.sorted {arr : Vector α n} {left : Nat} {right : N
   have : IsPartitioned left right pivot x := by
     have hh1 : IsPartitioned (left + 1) (right - 1) pivot x := hoare.eager.loop.sorted (lt_asymm := lt_asymm)
 
-    have hh2 : ¬lt pivot arr_[left] ∧ ¬lt arr_[right] pivot := hoare.eager.median_of_three_sorted (lt_asymm := lt_asymm) (le_trans := le_trans) hlm hmr hr
+    have hh2 : ¬lt pivot arr_[left] ∧ ¬lt arr_[right] pivot := hoare.eager.median_of_three_sorted hlm hmr hr
 
     have : PermStabilizing' (left + 1) (right - 1) x.arr' arr_ := hoare.eager.loop.permStabilizing
     replace hh2 : ¬lt pivot x.arr'[left] ∧ ¬lt x.arr'[right] pivot := by

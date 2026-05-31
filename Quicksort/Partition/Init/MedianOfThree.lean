@@ -19,11 +19,8 @@ theorem maybeSwap_sorted (as : Vector α n) (low high : Nat) (hlh : low ≤ high
       exact lt_asymm h
   · assumption
 
-variable (le_trans : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x)
--- set_option trace.profiler true in
-include lt_asymm in
-include le_trans in
-theorem median_of_three_sorted {arr : Vector α n} {left mid right: Nat} (hlm : left ≤ mid) (hmr : mid ≤ right) (hr : right < n) :
+open Ord in
+theorem median_of_three_sorted [Std.TransOrd α] {arr : Vector α n} {left mid right: Nat} (hlm : left ≤ mid) (hmr : mid ≤ right) (hr : right < n) :
   let arr_ := arr
     |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
     |> (maybeSwap · ⟨left, by omega⟩ ⟨right, by omega⟩)
@@ -68,6 +65,6 @@ theorem median_of_three_sorted {arr : Vector α n} {left mid right: Nat} (hlm : 
         · have : (arr1.swap left right)[mid] = _ :=
             arr1.getElem_swap_of_ne (Ne.symm hleqm) hmeqr
           simp only [this, arr1.getElem_swap_left]
-          refine le_trans (lt_asymm ?_) hh1
+          refine le_trans' (lt_asymm ?_) hh1
           assumption
         · assumption

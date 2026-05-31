@@ -1,9 +1,6 @@
 import Quicksort.Basic
--- import Quicksort.Partition.Hoare.New.Basic
-import Quicksort.Partition.Yaroslavskiy.Basic
 import Quicksort.Partition.BentleyMcIlroy.Basic
-import Quicksort.Partition.Dutch.Basic
-import Quicksort.Adapt
+
 open Partition
 
 set_option pp.deepTerms true
@@ -40,7 +37,7 @@ info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17
   91, 91, 93, 94, 95, 95, 96, 99, 99]
 -/
 #guard_msgs(info) in
-#eval! qs hello (part := Partition.bentleyMcIlroy.classic sorry sorry)
+#eval qs hello  (part := Partition.bentleyMcIlroy.classic)
 
 
 
@@ -51,38 +48,8 @@ info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17
   56, 56, 57, 58, 60, 60, 61, 63, 65, 68, 69, 70, 73, 75, 76, 77, 78, 79, 81, 84, 84, 85, 86, 88, 89, 90, 90, 91, 91,
   91, 91, 93, 94, 95, 95, 96, 99, 99]
 -/
-#guard_msgs in
-#eval! qs hello (part := Partition.yaroslavskiy.example)
-
-/--
-info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17, 18, 19, 24, 24, 24, 25, 26, 27, 29, 29, 30,
-  30, 32, 33, 34, 34, 35, 37, 37, 39, 39, 39, 39, 40, 40, 41, 42, 42, 43, 43, 46, 47, 49, 50, 50, 52, 53, 53, 53, 54,
-  56, 56, 57, 58, 60, 60, 61, 63, 65, 68, 69, 70, 73, 75, 76, 77, 78, 79, 81, 84, 84, 85, 86, 88, 89, 90, 90, 91, 91,
-  91, 91, 93, 94, 95, 95, 96, 99, 99]
--/
-#guard_msgs in
-#eval! qs hello (part := Partition.yaroslavskiy.debug)
-
-/--
-info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17, 18, 19, 24, 24, 24, 25, 26, 27, 29, 29, 30,
-  30, 32, 33, 34, 34, 35, 37, 37, 39, 39, 39, 39, 40, 40, 41, 42, 42, 43, 43, 46, 47, 49, 50, 50, 52, 53, 53, 53, 54,
-  56, 56, 57, 58, 60, 60, 61, 63, 65, 68, 69, 70, 73, 75, 76, 77, 78, 79, 81, 84, 84, 85, 86, 88, 89, 90, 90, 91, 91,
-  91, 91, 93, 94, 95, 95, 96, 99, 99]
--/
-#guard_msgs in
-#eval! qs hello (part := Partition.yaroslavskiy.debug_func)
-
-/--
-info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17, 18, 19, 24, 24, 24, 25, 26, 27, 29, 29, 30,
-  30, 32, 33, 34, 34, 35, 37, 37, 39, 39, 39, 39, 40, 40, 41, 42, 42, 43, 43, 46, 47, 49, 50, 50, 52, 53, 53, 53, 54,
-  56, 56, 57, 58, 60, 60, 61, 63, 65, 68, 69, 70, 73, 75, 76, 77, 78, 79, 81, 84, 84, 85, 86, 88, 89, 90, 90, 91, 91,
-  91, 91, 93, 94, 95, 95, 96, 99, 99]
--/
-#guard_msgs in
-#eval! qs hello (part := dutch)
-
-
-
+#guard_msgs(info) in
+#eval qs hello  (part := Partition.hoare.classic)
 
 /--
 info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17, 18, 19, 24, 24, 24, 25, 26, 27, 29, 29, 30,

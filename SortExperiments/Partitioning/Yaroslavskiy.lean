@@ -234,7 +234,7 @@ def Partition.yaroslavskiy.debug' [Ord α] [ToString α]  {n : Nat} (as : Vector
 
   loop as_ (left + 1) (left + 1) (right - 1)
 
-example [ToString α] : Partition.Scheme α := Partition.yaroslavskiy.debug'
+example [ToString α] [Ord α] : Partition.Scheme α := Partition.yaroslavskiy.debug'
 
 
 #eval! Partition.yaroslavskiy.debug' #v[0, 1]  0 1 (by omega) (by omega)

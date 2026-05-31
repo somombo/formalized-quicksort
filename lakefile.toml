@@ -1,17 +1,20 @@
 name = "quicksort"
-testDriver = "test"
+testDriver = "Examples"
 defaultTargets = [
   "Quicksort", 
-  "quicksort", 
+  "Examples", 
   # "Bench",
 ]
 
 [[lean_lib]]
 name = "Quicksort"
 
+[[lean_lib]]
+name = "SortExperiments"
+
 [[lean_exe]]
-name = "quicksort"
-root = "Example"
+name = "Examples"
+root = "Examples"
 
 # [[lean_exe]]
 # name = "timer"
