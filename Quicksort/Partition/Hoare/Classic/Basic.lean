@@ -11,7 +11,7 @@ variable [Ord α]
 
 -- set_option trace.profiler true in
 /-- `while_i` is equivalent to `while arr[i'] < pivot do i' := i' + 1` -/
-@[inline]
+@[inline, specialize]
 def hoare.classic.loop.while_i (left right : Nat) (hr : right < n) (pivot : α) (arr : Vector α n)
     (i j : Nat) (hjr : j < right) (harltp : ¬lt arr[right] pivot)
     (ival : Nat) (hii : i ≤ ival) (hxi : ival ≤ right) : { i' : Fin n // i ≤ i' ∧ i' ≤ right } :=
@@ -23,7 +23,7 @@ def hoare.classic.loop.while_i (left right : Nat) (hr : right < n) (pivot : α) 
   else
     ⟨⟨ival, by omega⟩, hii, hxi⟩
 
-@[inline]
+@[inline, specialize]
 def hoare.classic.loop.while_j (left right : Nat) (hr : right < n) (hl : left < n) (pivot : α)
     (arr : Vector α n) (i j : Nat)  (hjr : j < right) (hli : left < i) (halgep : ¬lt pivot arr[left])
     (jval : Nat) (hxj : left ≤ jval) (hjj : jval ≤ j) : { j' : Fin n // j' ≤ j } :=

@@ -55,7 +55,7 @@ public def pdqsort [Ord α] [Std.TransOrd α] (arr : Array α) (left : Nat := 0)
           let left_len := (j' - left) + 1
           let right_len := (right - i') + 1
 
-          let unbalanced := !is_duplicate_run && (left_len < (len / 8) || right_len < (len / 8))
+          let unbalanced := !is_duplicate_run && (left_len < (len >>> 3) || right_len < (len >>> 3))
 
           let next_bad_left := if unbalanced then allowed_bad_partitions - 1 else allowed_bad_partitions
           let next_bad_right := if unbalanced then allowed_bad_partitions - 1 else allowed_bad_partitions

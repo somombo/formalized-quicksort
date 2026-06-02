@@ -32,7 +32,7 @@ private def move_pivots_back (left right : Nat) (hlr : left < right) (hr : right
 
 variable [Ord α]
 open Ord
-@[inline]
+@[inline, specialize]
 private def loop.while_j' (left right : Nat) (hr : right < n) (hl : left < n) (pivot : α)
     (arr : Vector α n) (i j : Nat)  (hjr : j < right) (hli : left < i)
     (jval : Nat) (hxj : left ≤ jval) (hjj : jval ≤ j) (halgep : ¬lt pivot arr[left]) :
@@ -45,7 +45,7 @@ private def loop.while_j' (left right : Nat) (hr : right < n) (hl : left < n) (p
   else
     ⟨⟨jval, by omega⟩, hjj, h'⟩
 
-@[inline]
+@[inline, specialize]
 private def loop.while_i'  (left right : Nat) (hr : right < n) (pivot : α) (arr : Vector α n)
     (i j : Nat) (hjr : j < right) (ival : Nat) (hii : i ≤ ival) (hxi : ival ≤ right)
     (harltp : ¬lt arr[right] pivot) : { i' : Fin n // i ≤ i' ∧ i' ≤ right ∧  ¬lt arr[i'.val] pivot} :=

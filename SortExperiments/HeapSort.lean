@@ -7,6 +7,7 @@ open Ord
 Restores the max-heap property for a subtree rooted at index `i`.
 Operates on a virtual heap mapped between `start` and `start + size` within the vector.
 -/
+@[specialize]
 def heapifyDown [Ord α] (vec : Vector α n) (start size i : Nat) (h_bound : start + size ≤ n) : Vector α n :=
   let left := 2 * i + 1
   let right := left + 1
@@ -39,16 +40,17 @@ def heapifyDown [Ord α] (vec : Vector α n) (start size i : Nat) (h_bound : sta
 Sorts a sub-segment of a vector in-place using the Heapsort algorithm.
 Guarantees O(N log N) worst-case time complexity, making it an ideal fallback for adversarial inputs.
 -/
+-- @[noinline]
 public def Vector.heapSort (vec : Vector α n) (start : Nat := 0) (endIdx : Nat := n - 1) (h_valid_range : start < endIdx := by omega) (h_bound : endIdx ≤ n - 1 := by omega) [Ord α] : Vector α n :=
   let size := endIdx - start + 1
   -- have h_size : size > 1 := by omega
   have h_upper : start + size ≤ n := by omega
 
-  let rec buildMaxHeap (v : Vector α n) (i : Nat) : Vector α n :=
+  let rec @[specialize] buildMaxHeap (v : Vector α n) (i : Nat) : Vector α n :=
     let v' := heapifyDown v start size i h_upper
     if i > 0 then buildMaxHeap v' (i - 1) else v'
 
-  let rec extractMax (v : Vector α n) (currentSize : Nat) (h_cur : currentSize ≤ size) : Vector α n :=
+  let rec @[specialize] extractMax (v : Vector α n) (currentSize : Nat) (h_cur : currentSize ≤ size) : Vector α n :=
     if currentSize > 1 then
       have h1 : start < n := by omega
       have h2 : start + currentSize - 1 < n := by omega

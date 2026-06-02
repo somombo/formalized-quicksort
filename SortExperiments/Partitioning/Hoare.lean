@@ -3,6 +3,27 @@ module
 
 public import SortExperiments.Partitioning.Init
 
+@[inline, specialize]
+private def while_i [Ord α] (left right : Nat) (hr : right < n) (pivot : α) (arr : Vector α n)
+      (i j : Nat) (hjr : j < right) (harltp : ¬(compare arr[right] pivot |>.isLT))
+      (ival : Nat) (hii : i ≤ ival) (hxi : ival ≤ right) : { i' : Fin n // i ≤ i' ∧ i' ≤ right } :=
+    have hi : ival < n := by omega
+    if h' : compare arr[ival] pivot |>.isLT then
+      have _ : ival ≠ right := by grind
+      while_i left right hr pivot arr i j hjr harltp   (ival + 1) (by omega) (by omega)
+    else
+      ⟨⟨ival, by omega⟩, hii, hxi⟩
+
+@[inline, specialize]
+private def while_j [Ord α] (left right : Nat) (hr : right < n) (hl : left < n) (pivot : α)
+      (arr : Vector α n) (i j : Nat)  (hjr : j < right) (hli : left < i) (halgep : ¬(compare pivot arr[left] |>.isLT))
+      (jval : Nat) (hxj : left ≤ jval) (hjj : jval ≤ j) : { j' : Fin n // j' ≤ j } :=
+    have hj : jval < n := by omega
+    if h' : compare pivot arr[jval] |>.isLT then
+      have _ : jval ≠ left := by grind
+      while_j left right hr hl pivot arr i j hjr hli halgep   (jval - 1) (by omega) (by omega)
+    else
+      ⟨⟨jval, by omega⟩, hjj⟩
 
 
 @[inline]
@@ -36,28 +57,7 @@ public def Partitioning.hoare [Ord α] {n : Nat} (arr : Vector α n) (pivot : α
     else -- have _ : j' = i' := by omega
       ⟨⟨arr, j' - 1, i' + 1⟩, by simp; omega, by simp; omega⟩
   loop pivot arr (left + 1) (right - 1) Nat.le.refl (by omega) (by omega) halgep harltp
-where
-  @[inline, specialize]
-  while_i [Ord α] (left right : Nat) (hr : right < n) (pivot : α) (arr : Vector α n)
-      (i j : Nat) (hjr : j < right) (harltp : ¬(compare arr[right] pivot |>.isLT))
-      (ival : Nat) (hii : i ≤ ival) (hxi : ival ≤ right) : { i' : Fin n // i ≤ i' ∧ i' ≤ right } :=
-    have hi : ival < n := by omega
-    if h' : compare arr[ival] pivot |>.isLT then
-      have _ : ival ≠ right := by grind
-      while_i left right hr pivot arr i j hjr harltp   (ival + 1) (by omega) (by omega)
-    else
-      ⟨⟨ival, by omega⟩, hii, hxi⟩
 
-  @[inline, specialize]
-  while_j [Ord α] (left right : Nat) (hr : right < n) (hl : left < n) (pivot : α)
-      (arr : Vector α n) (i j : Nat)  (hjr : j < right) (hli : left < i) (halgep : ¬(compare pivot arr[left] |>.isLT))
-      (jval : Nat) (hxj : left ≤ jval) (hjj : jval ≤ j) : { j' : Fin n // j' ≤ j } :=
-    have hj : jval < n := by omega
-    if h' : compare pivot arr[jval] |>.isLT then
-      have _ : jval ≠ left := by grind
-      while_j left right hr hl pivot arr i j hjr hli halgep   (jval - 1) (by omega) (by omega)
-    else
-      ⟨⟨jval, by omega⟩, hjj⟩
 
 
 public abbrev Partitioning.Scheme α [Ord α] :=   {n : Nat} → (arr : Vector α n) → (pivot : α) → (left : Nat) → (right : Nat) → (hlr : left < right) → (hr : right < n) →  { x : Partitioning α n  // left < x.i' ∧ x.j' < right }
