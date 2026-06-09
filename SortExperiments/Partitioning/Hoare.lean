@@ -1,14 +1,14 @@
 module
--- import Quicksort.Init.Ord
+public import Quicksort.Init.Ord
 
 public import SortExperiments.Partitioning.Init
 
 @[inline, specialize]
 private def while_i [Ord α] (left right : Nat) (hr : right < n) (pivot : α) (arr : Vector α n)
-      (i j : Nat) (hjr : j < right) (harltp : ¬(compare arr[right] pivot |>.isLT))
+      (i j : Nat) (hjr : j < right) (harltp : ¬lt arr[right] pivot)
       (ival : Nat) (hii : i ≤ ival) (hxi : ival ≤ right) : { i' : Fin n // i ≤ i' ∧ i' ≤ right } :=
     have hi : ival < n := by omega
-    if h' : compare arr[ival] pivot |>.isLT then
+    if h' : lt arr[ival] pivot then
       have _ : ival ≠ right := by grind
       while_i left right hr pivot arr i j hjr harltp   (ival + 1) (by omega) (by omega)
     else
@@ -16,10 +16,10 @@ private def while_i [Ord α] (left right : Nat) (hr : right < n) (pivot : α) (a
 
 @[inline, specialize]
 private def while_j [Ord α] (left right : Nat) (hr : right < n) (hl : left < n) (pivot : α)
-      (arr : Vector α n) (i j : Nat)  (hjr : j < right) (hli : left < i) (halgep : ¬(compare pivot arr[left] |>.isLT))
+      (arr : Vector α n) (i j : Nat)  (hjr : j < right) (hli : left < i) (halgep : ¬lt pivot arr[left])
       (jval : Nat) (hxj : left ≤ jval) (hjj : jval ≤ j) : { j' : Fin n // j' ≤ j } :=
     have hj : jval < n := by omega
-    if h' : compare pivot arr[jval] |>.isLT then
+    if h' : lt pivot arr[jval] then
       have _ : jval ≠ left := by grind
       while_j left right hr hl pivot arr i j hjr hli halgep   (jval - 1) (by omega) (by omega)
     else
@@ -28,12 +28,12 @@ private def while_j [Ord α] (left right : Nat) (hr : right < n) (hl : left < n)
 
 @[inline]
 public def Partitioning.hoare [Ord α] {n : Nat} (arr : Vector α n) (pivot : α) (left : Nat)  (right : Nat) (hlr : left < right)
-    (hr : right < n) (halgep : ¬(compare pivot arr[left] |>.isLT)) (harltp : ¬(compare arr[right] pivot |>.isLT)) :
+    (hr : right < n) (halgep : ¬(lt pivot arr[left])) (harltp : ¬(lt arr[right] pivot)) :
     {x : Partitioning α n // (left < x.i') ∧ (x.j' < right)} :=
   have hl : left < n := by omega
 
   let rec @[specialize] loop (pivot : α) (arr : Vector α n) (i j : Nat) (hli : left < i)
-      (hij : i ≤ j + 1) (hjr : j < right) (halgep : ¬(compare pivot arr[left] |>.isLT)) (harltp : ¬(compare arr[right] pivot |>.isLT)) :=
+      (hij : i ≤ j + 1) (hjr : j < right) (halgep : ¬(lt pivot arr[left])) (harltp : ¬(lt arr[right] pivot)) :=
 
     let ⟨i', _, _⟩ := while_i left right hr pivot arr i j (by omega) harltp
       i Nat.le.refl (by omega)
@@ -44,10 +44,10 @@ public def Partitioning.hoare [Ord α] {n : Nat} (arr : Vector α n) (pivot : α
     if _ : i' < j' then
       -- let arr' := (dbgTraceIfShared "Partitioning.hoare `as` is shared!" arr).swap i' j'
       let arr' := arr.swap i' j'
-      have halgep' : ¬(compare pivot arr'[left] |>.isLT)  := by
+      have halgep' : ¬(lt pivot arr'[left])  := by
         simp only [show arr'[left] = _ by apply Vector.getElem_swap_of_ne ..; all_goals omega]
         exact halgep
-      have harltp' : ¬(compare arr'[right] pivot |>.isLT) := by
+      have harltp' : ¬(lt arr'[right] pivot) := by
         simp only [show arr'[right] = _ by apply Vector.getElem_swap_of_ne ..; all_goals omega]
         exact harltp
 

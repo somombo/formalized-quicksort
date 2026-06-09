@@ -1,3 +1,4 @@
+import Quicksort.Init.Ord
 import SortExperiments.Adapt
 
 namespace PartialQSort
@@ -5,20 +6,20 @@ public abbrev Partition.Partial_Scheme α :=  [Ord α] → Array α → Nat → 
 
 def while_i [Ord α] (pivot : α) (arr : Array α) (ival : Nat) : Nat :=
   have _ : ival < arr.size := sorry
-  if compare arr[ival] pivot = .lt then
+  if lt arr[ival] pivot then
     while_i pivot arr (ival + 1)
   else
     ival
 
 partial def while_j [Ord α] (pivot : α) (arr : Array α) (jval : Nat) : Nat :=
   have _ : jval < arr.size := sorry
-  if compare pivot arr[jval] = .lt then
+  if lt pivot arr[jval] then
     while_j pivot arr (jval - 1)
   else
     jval
 
 def maybeSwap [Ord α] (as : Array α) (low high : Fin as.size) : Array α :=
-  if compare as[high] as[low] = .lt then
+  if lt as[high] as[low] then
     as.swap low high
   else
     as
@@ -97,9 +98,9 @@ public partial def partition [Ord α] (arr : Array α) (left : Nat) (right : Nat
     if i' < j' then
       let arr' := arr.swap i' j' sorry sorry
       have _ : i' < arr'.size := sorry
-      if compare arr'[i'] pivot = .lt then
+      if lt arr'[i'] pivot then
         have _ : j' < arr'.size := sorry
-        if compare pivot arr'[j'] = .lt then
+        if lt pivot arr'[j'] then
           loop pivot arr' (i' + 1) (j' - 1) p q
         else
           let arr'' := arr'.swap q j' sorry sorry
@@ -108,7 +109,7 @@ public partial def partition [Ord α] (arr : Array α) (left : Nat) (right : Nat
         let arr'' := arr'.swap p i' sorry sorry
 
         have _ : j' < arr''.size := sorry
-        if compare pivot arr''[j'] = .lt then
+        if lt pivot arr''[j'] then
           loop pivot arr'' (i' + 1) (j' - 1) (p + 1) q
         else
           let arr''' := arr''.swap q j' sorry sorry
@@ -249,27 +250,27 @@ end PartialQSort
 
 
 
-@[inline]
-def qs_adapt_onall [Ord α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0) (part : Partition.Scheme α ) : Array α :=
-  let rec @[specialize]
-  strict {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1) : Vector α n :=
-    if hlr : left + M < right then
-      let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ := part as left right (by omega) (by omega)
-      let as := qs_adapt_onall.strict as' left j' (by omega)
-      let as := qs_adapt_onall.strict as i' right (by omega)
-      as
-    else
-      as
-    termination_by right - left
+-- @[inline]
+-- def qs_adapt_onall' [Ord α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0) (part : Partition.Scheme α ) : Array α :=
+--   let rec @[specialize]
+--   strict {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1) : Vector α n :=
+--     if hlr : left + M < right then
+--       let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ := part as left right (by omega) (by omega)
+--       let as := qs_adapt_onall'.strict as' left j' (by omega)
+--       let as := qs_adapt_onall'.strict as i' right (by omega)
+--       as
+--     else
+--       as
+--     termination_by right - left
 
-  let right' : Nat := if right ≤ arr.size - 1 then right else
-    have := Inhabited.mk (arr.size - 1)
-    panic! "index out of bounds"
+--   let right' : Nat := if right ≤ arr.size - 1 then right else
+--     have := Inhabited.mk (arr.size - 1)
+--     panic! "index out of bounds"
 
-  have : right' ≤ arr.size - 1 := by
-    simp [right']; split <;> simp [panicWithPosWithDecl, panic, panicCore, *]
+--   have : right' ≤ arr.size - 1 := by
+--     simp [right']; split <;> simp [panicWithPosWithDecl, panic, panicCore, *]
 
-  Array.insertionSort (qs_adapt_onall.strict ⟨arr, rfl⟩ left right' this).1 (lt := fun a b => (compare a b).isLT)
+--   Array.insertionSort (qs_adapt_onall'.strict ⟨arr, rfl⟩ left right' this).1 (lt := lt)
 
 section introsort
 namespace Array
@@ -278,17 +279,11 @@ namespace Array
 private def log2 (n : Nat) : Nat :=
   if n <= 1 then 0 else 1 + log2 (n / 2)
 
-@[macro_inline]
-instance foo (lt : α → α → Bool) : Ord α where
-  compare a b :=
-    if lt a b then .lt
-    else if lt b a then .gt
-    else .eq
 
 
 /-- Sorts a small segment of an array using insertion sort. -/
 partial def insertionSort' (arr : Array α) (lo : Nat  := 0) (hi : Nat := arr.size - 1) (lt : α → α → Bool  := by exact (· < ·)) : Array α :=
-  @Vector.insertionSort α (foo lt) arr.size arr.toVector lo hi sorry |>.1
+  @Vector.insertionSort α (ltBoolToOrd lt) arr.size arr.toVector lo hi sorry |>.1
 
 
 /-- Restores the heap property for a subtree. -/
@@ -342,7 +337,7 @@ private partial def introSortLoop (arr : Array α) (lo hi depthLimit : Nat) (lt 
   -- let len := hi - lo + 1
   -- right ≤ left + M
   if hi <= (lo - 1) + 35 then
-    @Vector.insertionSort α (foo lt) arr.size ⟨arr, rfl⟩ lo hi sorry |>.1
+    @Vector.insertionSort α (ltBoolToOrd lt) arr.size ⟨arr, rfl⟩ lo hi sorry |>.1
   else if depthLimit == 0 then
     heapSort arr lo hi lt
   else

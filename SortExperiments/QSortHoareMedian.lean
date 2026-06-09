@@ -8,15 +8,15 @@ import Quicksort.Init.Ord
 
 variable
   [Ord α]
-  -- [ile_trans : Std.TransOrd α]
+  [ile_trans : Std.TransOrd α]
 
 
 open Ord
 
 @[inline]
 public def qsort_hoare_median (arr : Array α) /- (left : Nat := 0) -/ /- (right := arr.size - 1) -/ (M := 32) (hM : M > 0 := by omega)
-    (not_lt : ∀ {x y : α}, ¬(compare y x |>.isLT) ↔ (compare x y |>.isLE) := by grind)
-    (le_trans : ∀ {x y z : α}, (compare x y).isLE → (compare y z).isLE → (compare x z).isLE := by grind)
+    -- (not_lt : ∀ {x y : α}, ¬lt y x ↔ le x y := by grind)
+    -- (le_trans : ∀ {x y z : α}, le x y → le y z → le x z := by grind)
     : Array α :=
   let rec @[specialize]
   recurse {n} (as : Vector α n) (left : Nat) (right: Nat) (hsize' : right ≤ n - 1) : Vector α n :=
@@ -24,8 +24,8 @@ public def qsort_hoare_median (arr : Array α) /- (left : Nat := 0) -/ /- (right
       have hr : right < n := by omega
       have hlr : left < right  := by omega
       let v := Pivot.median (M := M) as left right hlr hr
-      have : ¬(compare v.piv' v.arr'[left] |>.isLT) ∧ ¬(compare v.arr'[right] v.piv' |>.isLT) :=
-        Pivot.median_sorted (M:=M) (hM : M > 0) not_lt le_trans hlr hr
+      have : (¬lt v.piv' v.arr'[left]) ∧ (¬lt v.arr'[right] v.piv') :=
+        Pivot.median_sorted (M:=M) (hM : M > 0) /- not_lt le_trans -/ hlr hr
 
 
       let ⟨⟨a, j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ :=

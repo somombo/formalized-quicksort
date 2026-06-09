@@ -1,11 +1,11 @@
 module
-import Quicksort.Init.Ord
+public import Quicksort.Init.Ord
 
 public import SortExperiments.Pivot.Init
 
 @[inline]
 def Pivot.maybeSwap [Ord α] (as : Vector α n) (low high : Fin n) : Vector α n :=
-  if compare as[high] as[low] |>.isLT then
+  if lt as[high] as[low] then
     -- (dbgTraceIfShared "Pivot.maybeSwap `as` is shared!" as).swap low high
     as.swap low high
   else
@@ -30,7 +30,7 @@ public def Pivot.median_of_three [Ord α] (arr : Vector α n) (left : Nat)  (rig
 
 
 
-theorem Pivot.maybeSwap_sorted [Ord α]  (lt_asymm : ∀ {x y : α}, (compare x y |>.isLT) → ¬(compare y x |>.isLT))  (as : Vector α n) (low high : Nat) (hlh : low ≤ high) (hn : high < n) : ¬ (compare (maybeSwap as ⟨low, by omega⟩ ⟨high, by omega⟩)[high] (maybeSwap as ⟨low, by omega⟩ ⟨high, by omega⟩)[low] |>.isLT) := by
+theorem Pivot.maybeSwap_sorted [Ord α]  (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x)  (as : Vector α n) (low high : Nat) (hlh : low ≤ high) (hn : high < n) : ¬ (lt (maybeSwap as ⟨low, by omega⟩ ⟨high, by omega⟩)[high] (maybeSwap as ⟨low, by omega⟩ ⟨high, by omega⟩)[low]) := by
   unfold maybeSwap; split
   · next h =>
       grind [as.getElem_swap_right, as.getElem_swap_left]
@@ -40,14 +40,12 @@ theorem Pivot.maybeSwap_sorted [Ord α]  (lt_asymm : ∀ {x y : α}, (compare x 
 -- (halgep : arr[left] ≤ pivot)  (harltp : pivot ≤ arr[right])
 -- (halgep : ∃ (j_ : Fin n) (_ : j_ ≤ righXt), arr[j_] ≤ pivot)  (harltp : ∃ (i_ : Fin n) (_ : left ≤ i_), pivot ≤ arr[i_])
 open Ord in
-public theorem Pivot.median_of_three_sorted [Ord α]
-    (not_lt : ∀ {x y : α}, ¬(compare y x |>.isLT) ↔ (compare x y |>.isLE) := by grind)
-    (le_trans : ∀ {x y z : α}, (compare x y).isLE → (compare y z).isLE → (compare x z).isLE := by grind)
+public theorem Pivot.median_of_three_sorted [Ord α] [Std.TransOrd α]
     {arr : Vector α n} {left right: Nat} (hlr : left < right) (hr : right < n) :
     let ⟨pivot, arr_⟩ := median_of_three arr left right hlr hr;
-    ¬(compare pivot arr_[left] |>.isLT) ∧ ¬(compare arr_[right] pivot |>.isLT) := by
-  have lt_asymm : ∀ {x y : α}, (compare x y |>.isLT) → ¬(compare y x |>.isLT) := by grind
-  have le_trans' : ∀ {x y z : α}, ¬(compare y x |>.isLT) → ¬(compare z y |>.isLT) → ¬(compare z x |>.isLT) := by grind
+    ¬(lt pivot arr_[left]) ∧ ¬(lt arr_[right] pivot) := by
+  have lt_asymm : ∀ {x y : α}, (lt x y) → ¬(lt y x) := by grind
+  have le_trans' : ∀ {x y z : α}, ¬(lt y x) → ¬(lt z y) → ¬(lt z x) := by grind
 
   let mid := left + ((right - left + 1)/2)
 
@@ -60,13 +58,13 @@ public theorem Pivot.median_of_three_sorted [Ord α]
   let arr2 : Vector α n := maybeSwap arr1 ⟨left, by omega⟩ ⟨right, by omega⟩
   let arr_ : Vector α n := maybeSwap arr2 ⟨mid, by omega⟩ ⟨right, by omega⟩
 
-  change ¬(compare arr_[mid] arr_[left] |>.isLT) ∧ ¬(compare arr_[right] arr_[mid] |>.isLT)
+  change ¬(lt arr_[mid] arr_[left]) ∧ ¬(lt arr_[right] arr_[mid])
 
-  have hh1 : ¬(compare arr1[mid] arr1[left] |>.isLT) := maybeSwap_sorted lt_asymm arr left mid (by omega) (by omega)
-  have hh2 : ¬(compare arr2[right] arr2[left] |>.isLT) := maybeSwap_sorted lt_asymm arr1 left right (by omega) (by omega)
-  have hh_ : ¬(compare arr_[right] arr_[mid] |>.isLT) := maybeSwap_sorted lt_asymm arr2 mid right (by omega) (by omega)
+  have hh1 : ¬(lt arr1[mid] arr1[left]) := maybeSwap_sorted lt_asymm arr left mid (by omega) (by omega)
+  have hh2 : ¬(lt arr2[right] arr2[left]) := maybeSwap_sorted lt_asymm arr1 left right (by omega) (by omega)
+  have hh_ : ¬(lt arr_[right] arr_[mid]) := maybeSwap_sorted lt_asymm arr2 mid right (by omega) (by omega)
 
-  suffices ¬(compare arr_[mid] arr_[left] |>.isLT) from ⟨this, hh_⟩
+  suffices ¬(lt arr_[mid] arr_[left]) from ⟨this, hh_⟩
 
   if hleqm : left = mid then
     simp only [hleqm]

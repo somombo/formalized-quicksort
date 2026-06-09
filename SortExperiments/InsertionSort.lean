@@ -33,9 +33,8 @@ where
 
 
 @[inline]
-def Array.insertionSort_without_fuel [Ord α]  (xs : Array α)  -- (lt : α → α → Bool := by exact (· < ·))
-    /- (_left := 0) (right := n - 1) (_hr : right ≤ n - 1 := by omega) -/ : Array α :=
-  traverse xs.toVector (0 + 1) |>.toArray
+public def Array.insertionSort_without_fuel [Ord α] (xs : Array α) : Array α :=
+  traverse xs.toVector 1 |>.toArray
 where
   @[specialize]
   traverse {n : Nat} (xs : Vector α n) (i : Nat)  : Vector α n :=
@@ -57,7 +56,7 @@ where
       xs
 
 @[inline]
-public def Vector.insertionSort [Ord α] {n : Nat} (xs : Vector α n) -- (lt : α → α → Bool := by exact (· < ·))
+public def Vector.insertionSort [Ord α] {n : Nat} (xs : Vector α n)
     (left := 0) (right := n - 1) (hr : right ≤ n - 1 := by omega) : Vector α n :=
   traverse xs (left + 1)
 where
@@ -99,7 +98,7 @@ where
   swapLoop (xs : Vector α n) (j : Nat) (h : j ≤ n - 1) :  Vector α n :=
     if _ : left < j then
       let j' := j - 1
-      if compare xs[j] xs[j'] |>.isLT then
+      if lt xs[j] xs[j'] then
         swapLoop (xs.swap j j') j' (by omega)
       else
         xs

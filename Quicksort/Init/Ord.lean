@@ -71,6 +71,8 @@ end Std
 public abbrev lt (x y : α) := compare x y |>.isLT
 @[expose, inline]
 public abbrev le (x y : α) := compare x y |>.isLE
+@[expose, inline]
+public abbrev eq (x y : α) := compare x y |>.isEq
 
 
 
@@ -96,3 +98,11 @@ example : ∀ {x y z : UInt32}, ¬lt y x → ¬lt z y → ¬lt z x := by grind
 example : ∀ {x y : Int}, lt x y → ¬lt y x := by grind
 example : ∀ {x y z : Int}, ¬lt y x → ¬lt z y → ¬lt z x := by grind
 end examples
+
+
+@[macro_inline]
+public instance ltBoolToOrd (lt : α → α → Bool) : Ord α where
+  compare a b :=
+    if lt a b then .lt
+    else if lt b a then .gt
+    else .eq;

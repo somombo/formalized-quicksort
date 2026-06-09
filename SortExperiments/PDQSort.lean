@@ -21,25 +21,16 @@ public def pdqsort [Ord α] [Std.TransOrd α] (arr : Array α) (left : Nat := 0)
       if hlr : M + 1 < len then
         if allowed_bad_partitions > 0 then
 
-          -- have hl : left < n := by omega
           have hlr : left < right := by omega
           have hr : right < n := by omega
 
-          -- let mid := left + (len/2)
-          -- have hm : mid < n := by omega
-          -- let as_ := as
-          --   |> (Vector.maybeSwap · ⟨_left, hl⟩ ⟨mid, hm⟩)
-          --   |> (Vector.maybeSwap · ⟨_left, hl⟩ ⟨_right, hr⟩)
-          --   |> (Vector.maybeSwap · ⟨mid, hm⟩ ⟨_right, hr⟩)
-          -- let pivot := as_[mid]
-
           let v := Pivot.median_of_three as left right hlr hr
-          have : ¬(compare v.piv' v.arr'[left] |>.isLT) ∧ ¬(compare v.arr'[right] v.piv' |>.isLT) :=
-            Pivot.median_of_three_sorted not_lt le_trans hlr hr
+          have : ¬(lt v.piv' v.arr'[left]) ∧ ¬(lt v.arr'[right] v.piv') :=
+            Pivot.median_of_three_sorted hlr hr
 
           let is_duplicate_run : Bool :=
             match parent_pivot with
-            | some p => compare v.piv' p |>.isEq
+            | some p => eq v.piv' p
             | none => false
 
 
@@ -122,6 +113,7 @@ info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17
 #eval! pdqsort (M := 34) test_array
 
 
+section pdqsort2
 @[inline]
 private def filter_equals [Ord α] (pivot : α) (arr : Vector α n) (left right : Nat) (hr : right < n) : Vector α n × Subtype (left < ·) :=
   let rec
@@ -129,7 +121,7 @@ private def filter_equals [Ord α] (pivot : α) (arr : Vector α n) (left right 
     loop (arr : Vector α n) (i eq_end : Nat) (hir : eq_end ≤ i) (h_progress : left < eq_end) :=
       if hir : i ≤ right then
         have _ : i < n := by omega
-        if _ : compare arr[i] pivot = .eq then
+        if _ : eq arr[i] pivot then
           let arr' := arr.swap i eq_end (by omega) (by omega)
           loop arr' (i + 1) (eq_end + 1) (by omega) (by omega)
         else
@@ -165,22 +157,16 @@ public def pdqsort2 [Ord α] [Std.TransOrd α] (arr : Array α) (left : Nat := 0
           -- let pivot := as_[mid]
 
           let v := Pivot.median_of_three as left right hlr hr
-          have : ¬(compare v.piv' v.arr'[left] |>.isLT) ∧ ¬(compare v.arr'[right] v.piv' |>.isLT) :=
-            Pivot.median_of_three_sorted not_lt le_trans hlr hr
+          have : ¬lt v.piv' v.arr'[left] ∧ ¬lt v.arr'[right] v.piv' :=
+            Pivot.median_of_three_sorted hlr hr
 
           let is_duplicate_run : Bool :=
             match parent_pivot with
-            | some p => compare v.piv' p == .eq
+            | some p => eq v.piv' p
             | none => false
 
 
           if !is_duplicate_run then
-            -- let ⟨⟨as', j', i'⟩, (_ : left < i'), (_ : j' < right )⟩ :=
-            --     Partition.hoare.classic.loop left right (by omega) (by omega) pivot as_
-            --       (left + 1)
-            --       (right - 1)
-            --       (by omega) (by omega) (by omega) sorry sorry
-
 
             let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ :=
               Partitioning.hoare v.arr' v.piv' left right hlr hr  this.left this.right
@@ -233,3 +219,4 @@ info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17
 -/
 #guard_msgs in
 #eval pdqsort2 (M := 34) test_array
+end pdqsort2

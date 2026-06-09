@@ -1,5 +1,5 @@
 module
-import Quicksort.Init.Ord
+public import Quicksort.Init.Ord
 
 public import SortExperiments.Partitioning.Init
 
@@ -62,7 +62,7 @@ private def loop.while_i'  (left right : Nat) (hr : right < n) (pivot : α) (arr
 
 @[inline]
 public def Partitioning.bentleyMcIlroy [Ord α] {n : Nat} (arr : Vector α n) (pivot : α) (left : Nat)  (right : Nat) (hlr : left < right)
-    (hr : right < n) (halgep : ¬(compare pivot arr[left] |>.isLT)) (harltp : ¬(compare arr[right] pivot |>.isLT)) :
+    (hr : right < n) (halgep : ¬(lt pivot arr[left])) (harltp : ¬(lt arr[right] pivot)) :
     {x : Partitioning α n // (left < x.i') ∧ (x.j' < right)} :=
   have hl : left < n := by omega
 

@@ -1,5 +1,5 @@
 module
-
+public import Quicksort.Init.Ord
 public import SortExperiments.Pivot.Init
 
 /-
@@ -33,7 +33,7 @@ where
       let j' := j - 1
       let ⟨j'_, hj'⟩ := getIdxAt ⟨j', by omega⟩
       let ⟨j_, hj⟩ := getIdxAt ⟨j, by omega⟩
-      if compare xs[j_] xs[j'_] |>.isLT then
+      if lt xs[j_] xs[j'_] then
         swapLoop (xs.swap j_ j'_) j' (by grind)
       else
         xs
@@ -77,13 +77,13 @@ public def Pivot.median (M : Nat) [Ord α] (arr : Vector α n) (left : Nat)  (ri
   ⟨pivot, arr_⟩
 
 
--- open Ord in
-public theorem Pivot.median_sorted [Ord α] {M : Nat} (hM : M > 0)
-    (not_lt : ∀ {x y : α}, ¬(compare y x |>.isLT) ↔ (compare x y |>.isLE) := by grind)
-    (le_trans : ∀ {x y z : α}, (compare x y).isLE → (compare y z).isLE → (compare x z).isLE := by grind)
+open Ord in
+public theorem Pivot.median_sorted [Ord α] [ile_trans : Std.TransOrd α] {M : Nat} (hM : M > 0)
+    -- (not_lt : ∀ {x y : α}, ¬lt y x ↔ le x y := by grind)
+    -- (le_trans : ∀ {x y z : α}, le x y → le y z → le x z := by grind)
     {arr : Vector α n} {left right: Nat} (hlr : left < right) (hr : right < n) :
     let ⟨pivot, arr_⟩ := Pivot.median M arr left right hlr hr;
-    ¬(compare pivot arr_[left] |>.isLT) ∧ ¬(compare arr_[right] pivot |>.isLT) := by
+    (¬lt pivot arr_[left]) ∧ (¬lt arr_[right] pivot) := by
   sorry
 
 

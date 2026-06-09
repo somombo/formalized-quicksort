@@ -1,0 +1,8 @@
+import SortExperiments.Partitioning.Hoare
+import SortExperiments.Partitioning.BentleyMcIlroy
+import SortExperiments.PDQSort
+import SortExperiments.Adapt
+import SortExperiments.InsertionSort
+import SortExperiments.HeapSort
+import SortExperiments.QSortHoareMo3
+import SortExperiments.HeapSort
