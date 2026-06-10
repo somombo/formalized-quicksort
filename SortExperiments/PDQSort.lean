@@ -1,5 +1,5 @@
 
-import Quicksort.Init.Ord
+import Quicksort.Init.BLt
 import SortExperiments.HeapSort
 import SortExperiments.InsertionSort
 import SortExperiments.Partitioning.Hoare
@@ -7,9 +7,9 @@ import SortExperiments.Partitioning.BentleyMcIlroy
 import SortExperiments.Pivot.MedianOfThree
 
 
-open Ord
+open BLt
 @[inline]
-public def pdqsort [Ord α] [Std.TransOrd α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0) : Array α :=
+public def pdqsort [BLt α] [IsStrictWeakOrder α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0) : Array α :=
   let rec
     @[specialize]
     strict {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1)
@@ -110,12 +110,14 @@ info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17
   91, 91, 93, 94, 95, 95, 96, 99, 99]
 -/
 #guard_msgs in
+
+-- set_option trace.Meta.synthInstance true in
 #eval! pdqsort (M := 34) test_array
 
 
 section pdqsort2
 @[inline]
-private def filter_equals [Ord α] (pivot : α) (arr : Vector α n) (left right : Nat) (hr : right < n) : Vector α n × Subtype (left < ·) :=
+private def filter_equals [BLt α] (pivot : α) (arr : Vector α n) (left right : Nat) (hr : right < n) : Vector α n × Subtype (left < ·) :=
   let rec
     @[specialize]
     loop (arr : Vector α n) (i eq_end : Nat) (hir : eq_end ≤ i) (h_progress : left < eq_end) :=
@@ -130,9 +132,9 @@ private def filter_equals [Ord α] (pivot : α) (arr : Vector α n) (left right 
         (arr, ⟨eq_end, h_progress⟩)
   loop arr (left + 1) (left + 1) (by omega) (by omega)
 
-open Ord
+open BLt
 @[inline]
-public def pdqsort2 [Ord α] [Std.TransOrd α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0)  : Array α :=
+public def pdqsort2 [BLt α] [IsStrictWeakOrder α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0)  : Array α :=
   let rec
     @[specialize]
     strict {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1 := by omega)

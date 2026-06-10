@@ -4,14 +4,14 @@ module
 public import  SortExperiments.Partitioning.Hoare
 public import SortExperiments.InsertionSort
 public import SortExperiments.Pivot.Median
-import Quicksort.Init.Ord
+import Quicksort.Init.BLt
 
 variable
-  [Ord α]
-  [ile_trans : Std.TransOrd α]
+  [BLt α]
+  [ile_trans : BLt.IsStrictWeakOrder α]
 
 
-open Ord
+open BLt
 
 @[inline]
 public def qsort_hoare_median (arr : Array α) /- (left : Nat := 0) -/ /- (right := arr.size - 1) -/ (M := 32) (hM : M > 0 := by omega)

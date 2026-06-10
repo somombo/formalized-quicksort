@@ -1,5 +1,5 @@
 module
-public import Quicksort.Init.Ord
+public import Quicksort.Init.BLt
 
 public import SortExperiments.Partitioning.Init
 
@@ -30,8 +30,8 @@ private def move_pivots_back (left right : Nat) (hlr : left < right) (hr : right
 
   ⟨⟨arr''', j'', i''⟩, by omega, by omega⟩
 
-variable [Ord α]
-open Ord
+variable [BLt α]
+open BLt
 @[inline, specialize]
 private def loop.while_j' (left right : Nat) (hr : right < n) (hl : left < n) (pivot : α)
     (arr : Vector α n) (i j : Nat)  (hjr : j < right) (hli : left < i)
@@ -61,7 +61,7 @@ private def loop.while_i'  (left right : Nat) (hr : right < n) (pivot : α) (arr
 
 
 @[inline]
-public def Partitioning.bentleyMcIlroy [Ord α] {n : Nat} (arr : Vector α n) (pivot : α) (left : Nat)  (right : Nat) (hlr : left < right)
+public def Partitioning.bentleyMcIlroy [BLt α] {n : Nat} (arr : Vector α n) (pivot : α) (left : Nat)  (right : Nat) (hlr : left < right)
     (hr : right < n) (halgep : ¬(lt pivot arr[left])) (harltp : ¬(lt arr[right] pivot)) :
     {x : Partitioning α n // (left < x.i') ∧ (x.j' < right)} :=
   have hl : left < n := by omega
@@ -174,9 +174,9 @@ where
           ⟨⟨arr, j' - 1, i' + 1⟩, by simp only; omega, by simp only; omega, by simp only; omega⟩
   -- termination_by j + 1 - i
 
--- public abbrev Partitioning.Scheme α [Ord α] :=   {n : Nat} → (arr : Vector α n) → (pivot : α) → (left : Nat) → (right : Nat) → (hlr : left < right) → (hr : right < n) →  { x : Partitioning α n  // left < x.i' ∧ x.j' < right }
+-- public abbrev Partitioning.Scheme α [BLt α] :=   {n : Nat} → (arr : Vector α n) → (pivot : α) → (left : Nat) → (right : Nat) → (hlr : left < right) → (hr : right < n) →  { x : Partitioning α n  // left < x.i' ∧ x.j' < right }
 
--- example [Ord α] : Partitioning.Scheme α :=  (@Partitioning.bentleyMcIlroy _ _ _ · · · · · · (halgep :=  sorry) (harltp := sorry))
+-- example [BLt α] : Partitioning.Scheme α :=  (@Partitioning.bentleyMcIlroy _ _ _ · · · · · · (halgep :=  sorry) (harltp := sorry))
 
 -- /-- info: { arr' := { toArray := #[4, 3, 1, 0, 5, 2, 6, 8, 7, 9], size_toArray := _ }, j' := 5, i' := 7 } -/
 -- #guard_msgs(info) in #eval Partition.bentleyMcIlroy.classic #v[9,  3,  1,  8,  6,  2,  5,  0,  7,  4]  0 9 (by omega) (by omega)

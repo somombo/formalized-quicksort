@@ -1,5 +1,5 @@
 module
-public import Quicksort.Init.Ord
+public import Quicksort.Init.BLt
 public import SortExperiments.Pivot.Init
 
 /-
@@ -13,10 +13,11 @@ public structure Pivot (α: Type u) (n : Nat)  where
   deriving Repr, Nonempty, Inhabited
 ```
 -/
+open BLt
 
 @[inline]
 private def Vector.insertionSortAt {n : Nat} (xs : Vector α n) (getIdxAt : Fin (M + 1) → Fin n /- := by exact Fin.castLE (by grind) -/)
-    [Ord α] : Vector α n :=
+    [BLt α] : Vector α n :=
   traverse xs 1
 where
   @[specialize]
@@ -65,7 +66,7 @@ private def sample_idxs {n : Nat} {left right : Nat} (hlr : left < right) (hr : 
 
 
 @[inline]
-public def Pivot.median (M : Nat) [Ord α] (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : Pivot α n:=
+public def Pivot.median (M : Nat) [BLt α] (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : Pivot α n:=
   have hl : left < n := by omega
 
   let idxFn := sample_idxs hlr hr M
@@ -77,8 +78,8 @@ public def Pivot.median (M : Nat) [Ord α] (arr : Vector α n) (left : Nat)  (ri
   ⟨pivot, arr_⟩
 
 
-open Ord in
-public theorem Pivot.median_sorted [Ord α] [ile_trans : Std.TransOrd α] {M : Nat} (hM : M > 0)
+open BLt in
+public theorem Pivot.median_sorted [BLt α] [ile_trans : IsStrictWeakOrder α] {M : Nat} (hM : M > 0)
     -- (not_lt : ∀ {x y : α}, ¬lt y x ↔ le x y := by grind)
     -- (le_trans : ∀ {x y z : α}, le x y → le y z → le x z := by grind)
     {arr : Vector α n} {left right: Nat} (hlr : left < right) (hr : right < n) :
@@ -102,7 +103,7 @@ example {m n k : Nat} : m ≤ k * n → m / k ≤ n := Nat.div_le_of_le_mul
 example {n m k : Nat} (hk : 0 < k) (h : n * k ≤ m) : n ≤ (m / k) := (Nat.le_div_iff_mul_le hk).mpr h
 example {left : Nat} {right : Nat} {M : Nat} /- (hlr : left < right)  -/: M*left ≤ (left*M + p*(right - left))  := by grind
 
--- import Quicksort.Init.Ord
+-- import Quicksort.Init.BLt
 -- import Std.Data.Iterators
 -- #eval (0...=M).iter.map (fun p => left + ((p * (right - left))/M)) |>.toArray
 -- #eval (0...=M).iter.map (fun p => (left*M + p*(right - left))/M ) |>.toArray -- Seems more correct but may be computationally unecessary

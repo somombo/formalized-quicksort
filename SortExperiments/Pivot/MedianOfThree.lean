@@ -1,10 +1,12 @@
 module
-public import Quicksort.Init.Ord
+public import Quicksort.Init.BLt
 
 public import SortExperiments.Pivot.Init
 
+open BLt
+
 @[inline]
-def Pivot.maybeSwap [Ord α] (as : Vector α n) (low high : Fin n) : Vector α n :=
+def Pivot.maybeSwap [BLt α] (as : Vector α n) (low high : Fin n) : Vector α n :=
   if lt as[high] as[low] then
     -- (dbgTraceIfShared "Pivot.maybeSwap `as` is shared!" as).swap low high
     as.swap low high
@@ -12,7 +14,7 @@ def Pivot.maybeSwap [Ord α] (as : Vector α n) (low high : Fin n) : Vector α n
     as
 
 @[inline]
-public def Pivot.median_of_three [Ord α] (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : Pivot α n:=
+public def Pivot.median_of_three [BLt α] (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : Pivot α n:=
   have hl : left < n := by omega
 
   let mid := left + ((right - left + 1)/2)
@@ -30,7 +32,7 @@ public def Pivot.median_of_three [Ord α] (arr : Vector α n) (left : Nat)  (rig
 
 
 
-theorem Pivot.maybeSwap_sorted [Ord α]  (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x)  (as : Vector α n) (low high : Nat) (hlh : low ≤ high) (hn : high < n) : ¬ (lt (maybeSwap as ⟨low, by omega⟩ ⟨high, by omega⟩)[high] (maybeSwap as ⟨low, by omega⟩ ⟨high, by omega⟩)[low]) := by
+theorem Pivot.maybeSwap_sorted [BLt α]  (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x)  (as : Vector α n) (low high : Nat) (hlh : low ≤ high) (hn : high < n) : ¬ (lt (maybeSwap as ⟨low, by omega⟩ ⟨high, by omega⟩)[high] (maybeSwap as ⟨low, by omega⟩ ⟨high, by omega⟩)[low]) := by
   unfold maybeSwap; split
   · next h =>
       grind [as.getElem_swap_right, as.getElem_swap_left]
@@ -39,8 +41,8 @@ theorem Pivot.maybeSwap_sorted [Ord α]  (lt_asymm : ∀ {x y : α}, lt x y → 
 
 -- (halgep : arr[left] ≤ pivot)  (harltp : pivot ≤ arr[right])
 -- (halgep : ∃ (j_ : Fin n) (_ : j_ ≤ righXt), arr[j_] ≤ pivot)  (harltp : ∃ (i_ : Fin n) (_ : left ≤ i_), pivot ≤ arr[i_])
-open Ord in
-public theorem Pivot.median_of_three_sorted [Ord α] [Std.TransOrd α]
+open BLt in
+public theorem Pivot.median_of_three_sorted [BLt α] [IsStrictWeakOrder α]
     {arr : Vector α n} {left right: Nat} (hlr : left < right) (hr : right < n) :
     let ⟨pivot, arr_⟩ := median_of_three arr left right hlr hr;
     ¬(lt pivot arr_[left]) ∧ ¬(lt arr_[right] pivot) := by

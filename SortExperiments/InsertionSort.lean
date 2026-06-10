@@ -1,13 +1,13 @@
 
 module
 
-import Quicksort.Init.Ord
+public import Quicksort.Init.BLt
+open BLt
 
 #check Array.insertionSort
 
-
 @[inline]
-def Array.insertionSort_left_right [Ord α]  (xs : Array α) -- (lt : α → α → Bool := by exact (· < ·))
+def Array.insertionSort_left_right [BLt α]  (xs : Array α) -- (lt : α → α → Bool := by exact (· < ·))
     : Array α :=
   traverse xs.toVector 1 (left := 0) (right := xs.size - 1) (hr := by omega)  |>.toArray
 
@@ -33,7 +33,7 @@ where
 
 
 @[inline]
-public def Array.insertionSort_without_fuel [Ord α] (xs : Array α) : Array α :=
+public def Array.insertionSort_without_fuel [BLt α] (xs : Array α) : Array α :=
   traverse xs.toVector 1 |>.toArray
 where
   @[specialize]
@@ -56,7 +56,7 @@ where
       xs
 
 @[inline]
-public def Vector.insertionSort [Ord α] {n : Nat} (xs : Vector α n)
+public def Vector.insertionSort [BLt α] {n : Nat} (xs : Vector α n)
     (left := 0) (right := n - 1) (hr : right ≤ n - 1 := by omega) : Vector α n :=
   traverse xs (left + 1)
 where
@@ -83,7 +83,7 @@ where
 @[inline]
 def Vector.insertionSort' {n : Nat} (xs : Vector α n)
     (left := 0) (right := n - 1) (hr : right ≤ n - 1 := by omega)
-    [Ord α] : Vector α n :=
+    [BLt α] : Vector α n :=
   traverse xs (left + 1)
 where
   @[specialize]

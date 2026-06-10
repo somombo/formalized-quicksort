@@ -3,14 +3,15 @@
 module
 public import  SortExperiments.Partitioning.Hoare
 import SortExperiments.Pivot.MedianOfThree
-import Quicksort.Init.Ord
+import Quicksort.Init.BLt
+meta import Quicksort.Init.BLt
 
 variable
-  [Ord α]
-  [ile_trans : Std.TransOrd α]
+  [lt_inst : BLt α]
+  [ile_trans : BLt.IsStrictWeakOrder α]
 
 
-open Ord
+open BLt
 
 @[inline]
 public def qsort_hoare_mo3 (arr : Array α) /- (left : Nat := 0) -/ /- (right := arr.size - 1) -/
@@ -55,7 +56,7 @@ info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17
   91, 91, 93, 94, 95, 95, 96, 99, 99]
 -/
 #guard_msgs in
-#eval! qsort_hoare_mo3 #[
+#eval qsort_hoare_mo3 #[
   56, 69, 30, 11, 34, 14, 95, 81, 96, 76,
   91, 24, 13, 39, 42, 14, 46, 3, 4, 61,
   84, 68, 58, 39, 95, 85, 34, 29, 47, 3,

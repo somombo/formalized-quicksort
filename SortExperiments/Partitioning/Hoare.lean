@@ -1,10 +1,12 @@
 module
-public import Quicksort.Init.Ord
+public import Quicksort.Init.BLt
+
 
 public import SortExperiments.Partitioning.Init
 
+open BLt
 @[inline, specialize]
-private def while_i [Ord α] (left right : Nat) (hr : right < n) (pivot : α) (arr : Vector α n)
+private def while_i [BLt α] (left right : Nat) (hr : right < n) (pivot : α) (arr : Vector α n)
       (i j : Nat) (hjr : j < right) (harltp : ¬lt arr[right] pivot)
       (ival : Nat) (hii : i ≤ ival) (hxi : ival ≤ right) : { i' : Fin n // i ≤ i' ∧ i' ≤ right } :=
     have hi : ival < n := by omega
@@ -15,7 +17,7 @@ private def while_i [Ord α] (left right : Nat) (hr : right < n) (pivot : α) (a
       ⟨⟨ival, by omega⟩, hii, hxi⟩
 
 @[inline, specialize]
-private def while_j [Ord α] (left right : Nat) (hr : right < n) (hl : left < n) (pivot : α)
+private def while_j [BLt α] (left right : Nat) (hr : right < n) (hl : left < n) (pivot : α)
       (arr : Vector α n) (i j : Nat)  (hjr : j < right) (hli : left < i) (halgep : ¬lt pivot arr[left])
       (jval : Nat) (hxj : left ≤ jval) (hjj : jval ≤ j) : { j' : Fin n // j' ≤ j } :=
     have hj : jval < n := by omega
@@ -27,7 +29,7 @@ private def while_j [Ord α] (left right : Nat) (hr : right < n) (hl : left < n)
 
 
 @[inline]
-public def Partitioning.hoare [Ord α] {n : Nat} (arr : Vector α n) (pivot : α) (left : Nat)  (right : Nat) (hlr : left < right)
+public def Partitioning.hoare [BLt α] {n : Nat} (arr : Vector α n) (pivot : α) (left : Nat)  (right : Nat) (hlr : left < right)
     (hr : right < n) (halgep : ¬(lt pivot arr[left])) (harltp : ¬(lt arr[right] pivot)) :
     {x : Partitioning α n // (left < x.i') ∧ (x.j' < right)} :=
   have hl : left < n := by omega
@@ -60,9 +62,9 @@ public def Partitioning.hoare [Ord α] {n : Nat} (arr : Vector α n) (pivot : α
 
 
 
-public abbrev Partitioning.Scheme α [Ord α] :=   {n : Nat} → (arr : Vector α n) → (pivot : α) → (left : Nat) → (right : Nat) → (hlr : left < right) → (hr : right < n) →  { x : Partitioning α n  // left < x.i' ∧ x.j' < right }
+public abbrev Partitioning.Scheme α [BLt α] :=   {n : Nat} → (arr : Vector α n) → (pivot : α) → (left : Nat) → (right : Nat) → (hlr : left < right) → (hr : right < n) →  { x : Partitioning α n  // left < x.i' ∧ x.j' < right }
 
--- example [Ord α] : Partitioning.Scheme α :=  (@Partitioning.hoare _ _ _ · · · · · · (halgep :=  sorry) (harltp := sorry))
+-- example [BLt α] : Partitioning.Scheme α :=  (@Partitioning.hoare _ _ _ · · · · · · (halgep :=  sorry) (harltp := sorry))
 
 
 -- /-- info: { arr' := { toArray := #[4, 3, 1, 0, 5, 2, 6, 8, 7, 9], size_toArray := _ }, j' := 5, i' := 6 } -/
