@@ -1,7 +1,7 @@
-import Quicksort.Init.Ord
+import Quicksort.Init.BLt
 
 @[inline]
-def Vector.maybeSwap [Ord α] (as : Vector α n) (low high : Fin n) : Vector α n :=
+def Vector.maybeSwap [BLt α] (as : Vector α n) (low high : Fin n) : Vector α n :=
   if lt as[high] as[low] then
     as.swap low high
   else
@@ -14,7 +14,7 @@ structure Partition (α: Type u) (n : Nat)  where
   deriving Repr, Nonempty, Inhabited
 
 set_option linter.unusedVariables false in
-abbrev Partition.Scheme (α: Type u) [Ord α] := {n : Nat} → Vector α n → (left right : Nat) → left < right → right < n →  { x : Partition α n  // left < x.i' ∧ x.j' < right }
+abbrev Partition.Scheme (α: Type u) [BLt α] := {n : Nat} → Vector α n → (left right : Nat) → left < right → right < n →  { x : Partition α n  // left < x.i' ∧ x.j' < right }
 
 -- private def dbg {α : Type u} [ToString α] (a : α) (s : String)  : α :=
 --   dbgTrace s!"{s}" (fun _ => a)

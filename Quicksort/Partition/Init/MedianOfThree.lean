@@ -4,7 +4,7 @@ open Vector
 
 namespace Partition
 
-variable [Ord α]
+variable [BLt α]
 variable (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x)
 
 include lt_asymm in
@@ -19,8 +19,8 @@ theorem maybeSwap_sorted (as : Vector α n) (low high : Nat) (hlh : low ≤ high
       exact lt_asymm h
   · assumption
 
-open Ord in
-theorem median_of_three_sorted [Std.TransOrd α] {arr : Vector α n} {left mid right: Nat} (hlm : left ≤ mid) (hmr : mid ≤ right) (hr : right < n) :
+open BLt in
+theorem median_of_three_sorted [BLt.IsStrictWeakOrder α] {arr : Vector α n} {left mid right: Nat} (hlm : left ≤ mid) (hmr : mid ≤ right) (hr : right < n) :
   let arr_ := arr
     |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
     |> (maybeSwap · ⟨left, by omega⟩ ⟨right, by omega⟩)

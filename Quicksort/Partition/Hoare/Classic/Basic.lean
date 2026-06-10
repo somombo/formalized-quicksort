@@ -6,7 +6,7 @@ open Vector
 
 namespace Partition
 
-variable [Ord α]
+variable [BLt α]
 
 
 -- set_option trace.profiler true in
@@ -36,9 +36,9 @@ def hoare.classic.loop.while_j (left right : Nat) (hr : right < n) (hl : left < 
     ⟨⟨jval, by omega⟩, hjj⟩
 
 
-open Ord in
+open BLt in
 @[inline]
-def hoare.classic  [inst_le_trans : Std.TransOrd α] (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right)
+def hoare.classic  [inst_le_trans : BLt.IsStrictWeakOrder α] (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right)
     (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   -- have lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x := by grind
   -- have le_trans' : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x := by grind

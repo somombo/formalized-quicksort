@@ -6,7 +6,7 @@ import SortExperiments.InsertionSort
 
 
 @[inline]
-def qs_adapt [Ord α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0) (part : Partition.Scheme α := @default _ _) : Array α :=
+def qs_adapt [BLt α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0) (part : Partition.Scheme α := @default _ _) : Array α :=
   -- let part := @Partition.dutch α
   let rec @[specialize]
   strict {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1) : Vector α n :=
@@ -30,7 +30,7 @@ def qs_adapt [Ord α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.siz
 
 
 @[inline]
-def qs_adapt_onall [Ord α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0) (part : Partition.Scheme α  := @default _ _) : Array α :=
+def qs_adapt_onall [BLt α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0) (part : Partition.Scheme α  := @default _ _) : Array α :=
   let rec @[specialize]
   strict {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1) : Vector α n :=
     if hlr : left + M < right then

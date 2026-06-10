@@ -1,6 +1,6 @@
 
 module
-import Quicksort.Init.Ord
+public meta import Quicksort.Init.BLt
 public import SortExperiments.HeapSort
 public import SortExperiments.InsertionSort
 public import SortExperiments.Partitioning.Hoare
@@ -9,7 +9,7 @@ import SortExperiments.Pivot.MedianOfThree
 
 
 @[inline]
-private def filter_equals [Ord α] (pivot : α) (arr : Vector α n) (left right : Nat) (hr : right < n) : Vector α n × Subtype (left < ·) :=
+private def filter_equals [BLt α] (pivot : α) (arr : Vector α n) (left right : Nat) (hr : right < n) : Vector α n × Subtype (left < ·) :=
   let rec
     @[specialize]
     loop (arr : Vector α n) (i eq_end : Nat) (hir : eq_end ≤ i) (h_progress : left < eq_end) :=
@@ -25,7 +25,7 @@ private def filter_equals [Ord α] (pivot : α) (arr : Vector α n) (left right 
   loop arr (left + 1) (left + 1) (by omega) (by omega)
 
 @[inline]
-public def pdqsort2 [Ord α] [Std.TransOrd α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0)  : Array α :=
+public def pdqsort2 [BLt α] [BLt.IsStrictWeakOrder α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0)  : Array α :=
   let rec
     @[specialize]
     strict {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1 := by omega)

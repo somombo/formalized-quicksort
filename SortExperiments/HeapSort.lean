@@ -1,14 +1,15 @@
 module
-import Quicksort.Init.Ord
+public import Quicksort.Init.BLt
+meta import Quicksort.Init.BLt
 
+open BLt
 #check lt
-open Ord
 /--
 Restores the max-heap property for a subtree rooted at index `i`.
 Operates on a virtual heap mapped between `start` and `start + size` within the vector.
 -/
 @[specialize]
-def heapifyDown [Ord α] (vec : Vector α n) (start size i : Nat) (h_bound : start + size ≤ n) : Vector α n :=
+def heapifyDown [BLt α] (vec : Vector α n) (start size i : Nat) (h_bound : start + size ≤ n) : Vector α n :=
   let left := 2 * i + 1
   let right := left + 1
 
@@ -41,7 +42,7 @@ Sorts a sub-segment of a vector in-place using the Heapsort algorithm.
 Guarantees O(N log N) worst-case time complexity, making it an ideal fallback for adversarial inputs.
 -/
 -- @[noinline]
-public def Vector.heapSort (vec : Vector α n) (start : Nat := 0) (endIdx : Nat := n - 1) (h_valid_range : start < endIdx := by omega) (h_bound : endIdx ≤ n - 1 := by omega) [Ord α] : Vector α n :=
+public def Vector.heapSort (vec : Vector α n) (start : Nat := 0) (endIdx : Nat := n - 1) (h_valid_range : start < endIdx := by omega) (h_bound : endIdx ≤ n - 1 := by omega) [BLt α] : Vector α n :=
   let size := endIdx - start + 1
   -- have h_size : size > 1 := by omega
   have h_upper : start + size ≤ n := by omega
@@ -79,8 +80,6 @@ def test_array := #[
 ]
 
 
-theorem t100 : test_array.size = 100 := by rfl
-
 /--
 info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17, 18, 19, 24, 24, 24, 25, 26, 27, 29, 29, 30,
   30, 32, 33, 34, 34, 35, 37, 37, 39, 39, 39, 39, 40, 40, 41, 42, 42, 43, 43, 46, 47, 49, 50, 50, 52, 53, 53, 53, 54,
@@ -88,4 +87,4 @@ info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17
   91, 91, 93, 94, 95, 95, 96, 99, 99]
 -/
 #guard_msgs in
-#eval Vector.heapSort test_array.toVector 0 99 (by simp) (by grind [t100]) |>.toArray
+#eval Vector.heapSort test_array.toVector 0 99 (by simp) (by simp [test_array]) |>.toArray

@@ -1,6 +1,6 @@
 
 module
-import Quicksort.Init.Ord
+public meta import Quicksort.Init.BLt
 public import SortExperiments.HeapSort
 public import SortExperiments.InsertionSort
 public import SortExperiments.Partitioning.Hoare
@@ -8,8 +8,9 @@ public import SortExperiments.Partitioning.BentleyMcIlroy
 import SortExperiments.Pivot.MedianOfThree
 
 
+open BLt
 @[inline]
-public def pdqsort [Ord α] [Std.TransOrd α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0) : Array α :=
+public def pdqsort [BLt α] [IsStrictWeakOrder α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (M := 0) : Array α :=
   let rec
     @[specialize]
     strict {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1)
@@ -100,4 +101,6 @@ info: #[0, 0, 0, 1, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 10, 11, 13, 14, 14, 14, 16, 17
   91, 91, 93, 94, 95, 95, 96, 99, 99]
 -/
 #guard_msgs in
+
+-- set_option trace.Meta.synthInstance true in
 #eval! pdqsort (M := 34) test_array

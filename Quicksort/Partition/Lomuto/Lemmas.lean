@@ -4,7 +4,7 @@ import Quicksort.Partition.Init.Lemmas
 open Vector
 
 namespace Partition
-variable [Ord α]
+variable [BLt α]
 
 protected theorem lomuto.loop.partition_bounds {left right : Nat}  {hlr : left < right} {hr : right < n} {pivot : α} {arr : Vector α n} {i j : Nat} {hli : left ≤ i} {hij : i ≤ j} {hjr : j ≤ right} : (loop left right hlr hr pivot arr i j hli hij hjr).val.j' < (loop left right hlr hr pivot arr i j hli hij hjr).val.i' := by
   induction arr, i, j, hli, hij, hjr using lomuto.loop.induct (hr := hr) (pivot := pivot)  with
@@ -174,7 +174,7 @@ protected theorem lomuto.loop.sorted {left right : Nat} {hlr : left < right} {hr
 -- variable [Std.OrientedOrd α]
 variable (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x)
 
-open Ord in
+open BLt in
 include lt_asymm in
 protected theorem lomuto.sorted {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : ∃ (pivot : α), IsPartitioned left right pivot (lomuto arr left right hlr hr).val := by
   let mid := left + ((right - left)/2)

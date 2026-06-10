@@ -4,7 +4,7 @@ import Quicksort.Partition.Init.Basic
 
 open Vector
 
-variable [Ord α]
+variable [BLt α]
 
 theorem maybeSwap_permStabilizing {as : Vector α n} {i j : Fin n} {left right : Nat} (h_i1 : left ≤ i) (h_i2 : i ≤ right) (h_j1 : left ≤ j) (h_j2 : j ≤ right) : PermStabilizing' left right (as.maybeSwap i j) as := by
   unfold maybeSwap

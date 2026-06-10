@@ -5,7 +5,7 @@ import Quicksort.Partition.Init.MedianOfThree
 
 namespace Partition.bentleyMcIlroy
 open Vector
-variable [Ord α]
+variable [BLt α]
 
 @[inline]
 private def move_pivots_back (left right : Nat) (hlr : left < right) (hr : right < n)
@@ -143,13 +143,13 @@ private def loop.while_i'  (left right : Nat) (hr : right < n) (pivot : α) (arr
     ⟨⟨ival, by omega⟩, hii, hxi, h'⟩
 
 section
-open Ord in
+open BLt in
 @[inline]
-def _root_.Partition.bentleyMcIlroy.classic  [inst_le_trans : Std.TransOrd α] (arr : Vector α n) (left : Nat) (right : Nat)
+def _root_.Partition.bentleyMcIlroy.classic  [inst_le_trans : BLt.IsStrictWeakOrder α] (arr : Vector α n) (left : Nat) (right : Nat)
     (hlr : left < right) (hr : right < n)
     : { x : Partition α n  // left < x.i' ∧ x.j' < right } :=
-  have lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x := by grind
-  have le_trans' : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x := by grind
+  have lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x := lt_asymm
+  have le_trans' : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x := le_trans'
   have hl : left < n := by omega
   let mid := left + ((right - left)/2)
   have hm : mid < n := by omega
@@ -291,7 +291,7 @@ end  classic
 end Partition.bentleyMcIlroy
 
 @[specialize]
-def Partition.bentleyMcIlroy [Ord α] (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+def Partition.bentleyMcIlroy [BLt α] (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   have hl : left < n := by omega
 
   let mid := left + ((right - left)/2)
