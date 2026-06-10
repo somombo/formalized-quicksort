@@ -5,8 +5,8 @@ import Quicksort.Partition.Init.Lemmas
 open Vector
 
 namespace Partition
-variable [Ord α]
-open Ord
+variable [BLt α]
+open BLt
 variable (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x)
 
 include lt_asymm in
@@ -28,7 +28,7 @@ private theorem hoare.eager.maybeSwap_sorted (as : Vector α n) (low high : Nat)
 
 
 -- set_option trace.profiler true in
-private theorem hoare.eager.median_of_three_sorted [Std.TransOrd α] {arr : Vector α n} {left mid right: Nat} (hlm : left ≤ mid) (hmr : mid ≤ right) (hr : right < n) :
+private theorem hoare.eager.median_of_three_sorted [BLt.IsStrictWeakOrder α] {arr : Vector α n} {left mid right: Nat} (hlm : left ≤ mid) (hmr : mid ≤ right) (hr : right < n) :
   have arr_ := arr
     |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
     |> (maybeSwap · ⟨left, by omega⟩ ⟨right, by omega⟩)
@@ -190,7 +190,7 @@ protected theorem hoare.eager.loop.sorted {left right : Nat} {hr : right < n} {p
 
 -- variable (le_trans' : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x)
 
-protected theorem hoare.eager.sorted  [Std.TransOrd α] {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : ∃ (pivot : α), IsPartitioned left right pivot (Partition.hoare.eager arr left right hlr hr).val :=
+protected theorem hoare.eager.sorted  [BLt.IsStrictWeakOrder α] {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : ∃ (pivot : α), IsPartitioned left right pivot (Partition.hoare.eager arr left right hlr hr).val :=
 
   let mid := left + ((right - left)/2)
   have hlm : left ≤ mid := Nat.le_add_right left ((right - left) / 2)

@@ -4,8 +4,8 @@ import Quicksort.Basic
 open Partition
 open Array
 
-variable [Ord α]
-open Ord
+variable [BLt α]
+open BLt
 
 theorem qs.strict.permStabilizing [LawfulScheme part] {as : Vector α n} {left right : Nat} {hsize' : right ≤ n - 1} : Vector.PermStabilizing' left right (qs.strict part as left right hsize') as := by
   induction as, left, right, hsize' using qs.strict.induct (part := part) with
@@ -36,7 +36,7 @@ theorem qs.perm {as : Array α} : (qs as).Perm as := qs.perm'
 theorem qs.qs_size [LawfulScheme part] {as : Array α} :
     (qs as left right part).size = as.size := qs.perm'.size_eq
 
-variable [Std.TransOrd α]
+variable [BLt.IsStrictWeakOrder α]
 theorem qs.strict.monotonic [LawfulScheme part] {as : Vector α n} {hsize' : right ≤ n - 1} : let q := (qs.strict part as left right hsize'); ∀ (i j : Fin n), (left ≤ i) → (i < j) → (j ≤ right) → ¬lt q[j] q[i] := by
   induction as, left, right, hsize' using qs.strict.induct (part := part) with
   | case1 as left right hsize' hlr as' j' i' hli' hjr' heq as'' ih1 _ih1 ih2 =>
@@ -112,6 +112,6 @@ theorem qs.monotonic_with_defaults {as : Array α} : ∀ (i j : Fin (qs as).size
 example {as : Array α} : let q := (qs (part := Partition.hoare) as); ∀ (i j : Fin q.size), i < j → ¬lt q[j] q[i] := qs.monotonic
 example {as : Array α} : let q := (qs (part := Partition.lomuto) as); ∀ (i j : Fin q.size), i < j → ¬lt q[j] q[i] := qs.monotonic
 
--- def unlawful_partition [Ord α] {n : Nat} (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := sorry
+-- def unlawful_partition [BLt α] {n : Nat} (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := sorry
 
 -- example {as : Array α} : let q := (qs (part := unlawful_partition) as); ∀ (i j : Fin q.size), i < j → ¬lt q[j] q[i] := qs.monotonic (part := unlawful_partition) -- <-- Should not work

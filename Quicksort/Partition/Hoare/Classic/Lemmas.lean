@@ -5,7 +5,7 @@ import Quicksort.Partition.Init.Lemmas
 open Vector
 
 namespace Partition
-variable [Ord α]
+variable [BLt α]
 
 
 
@@ -171,8 +171,8 @@ private theorem hoare.classic.sortAt_sorted (as : Vector α n) (low high : Nat) 
 end lt_asymm
 
 
-open Ord
-variable [Std.TransOrd α]
+open BLt
+variable [BLt.IsStrictWeakOrder α]
 private theorem hoare.classic.median_of_three_sorted {arr : Vector α n} {left mid right: Nat} (hlm : left ≤ mid) (hmr : mid ≤ right) (hr : right < n) :
   have arr_ := arr
     |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)

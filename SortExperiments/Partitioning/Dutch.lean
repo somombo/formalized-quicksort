@@ -5,7 +5,7 @@ open Vector
 /-
   imperetive implimentation of Three-Way "Dutch National Flag" Partition
  -/
--- def dutch.example [Ord α] {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := Id.run do
+-- def dutch.example [BLt α] {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := Id.run do
 --   let mid := left + ((right - left)/2)
 --   have _ : left < n := by omega
 --   have _ : right < n := hr
@@ -43,7 +43,7 @@ open Vector
   Three-Way "Dutch National Flag" Partitioning Scheme
  -/
 @[inline]
-def Partition.dutch [Ord α] {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+def Partition.dutch [BLt α] {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   let mid := left + ((right - left)/2)
   have hl : left < n := by omega
   have hm : mid < n := by omega
@@ -75,7 +75,7 @@ def Partition.dutch [Ord α] {n : Nat} (as : Vector α n) (left : Nat)  (right :
   Three-Way "Dutch National Flag" Partitioning Scheme
  -/
 @[inline]
-def Partition.dutch_both [Ord α] {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+def Partition.dutch_both [BLt α] {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   let mid := left + ((right - left)/2)
   have hl : left < n := by omega
   have hm : mid < n := by omega

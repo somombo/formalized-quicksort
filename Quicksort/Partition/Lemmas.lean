@@ -6,14 +6,14 @@ import Quicksort.Partition.Basic
 open Vector
 
 namespace Partition
-variable [Ord α]
+variable [BLt α]
 
 class LawfulScheme (part : Partition.Scheme α) : Prop where
   partitionBounds : (part as left right hlr hr).val.j' < (part as left right hlr hr).val.i'
   permStabilizing : PermStabilizing' left right (part as left right hlr hr).val.arr' as
-  sorting [Std.TransOrd α] (as : Vector α n) (hlr : left < right) (hr : right < n) : ∃ (pivot : α), IsPartitioned left right pivot (part as left right hlr hr).val
+  sorting [BLt.IsStrictWeakOrder α] (as : Vector α n) (hlr : left < right) (hr : right < n) : ∃ (pivot : α), IsPartitioned left right pivot (part as left right hlr hr).val
 
-open Ord
+open BLt
 instance instLawfulHoareScheme : LawfulScheme (α := α) hoare where
   partitionBounds := hoare.partition_bounds
   permStabilizing := hoare.permStabilizing

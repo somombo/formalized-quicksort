@@ -7,7 +7,7 @@ import Quicksort.Partition.Init.Lemmas
 open Vector
 
 namespace Partition
-variable [Ord α]
+variable [BLt α]
 
 protected theorem hoare.partition_bounds {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : (Partition.hoare arr left right hlr hr).val.j' < (Partition.hoare arr left right hlr hr).val.i' := by
   unfold Partition.hoare; simp [*]; split
@@ -24,7 +24,7 @@ protected theorem hoare.permStabilizing {arr : Vector α n} {left : Nat} {right 
       all_goals simp only; omega
   · apply hoare.eager.permStabilizing; assumption
 
-protected theorem hoare.sorted [Std.TransOrd α] {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : ∃ (pivot : α), IsPartitioned left right pivot (Partition.hoare arr left right hlr hr).val := by
+protected theorem hoare.sorted [BLt.IsStrictWeakOrder α] {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : ∃ (pivot : α), IsPartitioned left right pivot (Partition.hoare arr left right hlr hr).val := by
   unfold Partition.hoare; simp [*]; split
   · apply hoare.classic.sorted <;> grind
   · apply hoare.eager.sorted <;> grind

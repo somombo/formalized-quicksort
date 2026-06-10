@@ -44,6 +44,8 @@ public theorem lt_irrefl (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x) : ∀ 
 
 end BLt
 
+export BLt (lt le eq lt_irrefl)
+
 
 
 

@@ -3,7 +3,7 @@ import Quicksort.Partition.Hoare.Eager.Basic
 
 open Vector
 
-def Partition.hoare [Ord α] (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+def Partition.hoare [BLt α] (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   have hl : left < n := by omega
 
   let mid := left + ((right - left)/2)

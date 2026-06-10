@@ -10,7 +10,7 @@ instance [ToString α] : ToString (Vector α n) where
   imperetive implimentation of Single Pivot yaroslavskiy partitioning scheme
  -/
 @[inline]
-def Partition.yaroslavskiy.example [Ord α] /- [ToString α] -/  {n : Nat} (as_ : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+def Partition.yaroslavskiy.example [BLt α] /- [ToString α] -/  {n : Nat} (as_ : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   let mid := left + ((right - left)/2)
   have hl : left < n := by omega
   have hm : mid < n := by omega
@@ -82,7 +82,7 @@ def Partition.yaroslavskiy.example [Ord α] /- [ToString α] -/  {n : Nat} (as_ 
   imperetive implimentation of Single Pivot yaroslavskiy partitioning scheme
  -/
 @[inline]
-def Partition.yaroslavskiy.debug [Ord α] /- [ToString α] -/  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := Id.run do
+def Partition.yaroslavskiy.debug [BLt α] /- [ToString α] -/  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := Id.run do
   let mid := left + ((right - left)/2)
   let mut as := as
     |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
@@ -131,7 +131,7 @@ def Partition.yaroslavskiy.debug [Ord α] /- [ToString α] -/  {n : Nat} (as : V
   imperetive implimentation of Single Pivot yaroslavskiy partitioning scheme
  -/
 @[inline]
-def Partition.yaroslavskiy.debug_func [Ord α] /- [ToString α] -/  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := Id.run do
+def Partition.yaroslavskiy.debug_func [BLt α] /- [ToString α] -/  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} := Id.run do
   let mid := left + ((right - left)/2)
   let mut as := as
     |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
@@ -204,7 +204,7 @@ def Partition.yaroslavskiy.debug_func [Ord α] /- [ToString α] -/  {n : Nat} (a
   imperetive declarative of Single Pivot yaroslavskiy partitioning scheme
  -/
 @[inline]
-def Partition.yaroslavskiy.debug' [Ord α] [ToString α]  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+def Partition.yaroslavskiy.debug' [BLt α] [ToString α]  {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   let mid := left + ((right - left)/2)
   let as_ := as
     |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
@@ -234,7 +234,7 @@ def Partition.yaroslavskiy.debug' [Ord α] [ToString α]  {n : Nat} (as : Vector
 
   loop as_ (left + 1) (left + 1) (right - 1)
 
-example [ToString α] [Ord α] : Partition.Scheme α := Partition.yaroslavskiy.debug'
+example [ToString α] [BLt α] : Partition.Scheme α := Partition.yaroslavskiy.debug'
 
 
 #eval! Partition.yaroslavskiy.debug' #v[0, 1]  0 1 (by omega) (by omega)
@@ -258,7 +258,7 @@ example [ToString α] [Ord α] : Partition.Scheme α := Partition.yaroslavskiy.d
 
 
 @[inline]
-def Partition.yaroslavskiy.twopiv /- [ToString α] -/  [Ord α] {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+def Partition.yaroslavskiy.twopiv /- [ToString α] -/  [BLt α] {n : Nat} (as : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   let as_ :=
     if hltrl : lt as[right] as[left] then
       as.swap left right

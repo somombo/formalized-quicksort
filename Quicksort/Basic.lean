@@ -1,6 +1,6 @@
 import Quicksort.Partition.Basic
 
-variable [Ord α]
+variable [BLt α]
 @[inline]
 def qs (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) (part : Partition.Scheme α := @default _ _) : Array α :=
   let rec @[specialize]
