@@ -14,7 +14,7 @@ public def pdqsort [Ord α] [Std.TransOrd α] (arr : Array α) (left : Nat := 0)
     @[specialize]
     strict {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1)
         (allowed_bad_partitions : Nat := (right - left + 1).log2)
-        (parent_pivot : Option α := none) : Vector α n :=
+        (has_parent_pivot : Bool := false) : Vector α n :=
 
       let len := right - left + 1
 
@@ -29,9 +29,11 @@ public def pdqsort [Ord α] [Std.TransOrd α] (arr : Array α) (left : Nat := 0)
             Pivot.median_of_three_sorted hlr hr
 
           let is_duplicate_run : Bool :=
-            match parent_pivot with
-            | some p => eq v.piv' p
-            | none => false
+            if has_parent_pivot then
+              -- if there is a parent pivot then it has to bel located at position `left - 1`
+              eq v.piv' v.arr'[left - 1]
+            else
+              false
 
 
           let ⟨⟨as', j', i'⟩, (_ : left < i'), (_ : j' < right )⟩ :=
@@ -53,11 +55,11 @@ public def pdqsort [Ord α] [Std.TransOrd α] (arr : Array α) (left : Nat := 0)
 
           let as''' :=
             if left_len < right_len then
-              let as'' := strict as' left j' (by omega) next_bad_left none
-              strict as'' i' right (by omega) next_bad_right (some v.piv')
+              let as'' := strict as' left j' (by omega) next_bad_left has_parent_pivot
+              strict as'' i' right (by omega) next_bad_right true
             else
-              let as'' := strict as' i' right (by omega) next_bad_right (some v.piv')
-              strict as'' left j' (by omega) next_bad_left none
+              let as'' := strict as' i' right (by omega) next_bad_right true
+              strict as'' left j' (by omega) next_bad_left has_parent_pivot
 
           as'''
 
@@ -75,7 +77,7 @@ public def pdqsort [Ord α] [Std.TransOrd α] (arr : Array α) (left : Nat := 0)
   have : right' ≤ arr.size - 1 := by
     simp [right']; split <;> simp [panicWithPosWithDecl, panic, panicCore, *]
 
-  strict ⟨arr, rfl⟩ left right' this (right' - left + 1).log2 none  |>.1
+  strict ⟨arr, rfl⟩ left right' this (right' - left + 1).log2 false  |>.1
 
 def test_array := #[
   56, 69, 30, 11, 34, 14, 95, 81, 96, 76,
@@ -137,8 +139,7 @@ public def pdqsort2 [Ord α] [Std.TransOrd α] (arr : Array α) (left : Nat := 0
     @[specialize]
     strict {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1 := by omega)
         (allowed_bad_partitions : Nat := (right - left + 1).log2)
-        (parent_pivot : Option α := none)
-        : Vector α n :=
+        (has_parent_pivot : Bool := false) : Vector α n :=
 
       let len := right - left + 1
       if _ : M + 1 < len then
@@ -161,9 +162,11 @@ public def pdqsort2 [Ord α] [Std.TransOrd α] (arr : Array α) (left : Nat := 0
             Pivot.median_of_three_sorted hlr hr
 
           let is_duplicate_run : Bool :=
-            match parent_pivot with
-            | some p => eq v.piv' p
-            | none => false
+            if has_parent_pivot then
+              -- if there is a parent pivot then it has to bel located at position `left - 1`
+              eq v.piv' v.arr'[left - 1]
+            else
+              false
 
 
           if !is_duplicate_run then
@@ -183,11 +186,11 @@ public def pdqsort2 [Ord α] [Std.TransOrd α] (arr : Array α) (left : Nat := 0
 
 
             if left_len < right_len then
-              let as'' := strict as' left j' (by omega) next_bad_left none
-              strict as'' i' right (by omega) next_bad_right (some v.piv')
+              let as'' := strict as' left j' (by omega) next_bad_left has_parent_pivot
+              strict as'' i' right (by omega) next_bad_right true
             else
-              let as'' := strict as' i' right (by omega) next_bad_right (some v.piv')
-              strict as'' left j' (by omega) next_bad_left none
+              let as'' := strict as' i' right (by omega) next_bad_right true
+              strict as'' left j' (by omega) next_bad_left has_parent_pivot
 
 
           else
@@ -208,7 +211,7 @@ public def pdqsort2 [Ord α] [Std.TransOrd α] (arr : Array α) (left : Nat := 0
   have : right' ≤ arr.size - 1 := by
     simp [right']; split <;> simp [panicWithPosWithDecl, panic, panicCore, *]
 
-  strict ⟨arr, rfl⟩ left right' this (right' - left + 1).log2 none  |>.1
+  strict ⟨arr, rfl⟩ left right' this (right' - left + 1).log2 false  |>.1
 
 
 /--
