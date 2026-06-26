@@ -48,7 +48,7 @@ public theorem OrientedOrd.isLT_asymm [OrientedOrd α] : ∀ {x y : α}, (compar
 
 
 
-public instance instTransOrdOfnot_lt_le_trans
+public theorem instTransOrdOfnot_lt_le_trans
     (not_lt : ∀ {x y : α}, ¬(compare y x |>.isLT) ↔ (compare x y |>.isLE) := by grind)
     (le_trans : ∀ {x y z : α}, (compare x y).isLE → (compare y z).isLE → (compare x z).isLE := by grind) :
     TransOrd α where
@@ -67,11 +67,11 @@ public theorem TransOrd.isLE_trans' [TransOrd α] :
 end Std
 
 
-@[expose, inline]
+@[inline]
 public abbrev lt (x y : α) := compare x y |>.isLT
-@[expose, inline]
+@[inline]
 public abbrev le (x y : α) := compare x y |>.isLE
-@[expose, inline]
+@[inline]
 public abbrev eq (x y : α) := compare x y |>.isEq
 
 
@@ -101,7 +101,7 @@ end examples
 
 
 @[macro_inline]
-public instance ltBoolToOrd (lt : α → α → Bool) : Ord α where
+public abbrev ltBoolToOrd (lt : α → α → Bool) : Ord α where
   compare a b :=
     if lt a b then .lt
     else if lt b a then .gt
