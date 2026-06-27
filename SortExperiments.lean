@@ -1,6 +1,7 @@
 import SortExperiments.Partitioning.Hoare
 import SortExperiments.Partitioning.BentleyMcIlroy
 import SortExperiments.PDQSort
+import SortExperiments.PDQSort2
 import SortExperiments.Adapt
 import SortExperiments.InsertionSort
 import SortExperiments.HeapSort
