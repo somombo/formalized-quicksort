@@ -1,3 +1,4 @@
+module
 import Batteries.Data.Vector
 
 
@@ -76,34 +77,34 @@ example {P Q : β → Prop} : ((∀ x, P x) ∧ (∀ y, Q y)) ↔ (∀ x y, (P x
 
 /-- `PermStabilizing left right as₁ as₂` asserts that `as₁` and `as₂` are permutations of each other,
 and moreover they agree outside the range `left..=right`. -/
-def PermStabilizing' (left right : Nat) (as₁ as₂ : Vector α n) :=
+public def PermStabilizing' (left right : Nat) (as₁ as₂ : Vector α n) :=
   as₁ ~ as₂ ∧ (∀ i : Fin n, i < left → as₁[i] = as₂[i]) ∧ (∀ j : Fin n, right < j → as₁[j] = as₂[j])
 
 @[refl]
-protected theorem PermStabilizing'.refl (as : Vector α n) :
+public theorem PermStabilizing'.refl (as : Vector α n) :
     PermStabilizing' left right as as := ⟨.refl _, fun _ _ => .refl _, fun _ _ => .refl _⟩
 
-protected theorem PermStabilizing'.symm
+public theorem PermStabilizing'.symm
     (h : PermStabilizing' left right as₁ as₂) :
     PermStabilizing' left right as₂ as₁ where
   left := h.1.symm
   right.left _  := (h.2.1 _ · |>.symm)
   right.right _  := (h.2.2 _ · |>.symm)
 
-protected theorem PermStabilizing'.trans
+public theorem PermStabilizing'.trans
     (h1 : PermStabilizing' left right as₁ as₂) (h2 : PermStabilizing' left right as₂ as₃) :
     PermStabilizing' left right as₁ as₃ where
   left := h1.1.trans h2.1
   right.left _ hi := (h1.2.1 _ hi).trans (h2.2.1 _ hi)
   right.right _ hj := (h1.2.2 _ hj).trans (h2.2.2 _ hj)
 
-protected theorem PermStabilizing'.mono (h : PermStabilizing' left right as₁ as₂)
+public theorem PermStabilizing'.mono (h : PermStabilizing' left right as₁ as₂)
     (hleft : left' ≤ left) (hright : right ≤ right') : PermStabilizing' left' right' as₁ as₂ where
   left := h.1
   right.left _ hi := h.2.1 _ <| Nat.lt_of_lt_of_le hi hleft
   right.right _ hj := h.2.2 _ <| Nat.lt_of_le_of_lt hright hj
 
-theorem swap_permStabilizing' {as : Vector α n} {i j : Nat} {hi : i < n} {hj : j < n} {left right : Nat}
+public theorem swap_permStabilizing' {as : Vector α n} {i j : Nat} {hi : i < n} {hj : j < n} {left right : Nat}
     (h_i1 : left ≤ i) (h_i2 : i ≤ right) (h_j1 : left ≤ j) (h_j2 : j ≤ right) :
     PermStabilizing' left right (as.swap i j) as := by
   refine ⟨Vector.swap_perm .., fun k hk => ?_, fun k hk => ?_⟩
@@ -217,7 +218,7 @@ example {n left hi : Nat} {as as' : Vector α n}
     as[j] = as'[i] :=
   PermStabilizing'.mem_getElem hperm.symm hr'
 
-protected theorem PermStabilizing'.invariance {motive : α → Sort 0} {n left hi : Nat} {arr arr' : Vector α n}
+public theorem PermStabilizing'.invariance {motive : α → Sort 0} {n left hi : Nat} {arr arr' : Vector α n}
     (hperm : PermStabilizing' left (hi - 1) arr' arr) (hr' : hi ≤ n) (h : ∀ (k : Fin n) (_ : left ≤ k) (_ : k < hi), (motive arr[k])):
  (∀ (k : Fin n) (_ : left ≤ k) (_ : k < hi), (motive arr'[k]))
 := fun  k h1 h2 =>

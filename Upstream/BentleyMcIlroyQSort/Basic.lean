@@ -1,13 +1,14 @@
-import Quicksort.Init.Ord
+module
+public import Upstream.Init.Ord
 
 @[inline]
-def Vector.maybeSwap [Ord α] (as : Vector α n) (low high : Fin n) : Vector α n :=
+public def Vector.maybeSwap [Ord α] (as : Vector α n) (low high : Fin n) : Vector α n :=
   if lt as[high] as[low] then
     as.swap low high
   else
     as
 
-structure Partition (α: Type u) (n : Nat)  where
+public structure Partition (α: Type u) (n : Nat)  where
   arr' : Vector α n
   j' : Nat
   i' : Nat
@@ -36,7 +37,7 @@ theorem maybeSwap_sorted (as : Vector α n) (low high : Nat) (hlh : low ≤ high
   · assumption
 
 open Ord in
-theorem median_of_three_sorted [Std.TransOrd α] {arr : Vector α n} {left mid right: Nat} (hlm : left ≤ mid) (hmr : mid ≤ right) (hr : right < n) :
+public theorem median_of_three_sorted [Std.TransOrd α] {arr : Vector α n} {left mid right: Nat} (hlm : left ≤ mid) (hmr : mid ≤ right) (hr : right < n) :
   let arr_ := arr
     |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
     |> (maybeSwap · ⟨left, by omega⟩ ⟨right, by omega⟩)
@@ -92,8 +93,8 @@ namespace Partition.bentleyMcIlroy
 open Vector
 variable [Ord α]
 
-@[inline]
-def move_pivots_back (left right : Nat) (hlr : left < right) (hr : right < n)
+@[inline, expose]
+public def move_pivots_back (left right : Nat) (hlr : left < right) (hr : right < n)
     (p q : Nat) (hp : p < n) (x : { x : Partition α n // left < x.i' ∧ x.j' < right ∧ x.i' ≤ q + 1 }) :
     { x : Partition α n // left < x.i' ∧ x.j' < right } :=
   let ⟨⟨arr', j', i'⟩, (_ : left < i'), (_ : j' < right), (_ : i' ≤ q + 1)⟩ := x
@@ -119,8 +120,8 @@ def move_pivots_back (left right : Nat) (hlr : left < right) (hr : right < n)
   ⟨⟨arr''', j'', i''⟩, by omega, by omega⟩
 
 
-@[inline]
-def eager (arr : Vector α n) (left : Nat) (right : Nat)
+@[inline, expose]
+public def eager (arr : Vector α n) (left : Nat) (right : Nat)
     (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   let mid := left + ((right - left)/2)
   let arr_ := arr
@@ -203,7 +204,7 @@ def eager (arr : Vector α n) (left : Nat) (right : Nat)
 namespace classic
 
 @[inline, specialize]
-def loop.while_j' (left right : Nat) (hr : right < n) (hl : left < n) (pivot : α)
+public def loop.while_j' (left right : Nat) (hr : right < n) (hl : left < n) (pivot : α)
     (arr : Vector α n) (i j : Nat)  (hjr : j < right) (hli : left < i)
     (jval : Nat) (hxj : left ≤ jval) (hjj : jval ≤ j) (halgep : ¬lt pivot arr[left]) :
     { j' : Fin n // j' ≤ j ∧ ¬ lt pivot arr[j'.val] } :=
@@ -216,7 +217,7 @@ def loop.while_j' (left right : Nat) (hr : right < n) (hl : left < n) (pivot : �
     ⟨⟨jval, by omega⟩, hjj, h'⟩
 
 @[inline, specialize]
-def loop.while_i'  (left right : Nat) (hr : right < n) (pivot : α) (arr : Vector α n)
+public def loop.while_i'  (left right : Nat) (hr : right < n) (pivot : α) (arr : Vector α n)
     (i j : Nat) (hjr : j < right) (ival : Nat) (hii : i ≤ ival) (hxi : ival ≤ right)
     (harltp : ¬lt arr[right] pivot) : { i' : Fin n // i ≤ i' ∧ i' ≤ right ∧  ¬lt arr[i'.val] pivot} :=
   have hi : ival < n := by omega
@@ -229,8 +230,8 @@ def loop.while_i'  (left right : Nat) (hr : right < n) (pivot : α) (arr : Vecto
 
 section
 open Ord in
-@[inline]
-def _root_.Partition.bentleyMcIlroy.classic  [inst_le_trans : Std.TransOrd α] (arr : Vector α n) (left : Nat) (right : Nat)
+@[inline, expose]
+public def _root_.Partition.bentleyMcIlroy.classic  [inst_le_trans : Std.TransOrd α] (arr : Vector α n) (left : Nat) (right : Nat)
     (hlr : left < right) (hr : right < n)
     : { x : Partition α n  // left < x.i' ∧ x.j' < right } :=
   have hl : left < n := by omega
@@ -378,7 +379,7 @@ end Partition.bentleyMcIlroy
 
 
 @[specialize]
-def Partition.bentleyMcIlroy [ord : Ord α] (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+public def Partition.bentleyMcIlroy [ord : Ord α] (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   have hl : left < n := by omega
 
   let mid := left + ((right - left)/2)
@@ -401,12 +402,12 @@ def Partition.bentleyMcIlroy [ord : Ord α] (arr : Vector α n) (left : Nat)  (r
     panic! "non-asymmetric or non-transitive comparitor. falling back to eager version of partition scheme"
 
 
-@[inline]
-def qsort_bentleyMcIlroy_strict [ord : Ord α] [ile_trans : Std.TransOrd α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) : Array α :=
+@[inline, expose]
+public def qsort_bentleyMcIlroy [ord : Ord α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) : Array α :=
   let rec @[specialize]
   sort {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1) : Vector α n :=
     if hlr : left < right then
-      let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ := Partition.bentleyMcIlroy.classic as left right hlr (by omega)
+      let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ := Partition.bentleyMcIlroy as left right hlr (by omega)
       let as := sort as' left j' (by omega)
       let as := sort as i' right (by omega)
       as
@@ -424,12 +425,13 @@ def qsort_bentleyMcIlroy_strict [ord : Ord α] [ile_trans : Std.TransOrd α] (ar
   sort ⟨arr, rfl⟩ left right' this |>.1
 
 
-@[inline]
-def qsort_bentleyMcIlroy [ord : Ord α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) : Array α :=
+
+@[inline, expose]
+public def qsort_bentleyMcIlroy_strict [ord : Ord α] [ile_trans : Std.TransOrd α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) : Array α :=
   let rec @[specialize]
   sort {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1) : Vector α n :=
     if hlr : left < right then
-      let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ := Partition.bentleyMcIlroy as left right hlr (by omega)
+      let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ := Partition.bentleyMcIlroy.classic as left right hlr (by omega)
       let as := sort as' left j' (by omega)
       let as := sort as i' right (by omega)
       as

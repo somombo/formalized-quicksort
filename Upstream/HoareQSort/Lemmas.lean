@@ -1,5 +1,5 @@
-import Quicksort.Init.RangeHas
-import Quicksort.Init.PermStabalizing
+import Upstream.Init.RangeHas
+import Upstream.Init.PermStabalizing
 
 import Upstream.HoareQSort.Basic
 
@@ -551,7 +551,7 @@ open Ord
 
 theorem qsort_hoare.sort.permStabilizing {as : Vector α n} {left right : Nat} {hsize' : right ≤ n - 1} : Vector.PermStabilizing' left right (sort as left right hsize') as := by
   induction as, left, right, hsize' using qsort_hoare.sort.induct with
-  | case1 as left right hsize' hlr as' j' i' hli hjr heq as'' ih1 _ih1 ih2 =>
+  | case1 as left right hsize' hlr as' j' i' hli hjr heq as'' ih1  ih2 =>
     unfold sort; simp [*]
 
     have ih0 := heq ▸ hoare.permStabilizing
@@ -581,7 +581,7 @@ theorem qsort_hoare.qs_size {as : Array α} :
 variable [Std.TransOrd α]
 theorem qsort_hoare.sort.monotonic {as : Vector α n} {hsize' : right ≤ n - 1} : let q := (sort as left right hsize'); ∀ (i j : Fin n), (left ≤ i) → (i < j) → (j ≤ right) → ¬lt q[j] q[i] := by
   induction as, left, right, hsize' using qsort_hoare.sort.induct with
-  | case1 as left right hsize' hlr as' j' i' hli' hjr' heq as'' ih1 _ih1 ih2 =>
+  | case1 as left right hsize' hlr as' j' i' hli' hjr' heq as'' ih1 ih2 =>
     unfold sort; simp only [↓reduceDIte, hlr, heq]
 
     intro i j hli hij hjr; exact
@@ -663,7 +663,7 @@ open Ord
 
 theorem qsort_hoare_strict.sort.permStabilizing {as : Vector α n} {left right : Nat} {hsize' : right ≤ n - 1} : Vector.PermStabilizing' left right (sort as left right hsize') as := by
   induction as, left, right, hsize' using qsort_hoare_strict.sort.induct with
-  | case1 as left right hsize' hlr as' j' i' hli hjr heq as'' ih1 _ih1 ih2 =>
+  | case1 as left right hsize' hlr as' j' i' hli hjr heq as'' ih1 ih2 =>
     unfold sort; simp [*]
 
     have ih0 := heq ▸ hoare.classic.permStabilizing'
@@ -692,7 +692,7 @@ theorem qsort_hoare_strict.qs_size {as : Array α} :
 
 theorem qsort_hoare_strict.sort.monotonic {as : Vector α n} {hsize' : right ≤ n - 1} : let q := (sort as left right hsize'); ∀ (i j : Fin n), (left ≤ i) → (i < j) → (j ≤ right) → ¬lt q[j] q[i] := by
   induction as, left, right, hsize' using qsort_hoare_strict.sort.induct with
-  | case1 as left right hsize' hlr as' j' i' hli' hjr' heq as'' ih1 _ih1 ih2 =>
+  | case1 as left right hsize' hlr as' j' i' hli' hjr' heq as'' ih1 ih2 =>
     unfold sort; simp only [↓reduceDIte, hlr, heq]
 
     intro i j hli hij hjr; exact

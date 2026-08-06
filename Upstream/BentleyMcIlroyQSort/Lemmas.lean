@@ -1,5 +1,5 @@
-import Quicksort.Init.RangeHas
-import Quicksort.Init.PermStabalizing
+import Upstream.Init.RangeHas
+import Upstream.Init.PermStabalizing
 
 import Upstream.BentleyMcIlroyQSort.Basic
 

@@ -1,13 +1,14 @@
-import Quicksort.Init.Ord
+module
+public import Upstream.Init.Ord
 
 @[inline]
-def Vector.maybeSwap [Ord α] (as : Vector α n) (low high : Fin n) : Vector α n :=
+public def Vector.maybeSwap [Ord α] (as : Vector α n) (low high : Fin n) : Vector α n :=
   if lt as[high] as[low] then
     as.swap low high
   else
     as
 
-structure Partition (α: Type u) (n : Nat)  where
+public structure Partition (α: Type u) (n : Nat)  where
   arr' : Vector α n
   j' : Nat
   i' : Nat
@@ -36,7 +37,7 @@ theorem maybeSwap_sorted (as : Vector α n) (low high : Nat) (hlh : low ≤ high
   · assumption
 
 open Ord in
-theorem median_of_three_sorted [Std.TransOrd α] {arr : Vector α n} {left mid right: Nat} (hlm : left ≤ mid) (hmr : mid ≤ right) (hr : right < n) :
+public theorem median_of_three_sorted [Std.TransOrd α] {arr : Vector α n} {left mid right: Nat} (hlm : left ≤ mid) (hmr : mid ≤ right) (hr : right < n) :
   let arr_ := arr
     |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
     |> (maybeSwap · ⟨left, by omega⟩ ⟨right, by omega⟩)
@@ -93,8 +94,8 @@ open Vector
 variable [Ord α]
 
 
-@[inline]
-def eager [Ord α] {n : Nat} (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+@[inline, expose]
+public def eager [Ord α] {n : Nat} (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   let mid := left + ((right - left)/2)
   let arr_ := arr
     |> (maybeSwap · ⟨left, by omega⟩ ⟨mid, by omega⟩)
@@ -135,7 +136,7 @@ def eager [Ord α] {n : Nat} (arr : Vector α n) (left : Nat)  (right : Nat) (hl
 namespace classic
 
 @[inline, specialize]
-def loop.while_i (left right : Nat) (hr : right < n) (pivot : α) (arr : Vector α n)
+public def loop.while_i (left right : Nat) (hr : right < n) (pivot : α) (arr : Vector α n)
     (i j : Nat) (hjr : j < right) (harltp : ¬lt arr[right] pivot)
     (ival : Nat) (hii : i ≤ ival) (hxi : ival ≤ right) : { i' : Fin n // i ≤ i' ∧ i' ≤ right } :=
   have hi : ival < n := by omega
@@ -147,7 +148,7 @@ def loop.while_i (left right : Nat) (hr : right < n) (pivot : α) (arr : Vector 
     ⟨⟨ival, by omega⟩, hii, hxi⟩
 
 @[inline, specialize]
-def loop.while_j (left right : Nat) (hr : right < n) (hl : left < n) (pivot : α)
+public def loop.while_j (left right : Nat) (hr : right < n) (hl : left < n) (pivot : α)
     (arr : Vector α n) (i j : Nat)  (hjr : j < right) (hli : left < i) (halgep : ¬lt pivot arr[left])
     (jval : Nat) (hxj : left ≤ jval) (hjj : jval ≤ j) : { j' : Fin n // j' ≤ j } :=
   have hj : jval < n := by omega
@@ -160,8 +161,8 @@ def loop.while_j (left right : Nat) (hr : right < n) (hl : left < n) (pivot : α
 
 
 open Ord in
-@[inline]
-def _root_.Partition.hoare.classic  [inst_le_trans : Std.TransOrd α] (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right)
+@[inline, expose]
+public def _root_.Partition.hoare.classic  [inst_le_trans : Std.TransOrd α] (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right)
     (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   -- have lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x := by grind
   -- have le_trans' : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x := by grind
@@ -222,7 +223,7 @@ end Partition.hoare
 
 
 @[specialize]
-def Partition.hoare [ord : Ord α] (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+public def Partition.hoare [ord : Ord α] (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   have hl : left < n := by omega
 
   let mid := left + ((right - left)/2)
@@ -242,12 +243,12 @@ def Partition.hoare [ord : Ord α] (arr : Vector α n) (left : Nat)  (right : Na
     panic! "non-asymmetric or non-transitive comparitor. falling back to eager version of partition scheme"
 
 
-@[inline]
-def qsort_hoare_strict [ord : Ord α] [ile_trans : Std.TransOrd α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) : Array α :=
+@[inline, expose]
+public def qsort_hoare  [ord : Ord α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) : Array α :=
   let rec @[specialize]
   sort {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1) : Vector α n :=
     if hlr : left < right then
-      let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ := Partition.hoare.classic as left right hlr (by omega)
+      let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ := Partition.hoare as left right hlr (by omega)
       let as := sort as' left j' (by omega)
       let as := sort as i' right (by omega)
       as
@@ -265,12 +266,12 @@ def qsort_hoare_strict [ord : Ord α] [ile_trans : Std.TransOrd α] (arr : Array
   sort ⟨arr, rfl⟩ left right' this |>.1
 
 
-@[inline]
-def qsort_hoare  [ord : Ord α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) : Array α :=
+@[inline, expose]
+public def qsort_hoare_strict [ord : Ord α] [ile_trans : Std.TransOrd α] (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1) : Array α :=
   let rec @[specialize]
   sort {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1) : Vector α n :=
     if hlr : left < right then
-      let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ := Partition.hoare as left right hlr (by omega)
+      let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ := Partition.hoare.classic as left right hlr (by omega)
       let as := sort as' left j' (by omega)
       let as := sort as i' right (by omega)
       as
