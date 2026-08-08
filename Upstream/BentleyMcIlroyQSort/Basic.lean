@@ -93,33 +93,33 @@ namespace Partition.bentleyMcIlroy
 open Vector
 variable [Ord α]
 
-@[inline, expose]
-public def move_pivots_back (left right : Nat) (hlr : left < right) (hr : right < n)
-    (p q : Nat) (hp : p < n) (x : { x : Partition α n // left < x.i' ∧ x.j' < right ∧ x.i' ≤ q + 1 }) :
-    { x : Partition α n // left < x.i' ∧ x.j' < right } :=
-  let ⟨⟨arr', j', i'⟩, (_ : left < i'), (_ : j' < right), (_ : i' ≤ q + 1)⟩ := x
-  let rec @[specialize] move_p_back (k : Nat) (arr : Vector α n) (j : Nat) (hjr : j < right) :
-      Vector α n × Subtype (· < right) :=
-    if h : k < p then
-      move_p_back (k + 1) (arr.swap k j (by omega) (by omega)) (j - 1) (by omega)
-    else
-      (arr, ⟨j, by omega⟩)
-  let (arr'', ⟨j'', _⟩) := move_p_back (left + 1) arr' j' (by omega)
+namespace move_pivots_back
+@[inline, specialize, expose]
+public def move_p_back (hr : right < n) (hp : p < n)
+    (k : Nat) (arr : Vector α n) (j : Nat) (hjr : j < right) : Vector α n × { x // x < right } :=
+  if h : k < p then
+    move_p_back (k + 1) (arr.swap k j (by omega) (by omega)) (j - 1) (by omega)
+      (hr := hr) (hp := hp)
+  else
+    (arr, ⟨j, by omega⟩)
 
-  let rec @[specialize] move_q_forward (k : Nat) (arr : Vector α n) (i : Nat) (hkq : q + 1 ≤ k) (hli : left < i)
-      (hieqk_invar : i = k - (q + 1) + i') : Vector α n × Subtype (left < ·) :=
+@[inline, specialize, expose]
+public def move_q_forward {i' : Nat} (hr : right < n) (hi'q : i' ≤ q + 1)
 
-    if h : k < right then
-      move_q_forward (k + 1) (arr.swap k i (by omega) (by omega) ) (i + 1) (by omega) (by omega) (by omega)
-    else
-      (arr, ⟨i, by omega⟩)
+    (k : Nat) (arr : Vector α n) (i : Nat) (hkq : q + 1 ≤ k) (hli : left < i)
+    (hieqk_invar : i = k - (q + 1) + i') : Vector α n × { x // left < x } :=
 
 
-  let (arr''', ⟨i'', _⟩) := move_q_forward (q + 1) arr'' i' (by omega) (by omega) (by omega)
+  if h : k < right then
+    move_q_forward (k + 1) (arr.swap k i (by omega) (by omega) ) (i + 1) (by omega) (by omega) (by omega)
+      (hr := hr) (hi'q := hi'q)
+  else
+    (arr, ⟨i, by omega⟩)
 
-  ⟨⟨arr''', j'', i''⟩, by omega, by omega⟩
 
+end move_pivots_back
 
+open move_pivots_back in
 @[inline, expose]
 public def eager (arr : Vector α n) (left : Nat) (right : Nat)
     (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
@@ -134,10 +134,16 @@ public def eager (arr : Vector α n) (left : Nat) (right : Nat)
       (hli : left < i) (hij : i ≤ j + 1) (hjr : j < right)
       (hpi : p ≤ i)  (hqr : q < right) (hjq : j ≤ q) :
       { x : Partition α n // left < x.i' ∧ x.j' < right } :=
+    have hp : p < n := by omega
     if _ : j < i then
       -- ⟨⟨arr, j, i⟩, hli, hjr⟩
-      move_pivots_back  left right hlr hr p q (by omega)  <|
-          ⟨⟨arr, j, i⟩, by simp only; omega, by simp only; omega, by simp only; omega⟩
+      let (arr'', ⟨j'', (hi''r : j'' < right)⟩) := move_p_back (left + 1) arr j (by omega)
+          (hr := hr) (hp := hp)
+      let (arr''', ⟨i'', (hli'' : left < i'')⟩) := move_q_forward (q + 1) arr'' i (by omega) (by omega) (by omega : i = q + 1 - (q + 1) + i)
+          (hr := hr) (hi'q := by omega)
+
+      ⟨⟨arr''', j'', i''⟩, hli'', hi''r⟩
+
 
     else
       if (lt arr[i] pivot)  then
@@ -176,9 +182,14 @@ public def eager (arr : Vector α n) (left : Nat) (right : Nat)
               (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
 
         else
-          -- ⟨⟨arr, j - 1, i + 1⟩, (by omega : _ < i + 1), (by omega : j - 1 < _)⟩
-          move_pivots_back  left right hlr hr p q (by omega)  <|
-            ⟨⟨arr, j - 1, i + 1⟩, by simp only; omega, by simp only; omega, by simp only; omega⟩
+          -- -- ⟨⟨arr, j - 1, i + 1⟩, (by omega : _ < i + 1), (by omega : j - 1 < _)⟩
+
+          let (arr'', ⟨j'', (hi''r : j'' < right)⟩) := move_p_back (left + 1) arr (j - 1) (by omega)
+              (hr := hr) (hp := hp)
+          let (arr''', ⟨i'', (hli'' : left < i'')⟩) := move_q_forward (q + 1) arr'' (i + 1) (by omega) (by omega) (by omega : i + 1 = q + 1 - (q + 1) + (i + 1))
+              (hr := hr) (hi'q := by omega)
+
+          ⟨⟨arr''', j'', i''⟩, hli'', hi''r⟩
   -- termination_by j + 1 - i
 
   loop arr_
@@ -229,6 +240,7 @@ public def loop.while_i'  (left right : Nat) (hr : right < n) (pivot : α) (arr 
     ⟨⟨ival, by omega⟩, hii, hxi, h'⟩
 
 section
+open move_pivots_back in
 open Ord in
 @[inline, expose]
 public def _root_.Partition.bentleyMcIlroy.classic  [inst_le_trans : Std.TransOrd α] (arr : Vector α n) (left : Nat) (right : Nat)
@@ -326,11 +338,21 @@ public def _root_.Partition.bentleyMcIlroy.classic  [inst_le_trans : Std.TransOr
             )
 
     else
-      move_pivots_back  left right hlr hr p q (by omega)  <|
-        if _ : j' < i' then
-          ⟨⟨arr, j', i'⟩, by simp only; omega, by simp only; omega, by simp only; omega⟩
-        else
-          ⟨⟨arr, j' - 1, i' + 1⟩, by simp only; omega, by simp only; omega, by simp only; omega⟩
+      have hp : p < n := by omega
+      if hji : j' < i' then
+        let (arr'', ⟨j'', (hi''r : j'' < right)⟩) := move_p_back (left + 1) arr j' (by omega)
+            (hr := hr) (hp := hp)
+        let (arr''', ⟨i'', (hli'' : left < i'')⟩) := move_q_forward (q + 1) arr'' i' (by omega) (by omega) (by omega : i' = q + 1 - (q + 1) + i')
+            (hr := hr) (hi'q := by omega)
+
+        ⟨⟨arr''', j'', i''⟩, hli'', hi''r⟩
+      else
+        let (arr'', ⟨j'', (hi''r : j'' < right)⟩) := move_p_back (left + 1) arr (j' - 1) (by omega)
+            (hr := hr) (hp := hp)
+        let (arr''', ⟨i'', (hli'' : left < i'')⟩) := move_q_forward (q + 1) arr'' (i' + 1) (by omega) (by omega) (by omega : i' + 1 = q + 1 - (q + 1) + (i' + 1))
+            (hr := hr) (hi'q := by omega)
+
+        ⟨⟨arr''', j'', i''⟩, hli'', hi''r⟩
   -- termination_by j + 1 - i
 
   have lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x := by grind
@@ -393,7 +415,7 @@ public def Partition.bentleyMcIlroy [ord : Ord α] (arr : Vector α n) (left : N
 
   if hmo3sortd : ¬lt pivot arr_[left] ∧ ¬lt arr_[right] pivot then
     have _ : right - 1 + 1 = right := by omega
-    bentleyMcIlroy.classic.loop left right hlr hr hl pivot arr_ (left + 1) (right - 1) (left + 1) (right - 1)
+    bentleyMcIlroy.classic.loop left right hr hl pivot arr_ (left + 1) (right - 1) (left + 1) (right - 1)
       (by omega) (by omega) (by omega) (by omega) (by omega) (by omega) (by grind) (by grind)
   else
     have := bentleyMcIlroy.eager.loop left right hlr hr pivot arr_ (left + 1) (right - 1) (left + 1) (right - 1)
