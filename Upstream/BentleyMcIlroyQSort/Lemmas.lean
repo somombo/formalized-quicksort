@@ -4,6 +4,11 @@ import Upstream.Init.PermStabalizing
 import Upstream.BentleyMcIlroyQSort.Basic
 import Upstream.BentleyMcIlroyQSort.Lemmas_perm
 
+set_option linter.unusedSectionVars false
+set_option linter.unnecessarySeqFocus false
+set_option linter.unreachableTactic false
+set_option linter.unusedSimpArgs false
+
 open Vector
 
 theorem maybeSwap_permStabilizing [Ord α] {as : Vector α n} {i j : Fin n} {left right : Nat} (h_i1 : left ≤ i) (h_i2 : i ≤ right) (h_j1 : left ≤ j) (h_j2 : j ≤ right) : PermStabilizing' left right (as.maybeSwap i j) as := by
@@ -175,6 +180,31 @@ theorem Partition.bentleyMcIlroy.partition_bounds [Ord α] [Std.TransOrd α] {ar
   · exact Partition.bentleyMcIlroy.classic.loop.partition_bounds
   · exact Partition.bentleyMcIlroy.eager.loop.partition_bounds
 
+
+-- theorem Partition.bentleyMcIlroy.classic.loop.sorted [Ord α] [Std.TransOrd α] {left right : Nat} {hr : right < n} {hl : left < n} {pivot : α} {arr : Vector α n} {i j p q : Nat} {hpi : p ≤ i} {hqr : q < right} {hli : left < i} {hij : i ≤ j + 1} {hjr : j < right} {hjq : j ≤ q} {halgep : ¬lt pivot arr[p - 1]} {haqltp : ¬lt arr[q + 1] pivot} :
+--     IsPartitioned i j pivot (classic.loop left right hr hl pivot arr i j p q hpi hqr hli hij hjr hjq halgep haqltp).val  := by
+--   sorry
+
+theorem Partition.bentleyMcIlroy.classic.sorted [Ord α] [Std.TransOrd α] (arr : Vector α n) (left : Nat) (right : Nat) (hlr : left < right) (hr : right < n) :
+    ∃ pivot, IsPartitioned left right pivot (Partition.bentleyMcIlroy.classic arr left right hlr hr).val := by
+  sorry
+
+
+-- theorem Partition.bentleyMcIlroy.eager.loop.sorted [Ord α] [Std.TransOrd α] {left right : Nat} {hlr : left < right} {hr : right < n} {pivot : α} {arr : Vector α n} {i j p q : Nat} {hpi : p ≤ i} {hqr : q < right} {hli : left < i} {hij : i ≤ j + 1} {hjr : j < right} {hjq : j ≤ q} :
+--     IsPartitioned i j pivot (eager.loop left right hlr hr pivot arr i j p q hli hij hjr hpi hqr hjq).val := by
+--   sorry
+
+theorem Partition.bentleyMcIlroy.eager.sorted [Ord α] [Std.TransOrd α] (arr : Vector α n) (left : Nat) (right : Nat) (hlr : left < right) (hr : right < n) :
+    ∃ pivot, IsPartitioned left right pivot (Partition.bentleyMcIlroy.eager arr left right hlr hr).val := by
+  sorry
+
+
+theorem Partition.bentleyMcIlroy.sorted [Ord α] [Std.TransOrd α]  (arr : Vector α n) (left : Nat) (right : Nat) (hlr : left < right) (hr : right < n) :
+    ∃ pivot, IsPartitioned left right pivot (Partition.bentleyMcIlroy arr left right hlr hr).val := by
+  unfold Partition.bentleyMcIlroy; simp [*]; split
+  · apply Partition.bentleyMcIlroy.classic.sorted <;> grind
+  · apply Partition.bentleyMcIlroy.eager.sorted <;> grind
+
 section qsort_bentleyMcIlroy
 
 open Partition
@@ -228,7 +258,66 @@ theorem qsort_bentleyMcIlroy.qs_size {as : Array α} :
 
 variable [Std.TransOrd α]
 theorem qsort_bentleyMcIlroy.sort.monotonic {as : Vector α n} {hsize' : right ≤ n - 1} : let q := (sort as left right hsize'); ∀ (i j : Fin n), (left ≤ i) → (i < j) → (j ≤ right) → ¬lt q[j] q[i] := by
-  sorry
+  induction as, left, right, hsize' using qsort_bentleyMcIlroy.sort.induct with
+  | case1 as left right hsize' hlr as' j' i' hli' hjr' heq as'' ih1 ih2 =>
+    unfold sort; simp only [↓reduceDIte, hlr, heq]
+
+    intro i j hli hij hjr; exact
+
+    have hji' : j' < i' := by
+      have := Partition.bentleyMcIlroy.partition_bounds (arr := as) (left := left) (right := right) (hlr := hlr) (hr := by omega)
+      have heq' : (Partition.bentleyMcIlroy as left right hlr (by omega)).val = ⟨as', j', i'⟩ := by exact congrArg Subtype.val heq
+      rw [heq'] at this
+      exact this
+    let as''' := sort as'' i' right (by omega)
+
+    if hhi : i' ≤ i.val then by
+      apply ih2 <;> assumption
+    else if hhj : j.val ≤ j' then by
+      rw [qsort_bentleyMcIlroy.sort.permStabilizing.2.left j (by omega), qsort_bentleyMcIlroy.sort.permStabilizing.2.left i (by omega)]
+      apply ih1 <;> assumption
+    else by
+      replace hhi : i.val < i' := by omega
+      replace hhj : j' < j.val := by omega
+
+      have ⟨pivot, ih0⟩ := Partition.bentleyMcIlroy.sorted as left right hlr (by omega)
+      replace ih0 :
+          (∀ (i : Fin n), left ≤ i → i < i' → ¬lt pivot as'[i]) ∧
+          (∀ (j : Fin n), j' + 1 ≤ j → j < right + 1 → ¬lt as'[j] pivot) := by
+        unfold Partition.IsPartitioned at ih0;
+        have heq' : (Partition.bentleyMcIlroy as left right hlr (by omega)).val = ⟨as', j', i'⟩ := by exact congrArg Subtype.val heq
+        rwa [heq'] at ih0
+
+      have hhh1 : ¬lt pivot as'''[i] :=
+        suffices ¬lt pivot as''[i] by rwa [qsort_bentleyMcIlroy.sort.permStabilizing.2.left i (by omega)]
+        if _ : i.val ≤ j' then by
+          apply Vector.PermStabilizing'.invariance (motive := (¬lt pivot ·)) (left := left) (hi := j' + 1) (hperm := qsort_bentleyMcIlroy.sort.permStabilizing) (hr' := by omega) (h := ?_ )
+          any_goals omega
+          · intro i_ _ _
+            apply ih0.left i_ <;> omega
+        else by
+          rw [qsort_bentleyMcIlroy.sort.permStabilizing.2.right _ (by omega)]
+          apply ih0.left i
+          all_goals omega
+
+      have hhh2 : ¬lt as'''[j] pivot :=
+        if _ : i' ≤ j.val then by
+          apply Vector.PermStabilizing'.invariance (motive := (¬lt · pivot)) (left := i') (hi := right + 1) (hperm := qsort_bentleyMcIlroy.sort.permStabilizing) (hr' := by omega) (h := ?_)
+          any_goals omega
+          · intro j_ _ _
+            rw [qsort_bentleyMcIlroy.sort.permStabilizing.2.right j_ (by omega)]
+            apply ih0.right j_ <;> omega
+        else by
+          rw [qsort_bentleyMcIlroy.sort.permStabilizing.2.left _ (by omega), qsort_bentleyMcIlroy.sort.permStabilizing.2.right _ (by omega)]
+          apply ih0.right j
+          all_goals omega
+
+      exact le_trans' hhh1 hhh2
+  | case2 as left right hsize' hlr =>
+    unfold sort; simp only [↓reduceDIte, hlr]
+    intro i j hli hij hjr
+    have : left = right := by omega
+    omega
 
 theorem qsort_bentleyMcIlroy.monotonic' {as : Array α} {left : Nat} {right : Nat} :  let q := (qsort_bentleyMcIlroy as left right); ∀ (i j : Fin q.size), (left ≤ i) → (i < j) → (j ≤ right) → ¬lt q[j] q[i] := by
   simp only
@@ -299,7 +388,66 @@ theorem qsort_bentleyMcIlroy_strict.qs_size {as : Array α} :
     (qsort_bentleyMcIlroy_strict as left right).size = as.size := qsort_bentleyMcIlroy_strict.perm'.size_eq
 
 theorem qsort_bentleyMcIlroy_strict.sort.monotonic {as : Vector α n} {hsize' : right ≤ n - 1} : let q := (sort as left right hsize'); ∀ (i j : Fin n), (left ≤ i) → (i < j) → (j ≤ right) → ¬lt q[j] q[i] := by
-  sorry
+  induction as, left, right, hsize' using qsort_bentleyMcIlroy_strict.sort.induct with
+  | case1 as left right hsize' hlr as' j' i' hli' hjr' heq as'' ih1 ih2 =>
+    unfold sort; simp only [↓reduceDIte, hlr, heq]
+
+    intro i j hli hij hjr; exact
+
+    have hji' : j' < i' := by
+      have := Partition.bentleyMcIlroy.classic.partition_bounds (arr := as) (left := left) (right := right) (hlr := hlr) (hr := by omega)
+      have heq' : (Partition.bentleyMcIlroy.classic as left right hlr (by omega)).val = ⟨as', j', i'⟩ := by exact congrArg Subtype.val heq
+      rw [heq'] at this
+      exact this
+    let as''' := sort as'' i' right (by omega)
+
+    if hhi : i' ≤ i.val then by
+      apply ih2 <;> assumption
+    else if hhj : j.val ≤ j' then by
+      rw [qsort_bentleyMcIlroy_strict.sort.permStabilizing.2.left j (by omega), qsort_bentleyMcIlroy_strict.sort.permStabilizing.2.left i (by omega)]
+      apply ih1 <;> assumption
+    else by
+      replace hhi : i.val < i' := by omega
+      replace hhj : j' < j.val := by omega
+
+      have ⟨pivot, ih0⟩ := Partition.bentleyMcIlroy.classic.sorted as left right hlr (by omega)
+      replace ih0 :
+          (∀ (i : Fin n), left ≤ i → i < i' → ¬lt pivot as'[i]) ∧
+          (∀ (j : Fin n), j' + 1 ≤ j → j < right + 1 → ¬lt as'[j] pivot) := by
+        unfold Partition.IsPartitioned at ih0;
+        have heq' : (Partition.bentleyMcIlroy.classic as left right hlr (by omega)).val = ⟨as', j', i'⟩ := by exact congrArg Subtype.val heq
+        rwa [heq'] at ih0
+
+      have hhh1 : ¬lt pivot as'''[i] :=
+        suffices ¬lt pivot as''[i] by rwa [qsort_bentleyMcIlroy_strict.sort.permStabilizing.2.left i (by omega)]
+        if _ : i.val ≤ j' then by
+          apply Vector.PermStabilizing'.invariance (motive := (¬lt pivot ·)) (left := left) (hi := j' + 1) (hperm := qsort_bentleyMcIlroy_strict.sort.permStabilizing) (hr' := by omega) (h := ?_ )
+          any_goals omega
+          · intro i_ _ _
+            apply ih0.left i_ <;> omega
+        else by
+          rw [qsort_bentleyMcIlroy_strict.sort.permStabilizing.2.right _ (by omega)]
+          apply ih0.left i
+          all_goals omega
+
+      have hhh2 : ¬lt as'''[j] pivot :=
+        if _ : i' ≤ j.val then by
+          apply Vector.PermStabilizing'.invariance (motive := (¬lt · pivot)) (left := i') (hi := right + 1) (hperm := qsort_bentleyMcIlroy_strict.sort.permStabilizing) (hr' := by omega) (h := ?_)
+          any_goals omega
+          · intro j_ _ _
+            rw [qsort_bentleyMcIlroy_strict.sort.permStabilizing.2.right j_ (by omega)]
+            apply ih0.right j_ <;> omega
+        else by
+          rw [qsort_bentleyMcIlroy_strict.sort.permStabilizing.2.left _ (by omega), qsort_bentleyMcIlroy_strict.sort.permStabilizing.2.right _ (by omega)]
+          apply ih0.right j
+          all_goals omega
+
+      exact le_trans' hhh1 hhh2
+  | case2 as left right hsize' hlr =>
+    unfold sort; simp only [↓reduceDIte, hlr]
+    intro i j hli hij hjr
+    have : left = right := by omega
+    omega
 
 theorem qsort_bentleyMcIlroy_strict.monotonic' {as : Array α} {left : Nat} {right : Nat} :  let q := (qsort_bentleyMcIlroy_strict as left right); ∀ (i j : Fin q.size), (left ≤ i) → (i < j) → (j ≤ right) → ¬lt q[j] q[i] := by
   simp only

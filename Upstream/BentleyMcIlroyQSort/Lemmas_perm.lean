@@ -2,10 +2,14 @@ import Upstream.Init.Ord
 import Upstream.Init.PermStabalizing
 import Upstream.BentleyMcIlroyQSort.Basic
 
+set_option linter.unusedSectionVars false
+set_option linter.unnecessarySeqFocus false
+set_option linter.unreachableTactic false
+set_option linter.unusedSimpArgs false
+
 open Vector Partition bentleyMcIlroy move_pivots_back
 
 variable [Ord α]
-set_option linter.unusedSectionVars false
 
 theorem classic.loop.while_j'_lower_bound {n left right : Nat}
     {hr : right < n} {hl : left < n} {pivot : α} {arr : Vector α n}
