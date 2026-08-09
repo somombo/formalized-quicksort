@@ -2,6 +2,7 @@ import Upstream.Init.RangeHas
 import Upstream.Init.PermStabalizing
 
 import Upstream.BentleyMcIlroyQSort.Basic
+import Upstream.BentleyMcIlroyQSort.Lemmas_perm
 
 open Vector
 
@@ -51,8 +52,32 @@ variable [Ord α]
 
 open Ord
 
+theorem bentleyMcIlroy.permStabilizing {n : Nat} {left right : Nat}
+    {hlr : left < right} {hr : right < n} (arr : Vector α n) :
+    PermStabilizing' left right (Partition.bentleyMcIlroy arr left right hlr hr).val.arr' arr := by
+  simp only [Partition.bentleyMcIlroy]; split
+  any_goals simp only [panicWithPosWithDecl, panic, panicCore, *]
+  all_goals
+    apply PermStabilizing'.trans
+    · try apply classic.loop.permStabilizing <;> omega
+      try apply eager.loop.permStabilizing <;> omega
+    · apply PermStabilizing'.trans
+      · apply maybeSwap_permStabilizing <;> (simp only [Fin.val_mk] <;> omega)
+      · apply PermStabilizing'.trans
+        · apply maybeSwap_permStabilizing <;> (simp only [Fin.val_mk] <;> omega)
+        · apply maybeSwap_permStabilizing <;> (simp only [Fin.val_mk] <;> omega)
+
 theorem qsort_bentleyMcIlroy.sort.permStabilizing {as : Vector α n} {left right : Nat} {hsize' : right ≤ n - 1} : Vector.PermStabilizing' left right (sort as left right hsize') as := by
-  sorry
+  induction as, left, right, hsize' using qsort_bentleyMcIlroy.sort.induct with
+  | case1 as left right hsize' hlr as' j' i' hli hjr heq as'' ih1 ih2 =>
+    unfold qsort_bentleyMcIlroy.sort; simp [*]
+    have ih0 := heq ▸ bentleyMcIlroy.permStabilizing as (left := left) (right := right) (hlr := hlr) (hr := by omega)
+    replace ih1 : Vector.PermStabilizing' left right .. := ih1.mono (by omega) (by omega)
+    replace ih2 : Vector.PermStabilizing' left right .. := ih2.mono (by omega) (by omega)
+    exact ih2 |>.trans ih1 |>.trans ih0
+  | case2 as left right hsize' hlr =>
+    unfold qsort_bentleyMcIlroy.sort; simp [*]
+    apply Vector.PermStabilizing'.refl
 
 theorem qsort_bentleyMcIlroy.perm' {as : Array α} {left : Nat} {right : Nat}  : (qsort_bentleyMcIlroy as left right).Perm as := by
   simp only [qsort_bentleyMcIlroy]; split
@@ -101,8 +126,30 @@ variable [Ord α]
 variable [Std.TransOrd α]
 open Ord
 
+theorem bentleyMcIlroy.classic.permStabilizing {n : Nat} {left right : Nat}
+    {hlr : left < right} {hr : right < n} (arr : Vector α n) :
+    PermStabilizing' left right (Partition.bentleyMcIlroy.classic arr left right hlr hr).val.arr' arr := by
+  simp only [Partition.bentleyMcIlroy.classic]
+  apply PermStabilizing'.trans
+  · apply classic.loop.permStabilizing <;> omega
+  · apply PermStabilizing'.trans
+    · apply maybeSwap_permStabilizing <;> (simp only [Fin.val_mk] <;> omega)
+    · apply PermStabilizing'.trans
+      · apply maybeSwap_permStabilizing <;> (simp only [Fin.val_mk] <;> omega)
+      · apply maybeSwap_permStabilizing <;> (simp only [Fin.val_mk] <;> omega)
+
+
 theorem qsort_bentleyMcIlroy_strict.sort.permStabilizing {as : Vector α n} {left right : Nat} {hsize' : right ≤ n - 1} : Vector.PermStabilizing' left right (sort as left right hsize') as := by
-  sorry
+  induction as, left, right, hsize' using qsort_bentleyMcIlroy_strict.sort.induct with
+  | case1 as left right hsize' hlr as' j' i' hli hjr heq as'' ih1 ih2 =>
+    unfold qsort_bentleyMcIlroy_strict.sort; simp [*]
+    have ih0 := heq ▸ bentleyMcIlroy.classic.permStabilizing as (left := left) (right := right) (hlr := hlr) (hr := by omega)
+    replace ih1 : Vector.PermStabilizing' left right .. := ih1.mono (by omega) (by omega)
+    replace ih2 : Vector.PermStabilizing' left right .. := ih2.mono (by omega) (by omega)
+    exact ih2 |>.trans ih1 |>.trans ih0
+  | case2 as left right hsize' hlr =>
+    unfold qsort_bentleyMcIlroy_strict.sort; simp [*]
+    apply Vector.PermStabilizing'.refl
 
 theorem qsort_bentleyMcIlroy_strict.perm' {as : Array α} {left : Nat} {right : Nat}  : (qsort_bentleyMcIlroy_strict as left right).Perm as := by
   simp only [qsort_bentleyMcIlroy_strict]; split
