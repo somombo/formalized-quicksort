@@ -7,6 +7,22 @@ open Vector Partition bentleyMcIlroy move_pivots_back
 variable [Ord α]
 set_option linter.unusedSectionVars false
 
+theorem classic.loop.while_j'_lower_bound {n left right : Nat}
+    {hr : right < n} {hl : left < n} {pivot : α} {arr : Vector α n}
+    {i j : Nat} {hjr : j < right} {hli : left < i}
+    {jval : Nat} {hxj : left ≤ jval} {hjj : jval ≤ j}
+    {halgep : ¬lt pivot arr[left]} :
+    left ≤ (classic.loop.while_j' left right hr hl pivot arr i j hjr hli
+      jval hxj hjj halgep).1.val := by
+  induction jval, hxj, hjj using
+      classic.loop.while_j'.induct left right hr hl pivot arr i j hjr halgep with
+  | case1 jval hxj hjj hj hlt hjl ih =>
+      unfold classic.loop.while_j'
+      simp [*]
+  | case2 jval hxj hjj hj hle =>
+      unfold classic.loop.while_j'
+      simp [*]
+
 theorem move_p_back.permStabilizing {n : Nat} {left right p k : Nat} {arr : Vector α n} {j : Nat} {hjr : j < right} {hp : p < n} {hr : right < n} :
     left ≤ k → k ≤ p → p ≤ right + 1 → left + p ≤ j + k + 1 → j ≤ right → PermStabilizing' left right (move_p_back hr hp k arr j hjr).1 arr := by
   intro hleft hkp hpr hlpj hjright
@@ -44,7 +60,7 @@ theorem classic.loop.permStabilizing {n : Nat} {left right : Nat}
     left + 1 ≤ p → p ≤ right + 1 → left ≤ q + 1 →
     PermStabilizing' left right (classic.loop left right hr (by omega) pivot arr i j p q hpi hqr hli hij hjr hjq halgep haqltp).val.arr' arr := by
   induction arr, i, j, p, q, hpi, hqr, hli, hij, hjr, hjq, halgep, haqltp using classic.loop.induct (left := left) (right := right) (hr := hr) (hl := by omega) (pivot := pivot) with
-  | case1 arr i j p q hpi hqr hli hij hjr hjq halgep haqltp j' hj'1 hj'2 hj'3 hjpiva eq_j hjpiva2 i' hi'1 hi'2 hi'3 hapivi eq_i hapivi2 h hqsimp hpsimp arr' hlt4 hlt5 ih =>
+  | case1 arr i j p q hpi hqr hli hij hjr hjq halgep haqltp j' hj'1 hj'2 hjpiva eq_j hjpiva2 i' hi'1 hi'2 hi'3 hapivi eq_i hapivi2 h hqsimp hpsimp arr' hlt4 hlt5 ih =>
     intro hlp hpr hlq
     unfold classic.loop
     simp only [eq_j, eq_i]
@@ -53,7 +69,7 @@ theorem classic.loop.permStabilizing {n : Nat} {left right : Nat}
     apply PermStabilizing'.trans
     · apply ih <;> omega
     · apply swap_permStabilizing' <;> omega
-  | case2 arr i j p q hpi hqr hli hij hjr hjq halgep haqltp j' hj'1 hj'2 hj'3 hjpiva eq_j hjpiva2 i' hi'1 hi'2 hi'3 hapivi eq_i hapivi2 h hqsimp hpsimp arr' hlt4 hlt5 arr'' ih =>
+  | case2 arr i j p q hpi hqr hli hij hjr hjq halgep haqltp j' hj'1 hj'2 hjpiva eq_j hjpiva2 i' hi'1 hi'2 hi'3 hapivi eq_i hapivi2 h hqsimp hpsimp arr' hlt4 hlt5 arr'' ih =>
     intro hlp hpr hlq
     unfold classic.loop
     simp only [eq_j, eq_i]
@@ -64,7 +80,7 @@ theorem classic.loop.permStabilizing {n : Nat} {left right : Nat}
     · apply PermStabilizing'.trans
       · apply swap_permStabilizing' <;> omega
       · apply swap_permStabilizing' <;> omega
-  | case3 arr i j p q hpi hqr hli hij hjr hjq halgep haqltp j' hj'1 hj'2 hj'3 hjpiva eq_j hjpiva2 i' hi'1 hi'2 hi'3 hapivi eq_i hapivi2 h hqsimp hpsimp arr' hlt4 arr'' hlt5 ih =>
+  | case3 arr i j p q hpi hqr hli hij hjr hjq halgep haqltp j' hj'1 hj'2 hjpiva eq_j hjpiva2 i' hi'1 hi'2 hi'3 hapivi eq_i hapivi2 h hqsimp hpsimp arr' hlt4 arr'' hlt5 ih =>
     intro hlp hpr hlq
     unfold classic.loop
     simp only [eq_j, eq_i]
@@ -75,7 +91,7 @@ theorem classic.loop.permStabilizing {n : Nat} {left right : Nat}
     · apply PermStabilizing'.trans
       · apply swap_permStabilizing' <;> omega
       · apply swap_permStabilizing' <;> omega
-  | case4 arr i j p q hpi hqr hli hij hjr hjq halgep haqltp j' hj'1 hj'2 hj'3 hjpiva eq_j hjpiva2 i' hi'1 hi'2 hi'3 hapivi eq_i hapivi2 h hqsimp hpsimp arr' hlt4 arr'' hlt5 arr''' ih =>
+  | case4 arr i j p q hpi hqr hli hij hjr hjq halgep haqltp j' hj'1 hj'2 hjpiva eq_j hjpiva2 i' hi'1 hi'2 hi'3 hapivi eq_i hapivi2 h hqsimp hpsimp arr' hlt4 arr'' hlt5 arr''' ih =>
     intro hlp hpr hlq
     unfold classic.loop
     simp only [eq_j, eq_i]
@@ -88,8 +104,13 @@ theorem classic.loop.permStabilizing {n : Nat} {left right : Nat}
       · apply PermStabilizing'.trans
         · apply swap_permStabilizing' <;> omega
         · apply swap_permStabilizing' <;> omega
-  | case5 arr i j p q hpi hqr hli hij hjr hjq halgep haqltp j' hj'1 hj'2 hj'3 hjpiva eq_j hjpiva2 i' hi'1 hi'2 hi'3 hapivi eq_i hapivi2 h1 hp h2 arr'' j'' hj'' eq_p arr''' i'' hi'' eq_q =>
+  | case5 arr i j p q hpi hqr hli hij hjr hjq halgep haqltp j' hj'1 hj'2 hjpiva eq_j hjpiva2 i' hi'1 hi'2 hi'3 hapivi eq_i hapivi2 h1 hp h2 arr'' j'' hj'' eq_p arr''' i'' hi'' eq_q =>
     intro hlp hpr hlq
+    have hj'_lower := classic.loop.while_j'_lower_bound
+      (left := p - 1) (right := right) (hr := hr) (pivot := pivot)
+      (arr := arr) (i := i) (j := j) (hjr := hjr) (hli := by omega) (jval := j)
+      (hxj := by omega) (hjj := Nat.le_refl _) (halgep := halgep)
+    simp only [eq_j] at hj'_lower
     unfold classic.loop
     simp only [eq_j, eq_i, eq_p, eq_q, dif_neg h1, dif_pos h2]
     apply PermStabilizing'.trans (as₂ := arr'')
@@ -110,7 +131,7 @@ theorem classic.loop.permStabilizing {n : Nat} {left right : Nat}
       have eq_p_fst : (move_p_back hr hp (left + 1) arr j' (by omega)).fst = arr'' := congrArg Prod.fst eq_p
       rw [eq_p_fst] at h_p
       exact h_p
-  | case6 arr i j p q hpi hqr hli hij hjr hjq halgep haqltp j' hj'1 hj'2 hj'3 hjpiva eq_j hjpiva2 i' hi'1 hi'2 hi'3 hapivi eq_i hapivi2 h1 hp h2 arr'' j'' hj'' eq_p arr''' i'' hi'' eq_q =>
+  | case6 arr i j p q hpi hqr hli hij hjr hjq halgep haqltp j' hj'1 hj'2 hjpiva eq_j hjpiva2 i' hi'1 hi'2 hi'3 hapivi eq_i hapivi2 h1 hp h2 arr'' j'' hj'' eq_p arr''' i'' hi'' eq_q =>
     intro hlp hpr hlq
     unfold classic.loop
     simp only [eq_j, eq_i, eq_p, eq_q, dif_neg h1, dif_neg h2]

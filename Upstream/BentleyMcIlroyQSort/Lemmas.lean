@@ -43,6 +43,138 @@ end Partition
 open Vector
 
 
+open Partition.bentleyMcIlroy.move_pivots_back
+
+theorem move_p_back_bounds {α : Type u} [Ord α] {n : Nat} {right p : Nat} {hr : right < n} {hp : p < n} {k : Nat} {arr : Vector α n} {j : Nat} {hjr : j < right} {arr' : Vector α n} {j' : Nat} {hj' : j' < right} (h : move_p_back hr hp k arr j hjr = (arr', ⟨j', hj'⟩)) : j' ≤ j := by
+  induction k, arr, j, hjr using move_p_back.induct hr hp
+  case case1 ih =>
+    unfold move_p_back at h
+    simp [*] at h
+    have := ih h
+    omega
+  case case2 =>
+    unfold move_p_back at h
+    simp [*] at h
+    rcases h with ⟨_, rfl⟩
+    omega
+
+theorem move_q_forward_bounds {α : Type u} [Ord α] {n : Nat} {right q : Nat} {left : Nat} {hr : right < n} {i_0 : Nat} {hi'q : i_0 ≤ q + 1} {k : Nat} {arr : Vector α n} {i : Nat} {hkq : q + 1 ≤ k} {hil : left < i} {hieqk : i = k - (q + 1) + i_0} {arr' : Vector α n} {i'' : Nat} {hi'' : left < i''} (h : move_q_forward hr hi'q k arr i hkq hil hieqk = (arr', ⟨i'', hi''⟩)) : i ≤ i'' := by
+  induction k, arr, i, hkq, hil, hieqk using move_q_forward.induct hr hi'q
+  case case1 ih =>
+    unfold move_q_forward at h
+    simp [*] at h
+    have := ih h
+    omega
+  case case2 =>
+    unfold move_q_forward at h
+    simp [*] at h
+    rcases h with ⟨_, rfl⟩
+    omega
+
+theorem Partition.bentleyMcIlroy.eager.loop.partition_bounds [Ord α] {left right : Nat} {hlr : left < right} {hr : right < n} {pivot : α} {arr : Vector α n} {i j p q : Nat} {hpi : p ≤ i} {hqr : q < right} {hli : left < i} {hij : i ≤ j + 1} {hjr : j < right} {hjq : j ≤ q} :
+    (eager.loop left right hlr hr pivot arr i j p q hli hij hjr hpi hqr hjq).val.j' < (eager.loop left right hlr hr pivot arr i j p q hli hij hjr hpi hqr hjq).val.i' := by
+  induction arr, i, j, p, q, hli, hij, hjr, hpi, hqr, hjq using eager.loop.induct left right hlr hr pivot
+  case case1 v_arr v_i v_j v_p v_q hli hij hjr hpi hqr hjq hp h arr'' j'' hi''r x1 arr''' i'' hli'' x2 =>
+    rw [eager.loop]
+    simp only []
+    repeat (split <;> try contradiction)
+    simp only [*]
+    have hj''_le := move_p_back_bounds x1
+    have hi''_le := move_q_forward_bounds x2
+    omega
+  case case2 v_arr v_i v_j v_p v_q hli hij hjr hpi hqr hjq hp h1 h ih =>
+    rw [eager.loop]
+    simp only []
+    repeat (split <;> try contradiction)
+    exact ih
+  case case3 v_arr v_i v_j v_p v_q hli hij hjr hpi hqr hjq hp h2 h1 h ih =>
+    rw [eager.loop]
+    simp only []
+    repeat (split <;> try contradiction)
+    exact ih
+  case case4 v_arr v_i v_j v_p v_q hli hij hjr hpi hqr hjq hp h5 h4 h3 h2 arr' h1 h ih =>
+    rw [eager.loop]
+    simp only []
+    repeat (split <;> try contradiction)
+    simp only [arr', Vector.getElem_swap_right, Vector.getElem_swap_left] at h1 h ih
+    exact ih
+  case case5 v_arr v_i v_j v_p v_q hli hij hjr hpi hqr hjq hp h5 h4 h3 h2 arr' h1 h arr'' ih =>
+    rw [eager.loop]
+    simp only []
+    repeat (split <;> try contradiction)
+    simp only [arr', arr'', Vector.getElem_swap_right, Vector.getElem_swap_left] at h1 h ih
+    exact ih
+  case case6 v_arr v_i v_j v_p v_q hli hij hjr hpi hqr hjq hp h5 h4 h3 h2 arr' h1 arr'' h ih =>
+    rw [eager.loop]
+    simp only []
+    repeat (split <;> try contradiction)
+    have hpj : v_j ≠ v_p := by omega
+    have hpji : v_j ≠ v_i := by omega
+    simp only [arr', arr'', Vector.getElem_swap_right, Vector.getElem_swap_left, Vector.getElem_swap_of_ne hpj hpji] at h1 h ih
+    exact ih
+  case case7 v_arr v_i v_j v_p v_q hli hij hjr hpi hqr hjq hp h5 h4 h3 h2 arr' h1 arr'' h arr''' ih =>
+    rw [eager.loop]
+    simp only []
+    repeat (split <;> try contradiction)
+    have hpj : v_j ≠ v_p := by omega
+    have hpji : v_j ≠ v_i := by omega
+    simp only [arr', arr'', arr''', Vector.getElem_swap_right, Vector.getElem_swap_left, Vector.getElem_swap_of_ne hpj hpji] at h1 h ih
+    exact ih
+  case case8 v_arr v_i v_j v_p v_q hli hij hjr hpi hqr hjq hp h3 h2 h1 h arr'' j'' hi''r x1 arr''' i'' hli'' x2 =>
+    rw [eager.loop]
+    simp only []
+    repeat (split <;> try contradiction)
+    simp only [*]
+    have hj''_le := move_p_back_bounds x1
+    have hi''_le := move_q_forward_bounds x2
+    omega
+
+theorem Partition.bentleyMcIlroy.classic.loop.partition_bounds [Ord α] [Std.TransOrd α] {left right : Nat} {hr : right < n} {hl : left < n} {pivot : α} {arr : Vector α n} {i j p q : Nat} {hpi : p ≤ i} {hqr : q < right} {hli : left < i} {hij : i ≤ j + 1} {hjr : j < right} {hjq : j ≤ q} {halgep : ¬lt pivot arr[p - 1]} {haqltp : ¬lt arr[q + 1] pivot} :
+    (classic.loop left right hr hl pivot arr i j p q hpi hqr hli hij hjr hjq halgep haqltp).val.j' < (classic.loop left right hr hl pivot arr i j p q hpi hqr hli hij hjr hjq halgep haqltp).val.i' := by
+  induction arr, i, j, p, q, hpi, hqr, hli, hij, hjr, hjq, halgep, haqltp using classic.loop.induct left right hr hl pivot
+  case case1 v_arr v_i v_j v_p v_q hpi hqr hli hij hjr hjq halgep haqltp j' isLtj' left2 hjpiv1 x1 hjpiv i' isLti' left1 left_ hapiv1 x2 hapiv h_iltj hqsimp hpsimp arr_1 h1 h2 ih =>
+    unfold classic.loop
+    simp [arr_1, Vector.getElem_swap_right, Vector.getElem_swap_left] at h1 h2
+    simp [*]; exact ih
+  case case2 v_arr v_i v_j v_p v_q hpi hqr hli hij hjr hjq halgep haqltp j' isLtj' left2 hjpiv1 x1 hjpiv i' isLti' left1 left_ hapiv1 x2 hapiv h_iltj hqsimp hpsimp arr_1 h1 h2 arr_2 ih =>
+    unfold classic.loop
+    simp [arr_1, Vector.getElem_swap_right, Vector.getElem_swap_left] at h1 h2
+    simp [*]; exact ih
+  case case3 v_arr v_i v_j v_p v_q hpi hqr hli hij hjr hjq halgep haqltp j' isLtj' left2 hjpiv1 x1 hjpiv i' isLti' left1 left_ hapiv1 x2 hapiv h_iltj hqsimp hpsimp arr_1 h1 arr_2 h2 ih =>
+    unfold classic.loop
+    have hpj : j' ≠ v_p := by omega
+    have hpji' : j' ≠ i' := by omega
+    simp [arr_1, arr_2, Vector.getElem_swap_right, Vector.getElem_swap_left, Vector.getElem_swap_of_ne hpj hpji'] at h1 h2
+    simp [*]; exact ih
+  case case4 v_arr v_i v_j v_p v_q hpi hqr hli hij hjr hjq halgep haqltp j' isLtj' left2 hjpiv1 x1 hjpiv i' isLti' left1 left_ hapiv1 x2 hapiv h_iltj hqsimp hpsimp arr_1 h1 arr_2 h2 arr_3 ih =>
+    unfold classic.loop
+    have hpj : j' ≠ v_p := by omega
+    have hpji' : j' ≠ i' := by omega
+    simp [arr_1, arr_2, Vector.getElem_swap_right, Vector.getElem_swap_left, Vector.getElem_swap_of_ne hpj hpji'] at h1 h2
+    simp [*]; exact ih
+  case case5 v_arr v_i v_j v_p v_q hpi hqr hli hij hjr hjq halgep haqltp j' isLtj' left2 hjpiv1 x1 hjpiv i' isLti' left1 left_ hapiv1 x2 hapiv h1 hp h2 arr_1 j'' hj'' h_p arr_2 i'' hi'' h_q =>
+    unfold classic.loop
+    simp [*]
+    have hj''_le := move_p_back_bounds h_p
+    have hi''_le := move_q_forward_bounds h_q
+    omega
+  case case6 v_arr v_i v_j v_p v_q hpi hqr hli hij hjr hjq halgep haqltp j' isLtj' left2 hjpiv1 x1 hjpiv i' isLti' left1 left_ hapiv1 x2 hapiv h1 hp h2 arr_1 j'' hj'' h_p arr_2 i'' hi'' h_q =>
+    unfold classic.loop
+    simp [*]
+    have hj''_le := move_p_back_bounds h_p
+    have hi''_le := move_q_forward_bounds h_q
+    omega
+
+theorem Partition.bentleyMcIlroy.classic.partition_bounds [Ord α] [Std.TransOrd α] {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : (Partition.bentleyMcIlroy.classic arr left right hlr hr).val.j' < (Partition.bentleyMcIlroy.classic arr left right hlr hr).val.i' := by
+  unfold Partition.bentleyMcIlroy.classic
+  simp only [Partition.bentleyMcIlroy.classic.loop.partition_bounds]
+
+theorem Partition.bentleyMcIlroy.partition_bounds [Ord α] [Std.TransOrd α] {arr : Vector α n} {left : Nat} {right : Nat} {hlr : left < right} {hr : right < n} : (Partition.bentleyMcIlroy arr left right hlr hr).val.j' < (Partition.bentleyMcIlroy arr left right hlr hr).val.i' := by
+  dsimp [Partition.bentleyMcIlroy]
+  split
+  · exact Partition.bentleyMcIlroy.classic.loop.partition_bounds
+  · exact Partition.bentleyMcIlroy.eager.loop.partition_bounds
+
 section qsort_bentleyMcIlroy
 
 open Partition
