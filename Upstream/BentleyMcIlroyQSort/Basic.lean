@@ -1,0 +1,476 @@
+module
+public import Upstream.Init.Ord
+
+@[inline]
+public def Vector.maybeSwap (lt : α → α → Bool) (as : Vector α n) (low high : Fin n) : Vector α n :=
+  if lt as[high] as[low] then
+    as.swap low high
+  else
+    as
+
+public structure Partition (α: Type u) (n : Nat)  where
+  arr' : Vector α n
+  j' : Nat
+  i' : Nat
+  deriving Repr, Nonempty, Inhabited
+
+-- set_option linter.unusedVariables false in
+-- abbrev Partition.Scheme (α: Type u) (lt : α → α → Bool) := {n : Nat} → Vector α n → (left right : Nat) → left < right → right < n →  { x : Partition α n  // left < x.i' ∧ x.j' < right }
+
+open Vector
+
+namespace Partition
+
+variable (lt : α → α → Bool)
+variable (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x)
+
+include lt_asymm in
+private theorem lt_irrefl : ∀ (x : α), ¬lt x x :=
+  fun _ h => (lt_asymm h) h
+
+include lt_asymm in
+theorem maybeSwap_sorted (as : Vector α n) (low high : Nat) (hlh : low ≤ high) (hn : high < n) : ¬ (lt (maybeSwap lt as ⟨low, by omega⟩ ⟨high, by omega⟩)[high] (maybeSwap lt as ⟨low, by omega⟩ ⟨high, by omega⟩)[low]) := by
+  unfold maybeSwap; split
+  · next h =>
+      simp only [as.getElem_swap_right, as.getElem_swap_left]
+      exact lt_asymm h
+  · assumption
+
+public theorem median_of_three_sorted
+    (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x)
+    (le_trans' : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x)
+    {arr : Vector α n} {left mid right: Nat} (hlm : left ≤ mid) (hmr : mid ≤ right) (hr : right < n) :
+  let arr_ := arr
+    |> (maybeSwap lt · ⟨left, by omega⟩ ⟨mid, by omega⟩)
+    |> (maybeSwap lt · ⟨left, by omega⟩ ⟨right, by omega⟩)
+    |> (maybeSwap lt · ⟨mid, by omega⟩ ⟨right, by omega⟩)
+
+  ¬lt arr_[mid] arr_[left] ∧ ¬lt arr_[right] arr_[mid]
+  :=
+  have _ : left < n := by omega
+  have _ : mid < n := by omega
+
+  let arr1 : Vector α n := maybeSwap lt arr ⟨left, by omega⟩ ⟨mid, by omega⟩
+  let arr2 : Vector α n := maybeSwap lt arr1 ⟨left, by omega⟩ ⟨right, by omega⟩
+  let arr_ : Vector α n := maybeSwap lt arr2 ⟨mid, by omega⟩ ⟨right, by omega⟩
+
+  have hh1 : ¬lt arr1[mid] arr1[left] := maybeSwap_sorted lt lt_asymm arr left mid (by omega) (by omega)
+  have hh2 : ¬lt arr2[right] arr2[left] := maybeSwap_sorted lt lt_asymm arr1 left right (by omega) (by omega)
+  have hh_ : ¬lt arr_[right] arr_[mid] := maybeSwap_sorted lt lt_asymm arr2 mid right (by omega) (by omega)
+
+  suffices ¬lt arr_[mid] arr_[left] from ⟨this, hh_⟩
+
+  if hleqm : left = mid then by
+    simp only [hleqm]
+    exact lt_irrefl lt lt_asymm arr_[mid]
+  else by
+    have hlneqr : left ≠ right := by omega
+    simp only [arr_]
+    unfold maybeSwap
+    split
+    · have : (arr2.swap mid right)[left] = _ :=
+        arr2.getElem_swap_of_ne hleqm hlneqr
+      simp only [this, arr2.getElem_swap_left]
+      assumption
+    · exact
+      if hmeqr : mid = right then by
+        simp only [hmeqr]
+        exact hh2
+      else by
+        simp only [arr2]
+        unfold maybeSwap
+        split
+
+        · have : (arr1.swap left right)[mid] = _ :=
+            arr1.getElem_swap_of_ne (Ne.symm hleqm) hmeqr
+          simp only [this, arr1.getElem_swap_left]
+          refine le_trans' (lt_asymm ?_) hh1
+          assumption
+        · assumption
+end Partition
+
+
+
+namespace Partition.bentleyMcIlroy
+open Vector
+variable (lt : α → α → Bool)
+
+namespace move_pivots_back
+@[inline, specialize, expose]
+public def move_p_back (hr : right < n) (hp : p < n)
+    (k : Nat) (arr : Vector α n) (j : Nat) (hjr : j < right) : Vector α n × { x // x < right } :=
+  if h : k < p then
+    move_p_back (k + 1) (arr.swap k j (by omega) (by omega)) (j - 1) (by omega)
+      (hr := hr) (hp := hp)
+  else
+    (arr, ⟨j, by omega⟩)
+
+@[inline, specialize, expose]
+public def move_q_forward {i' : Nat} (hr : right < n) (hi'q : i' ≤ q + 1)
+
+    (k : Nat) (arr : Vector α n) (i : Nat) (hkq : q + 1 ≤ k) (hli : left < i)
+    (hieqk_invar : i = k - (q + 1) + i') : Vector α n × { x // left < x } :=
+
+
+  if h : k < right then
+    move_q_forward (k + 1) (arr.swap k i (by omega) (by omega) ) (i + 1) (by omega) (by omega) (by omega)
+      (hr := hr) (hi'q := hi'q)
+  else
+    (arr, ⟨i, by omega⟩)
+
+
+end move_pivots_back
+
+open move_pivots_back in
+@[inline, expose]
+public def eager (arr : Vector α n) (left : Nat) (right : Nat)
+    (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+  let mid := left + ((right - left)/2)
+  let arr_ := arr
+    |> (maybeSwap lt · ⟨left, by omega⟩ ⟨mid, by omega⟩)
+    |> (maybeSwap lt · ⟨left, by omega⟩ ⟨right, by omega⟩)
+    |> (maybeSwap lt · ⟨mid, by omega⟩ ⟨right, by omega⟩)
+  have pivot := arr_[mid]
+
+  let rec @[specialize] loop (arr : Vector α n) (i j : Nat) (p q : Nat)
+      (hli : left < i) (hij : i ≤ j + 1) (hjr : j < right)
+      (hpi : p ≤ i)  (hqr : q < right) (hjq : j ≤ q) :
+      { x : Partition α n // left < x.i' ∧ x.j' < right } :=
+    have hp : p < n := by omega
+    if _ : j < i then
+      -- ⟨⟨arr, j, i⟩, hli, hjr⟩
+      let (arr'', ⟨j'', (hi''r : j'' < right)⟩) := move_p_back (left + 1) arr j (by omega)
+          (hr := hr) (hp := hp)
+      let (arr''', ⟨i'', (hli'' : left < i'')⟩) := move_q_forward (q + 1) arr'' i (by omega) (by omega) (by omega : i = q + 1 - (q + 1) + i)
+          (hr := hr) (hi'q := by omega)
+
+      ⟨⟨arr''', j'', i''⟩, hli'', hi''r⟩
+
+
+    else
+      if (lt arr[i] pivot)  then
+        loop arr (i + 1) j p q
+          (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
+
+      else if (lt pivot arr[j]) then
+        loop arr i (j - 1) p q
+          (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
+
+      else
+        if hlt : i < j then
+          -- loop (arr.swap i j ) (i + 1) (j - 1) (by omega) (by omega) (by omega)
+
+        let arr' := arr.swap i j (by omega) (by omega)
+
+        if _ : lt arr'[i] pivot then
+          if _ : lt pivot arr'[j] then
+            loop arr' (i + 1) (j - 1) p q
+              (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
+
+          else
+            let arr'' := arr'.swap q j (by omega) (by omega)
+            loop arr'' (i + 1) (j - 1) p (q - 1)
+              (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
+
+        else
+          let arr'' := arr'.swap p i (by omega) (by omega)
+          if _ : lt pivot arr''[j] then
+            loop arr'' (i + 1) (j - 1) (p + 1) q
+              (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
+
+          else
+            let arr''' := arr''.swap q j (by omega) (by omega)
+            loop arr''' (i + 1) (j - 1) (p + 1) (q - 1)
+              (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
+
+        else
+          -- -- ⟨⟨arr, j - 1, i + 1⟩, (by omega : _ < i + 1), (by omega : j - 1 < _)⟩
+
+          let (arr'', ⟨j'', (hi''r : j'' < right)⟩) := move_p_back (left + 1) arr (j - 1) (by omega)
+              (hr := hr) (hp := hp)
+          let (arr''', ⟨i'', (hli'' : left < i'')⟩) := move_q_forward (q + 1) arr'' (i + 1) (by omega) (by omega) (by omega : i + 1 = q + 1 - (q + 1) + (i + 1))
+              (hr := hr) (hi'q := by omega)
+
+          ⟨⟨arr''', j'', i''⟩, hli'', hi''r⟩
+  -- termination_by j + 1 - i
+
+  loop arr_
+    (i := left + 1)
+    (j := right - 1)
+    (p := left + 1)
+    (q := right - 1)
+  (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
+
+/-- info: { arr' := { toArray := #[4, 3, 1, 0, 5, 2, 6, 8, 7, 9], size_toArray := _ }, j' := 5, i' := 7 } -/
+#guard_msgs(info) in #eval Partition.bentleyMcIlroy.eager #v[9,  3,  1,  8,  6,  2,  5,  0,  7,  4]  0 9 (by omega) (by omega) (lt := by exact (· < ·))
+
+/-- info: { arr' := { toArray := #[4, 2, 1, 0, 3, 6, 6, 8, 7, 9], size_toArray := _ }, j' := 4, i' := 7 } -/
+#guard_msgs(info) in #eval Partition.bentleyMcIlroy.eager #v[9,  3,  1,  8,  6,  2,  6,  0,  7,  4]  0 9 (by omega) (by omega) (lt := by exact (· < ·))
+
+/-- info: { arr' := { toArray := #[4, 2, 1, 0, 3, 6, 6, 8, 7, 9], size_toArray := _ }, j' := 4, i' := 7 } -/
+#guard_msgs(info) in #eval Partition.bentleyMcIlroy.eager #v[9,  3,  1,  8,  6,  2,  6,  0,  7,  4]  0 9 (by omega) (by omega) (lt := by exact (· < ·))
+
+/-- info: { arr' := { toArray := #[0, 0, 0, 1, 2], size_toArray := _ }, j' := 0, i' := 3 } -/
+#guard_msgs(info) in #eval Partition.bentleyMcIlroy.eager #v[2, 0, 0, 1, 0]  0 4 (by omega) (by omega) (lt := by exact (· < ·))
+
+
+namespace classic
+
+@[inline, specialize]
+public def loop.while_j' (left right : Nat) (hr : right < n) (hl : left < n) (pivot : α)
+    (arr : Vector α n) (i j : Nat)  (hjr : j < right) (hli : left < i)
+    (jval : Nat) (hxj : left ≤ jval) (hjj : jval ≤ j) (halgep : ¬lt pivot arr[left]) :
+    { j' : Fin n // j' ≤ j ∧ ¬ lt pivot arr[j'.val] } :=
+  have hj : jval < n := by omega
+  if h' : lt pivot arr[jval] /- ∧ i ≤ jval -/ then
+    have _ : jval ≠ left :=
+      (h' |> show ¬lt pivot arr[jval] by simpa only [·])
+    while_j' left right hr hl pivot arr i j hjr hli    (jval - 1) (by omega) (by omega) halgep
+  else
+    ⟨⟨jval, by omega⟩, hjj, h'⟩
+
+@[inline, specialize]
+public def loop.while_i'  (left right : Nat) (hr : right < n) (pivot : α) (arr : Vector α n)
+    (i j : Nat) (hjr : j < right) (ival : Nat) (hii : i ≤ ival) (hxi : ival ≤ right)
+    (harltp : ¬lt arr[right] pivot) : { i' : Fin n // i ≤ i' ∧ i' ≤ right ∧  ¬lt arr[i'.val] pivot} :=
+  have hi : ival < n := by omega
+  if h' : lt arr[ival] pivot then
+    have _ : ival ≠ right :=
+      (h' |> show ¬lt arr[ival] pivot by simpa only [·])
+    while_i' left right hr pivot arr i j hjr    (ival + 1) (by omega) (by omega) harltp
+  else
+    ⟨⟨ival, by omega⟩, hii, hxi, h'⟩
+
+section
+open move_pivots_back in
+@[inline, expose]
+public def _root_.Partition.bentleyMcIlroy.classic
+    (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x)
+    (le_trans' : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x)
+    (arr : Vector α n) (left : Nat) (right : Nat)
+    (hlr : left < right) (hr : right < n)
+    : { x : Partition α n  // left < x.i' ∧ x.j' < right } :=
+  have hl : left < n := by omega
+
+  let rec @[specialize] loop (pivot : α) (arr : Vector α n) (i j : Nat) (p q : Nat)
+      (hpi : p ≤ i)  (hqr : q < right) (hli : left < i) (hij : i ≤ j + 1) (hjr : j < right) (hjq : j ≤ q)
+      (halgep : ¬lt pivot arr[p - 1]) (haqltp : ¬lt arr[q + 1] pivot) :
+      { x : Partition α n  // left < x.i' ∧ x.j' < right } :=
+
+    let ⟨⟨j', (_ : j' < n)⟩, (_ : j' ≤ j), hjpiva⟩  := loop.while_j' lt (p - 1)
+      right hr (by omega) pivot arr i j hjr (by omega) j (by omega) Nat.le.refl halgep
+
+    have hjpiva : ¬lt pivot arr[j'] := hjpiva
+
+    let ⟨⟨i', (_ : i' < n)⟩, (_ : i ≤ i'), (_ : i' ≤ q + 1), hapivi⟩ := loop.while_i' lt left (q + 1)
+      (by omega) pivot arr i j' (by omega) i Nat.le.refl (by omega) (by omega)
+
+    have hapivi : ¬lt arr[i'] pivot := hapivi
+
+    if _ : i' < j' then
+      have hqsimp : q - 1 + 1 = q := by omega
+      have hpsimp : p + 1 - 1 = p := by omega
+      let arr' := arr.swap i' j' (by omega) (by omega)
+
+      if _ : lt arr'[i'] pivot then
+        if _ : lt pivot arr'[j'] then
+          loop pivot arr' (i' + 1) (j' - 1) p q
+            (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
+            (by
+              -- change ¬lt pivot arr'[p - 1]
+              simp only [arr', arr.getElem_swap_of_ne (show p - 1 ≠ i' by omega) (show p - 1 ≠ j' by omega)]
+              assumption
+            )
+            (by
+              -- change ¬ lt arr'[q + 1] pivot
+              simp only [arr', arr.getElem_swap_of_ne (show q + 1 ≠ i' by omega) (show q + 1 ≠ j' by omega)]
+              assumption
+            )
+        else
+          let arr'' := arr'.swap q j' (by omega) (by omega)
+
+          loop pivot arr'' (i' + 1) (j' - 1) p (q - 1)
+            (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
+            (by
+              -- change ¬lt pivot arr''[p - 1]
+              simp only [arr'', Vector.getElem_swap_of_ne (show p - 1 ≠ q by omega) (show p - 1 ≠ j' by omega)]
+              simp only [arr', Vector.getElem_swap_of_ne (show p - 1 ≠ i' by omega) (show p - 1 ≠ j' by omega)]
+              assumption
+            )
+            (by
+              suffices ¬ lt arr''[q] pivot by simpa only [hqsimp]
+              simp only [arr'', Vector.getElem_swap_left]
+              simp only [arr', Vector.getElem_swap_right]
+              assumption
+            )
+      else
+        let arr'' := arr'.swap p i' (by omega) (by omega)
+        if ha'pivj : lt pivot arr''[j'] then
+
+          loop pivot arr'' (i' + 1) (j' - 1) (p + 1) q
+            (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
+            (by
+              suffices ¬lt pivot arr''[p] by simpa only [hpsimp]
+              simp only [arr'', Vector.getElem_swap_left]
+              simp only [arr', Vector.getElem_swap_left]
+              assumption
+            )
+            (by
+              -- change ¬ lt arr''[q + 1] pivot
+              simp only [arr'', Vector.getElem_swap_of_ne (show q + 1 ≠ p by omega) (show q + 1 ≠ i' by omega)]
+              simp only [arr', Vector.getElem_swap_of_ne (show q + 1 ≠ i' by omega) (show q + 1 ≠ j' by omega)]
+              assumption
+            )
+        else
+          let arr''' := arr''.swap q j' (by omega) (by omega)
+
+          loop pivot arr''' (i' + 1) (j' - 1) (p + 1) (q - 1)
+            (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
+            (by
+              suffices ¬lt pivot arr'''[p] by simpa only [hpsimp]
+              simp only [arr''', Vector.getElem_swap_of_ne (show p ≠ q by omega) (show p ≠ j' by omega)]
+              simp only [arr'', Vector.getElem_swap_left]
+              simp only [arr', Vector.getElem_swap_left]
+              assumption
+            )
+            (by
+              suffices ¬ lt arr'''[q] pivot by simpa only [hqsimp]
+              simp only [arr''', Vector.getElem_swap_left]
+              simp only [arr'', Vector.getElem_swap_of_ne (show j' ≠ p by omega) (show j' ≠ i' by omega)]
+              simp only [arr', Vector.getElem_swap_right]
+              assumption
+            )
+
+    else
+      have hp : p < n := by omega
+      if hji : j' < i' then
+        let (arr'', ⟨j'', (hi''r : j'' < right)⟩) := move_p_back (left + 1) arr j' (by omega)
+            (hr := hr) (hp := hp)
+        let (arr''', ⟨i'', (hli'' : left < i'')⟩) := move_q_forward (q + 1) arr'' i' (by omega) (by omega) (by omega : i' = q + 1 - (q + 1) + i')
+            (hr := hr) (hi'q := by omega)
+
+        ⟨⟨arr''', j'', i''⟩, hli'', hi''r⟩
+      else
+        let (arr'', ⟨j'', (hi''r : j'' < right)⟩) := move_p_back (left + 1) arr (j' - 1) (by omega)
+            (hr := hr) (hp := hp)
+        let (arr''', ⟨i'', (hli'' : left < i'')⟩) := move_q_forward (q + 1) arr'' (i' + 1) (by omega) (by omega) (by omega : i' + 1 = q + 1 - (q + 1) + (i' + 1))
+            (hr := hr) (hi'q := by omega)
+
+        ⟨⟨arr''', j'', i''⟩, hli'', hi''r⟩
+  -- termination_by j + 1 - i
+
+  let mid := left + ((right - left)/2)
+  have hm : mid < n := by omega
+  let arr_ := arr
+    |> (maybeSwap lt · ⟨left, hl⟩ ⟨mid, hm⟩)
+    |> (maybeSwap lt · ⟨left, hl⟩ ⟨right, hr⟩)
+    |> (maybeSwap lt · ⟨mid, hm⟩ ⟨right, hr⟩)
+  let pivot := arr_[mid]
+
+  have : ¬lt pivot arr_[left] ∧ ¬lt arr_[right] pivot :=
+    median_of_three_sorted lt lt_asymm le_trans' (by omega) (by omega) hr
+
+  -- let arr_ := dbg arr_ s!"arr1: {arr_},  left: {left}, right: {right}, i': {i_}, j': {j_}, p: {p_}, q: {q_}"
+  have hrr : right - 1 + 1 = right := by omega
+  have hll : left + 1 - 1 = left := by omega
+  loop pivot arr_
+    (i := left + 1)
+    (j := right - 1)
+    (p := left + 1)
+    (q := right - 1)
+    (by omega) (by omega) (by omega) (by omega)  (by omega) (by omega) (by grind) (by grind)
+
+
+
+end
+
+
+/-- info: { arr' := { toArray := #[4, 3, 1, 0, 5, 2, 6, 8, 7, 9], size_toArray := _ }, j' := 5, i' := 7 } -/
+#guard_msgs(info) in #eval Partition.bentleyMcIlroy.classic #v[9,  3,  1,  8,  6,  2,  5,  0,  7,  4]  0 9 (by omega) (by omega) (lt := by exact (· < ·)) (lt_asymm := by grind) (le_trans' := by grind)
+
+/-- info: { arr' := { toArray := #[4, 2, 1, 0, 3, 6, 6, 8, 7, 9], size_toArray := _ }, j' := 4, i' := 7 } -/
+#guard_msgs(info) in #eval Partition.bentleyMcIlroy.classic #v[9,  3,  1,  8,  6,  2,  6,  0,  7,  4]  0 9 (by omega) (by omega) (lt := by exact (· < ·)) (lt_asymm := by grind) (le_trans' := by grind)
+
+/-- info: { arr' := { toArray := #[4, 2, 1, 0, 3, 6, 6, 8, 7, 9], size_toArray := _ }, j' := 4, i' := 7 } -/
+#guard_msgs(info) in #eval Partition.bentleyMcIlroy.classic #v[9,  3,  1,  8,  6,  2,  6,  0,  7,  4]  0 9 (by omega) (by omega) (lt := by exact (· < ·)) (lt_asymm := by grind) (le_trans' := by grind)
+
+/-- info: { arr' := { toArray := #[0, 0, 0, 1, 2], size_toArray := _ }, j' := 0, i' := 3 } -/
+#guard_msgs(info) in #eval Partition.bentleyMcIlroy.classic #v[2, 0, 0, 1, 0]  0 4 (by omega) (by omega) (lt := by exact (· < ·)) (lt_asymm := by grind) (le_trans' := by grind)
+
+
+end  classic
+end Partition.bentleyMcIlroy
+
+
+
+public def Partition.bentleyMcIlroy (lt : α → α → Bool) (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
+  have hl : left < n := by omega
+
+  let mid := left + ((right - left)/2)
+  have hm : mid < n := by omega
+  let arr_ := arr
+    |> (maybeSwap lt · ⟨left, hl⟩ ⟨mid, hm⟩)
+    |> (maybeSwap lt · ⟨left, hl⟩ ⟨right, hr⟩)
+    |> (maybeSwap lt · ⟨mid, hm⟩ ⟨right, hr⟩)
+
+  let pivot := arr_[mid]
+
+  if hmo3sortd : ¬lt pivot arr_[left] ∧ ¬lt arr_[right] pivot then
+    have _ : right - 1 + 1 = right := by omega
+    bentleyMcIlroy.classic.loop lt left right hr hl pivot arr_ (left + 1) (right - 1) (left + 1) (right - 1)
+      (by omega) (by omega) (by omega) (by omega) (by omega) (by omega) (by grind) (by grind)
+  else
+    have := bentleyMcIlroy.eager.loop lt left right hlr hr pivot arr_ (left + 1) (right - 1) (left + 1) (right - 1)
+      (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
+    |> (Inhabited.mk ·)
+    panic! "non-asymmetric or non-transitive comparitor. falling back to eager version of partition scheme"
+
+
+@[inline, expose]
+public def qsort_bentleyMcIlroy (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1)
+    (lt : α → α → Bool := by exact (· < ·)) : Array α :=
+  let rec @[specialize]
+  sort {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1) : Vector α n :=
+    if hlr : left < right then
+      let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ := Partition.bentleyMcIlroy lt as left right hlr (by omega)
+      let as := sort as' left j' (by omega)
+      let as := sort as i' right (by omega)
+      as
+    else
+      as
+    termination_by right - left
+
+  let right' : Nat := if right ≤ arr.size - 1 then right else
+    have := Inhabited.mk (arr.size - 1)
+    panic! "index out of bounds"
+
+  have : right' ≤ arr.size - 1 := by
+    simp [right']; split <;> simp [panicWithPosWithDecl, panic, panicCore, *]
+
+  sort ⟨arr, rfl⟩ left right' this |>.1
+
+
+
+@[inline, expose]
+public def qsort_bentleyMcIlroy_strict (arr : Array α) (left : Nat := 0) (right : Nat := arr.size - 1)
+    (lt : α → α → Bool := by exact (· < ·)) (lt_asymm : ∀ {x y : α}, lt x y → ¬lt y x := by grind)
+    (le_trans' : ∀ {x y z : α}, ¬lt y x → ¬lt z y → ¬lt z x := by grind) : Array α :=
+  let rec @[specialize]
+  sort {n : Nat} (as : Vector α n) (left : Nat := 0) (right : Nat := n - 1) (hsize' : right ≤ n - 1) : Vector α n :=
+    if hlr : left < right then
+      let ⟨⟨as', j', i'⟩, (_ : _ < i'), (_ : j' < _ )⟩ := Partition.bentleyMcIlroy.classic lt lt_asymm le_trans' as left right hlr (by omega)
+      let as := sort as' left j' (by omega)
+      let as := sort as i' right (by omega)
+      as
+    else
+      as
+    termination_by right - left
+
+  let right' : Nat := if right ≤ arr.size - 1 then right else
+    have := Inhabited.mk (arr.size - 1)
+    panic! "index out of bounds"
+
+  have : right' ≤ arr.size - 1 := by
+    simp [right']; split <;> simp [panicWithPosWithDecl, panic, panicCore, *]
+
+  sort ⟨arr, rfl⟩ left right' this |>.1
