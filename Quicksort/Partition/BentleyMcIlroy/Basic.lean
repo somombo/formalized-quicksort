@@ -290,7 +290,7 @@ end  classic
 
 end Partition.bentleyMcIlroy
 
-
+@[specialize]
 def Partition.bentleyMcIlroy [Ord α] (arr : Vector α n) (left : Nat)  (right : Nat) (hlr : left < right) (hr : right < n) : {x : Partition α n // (left < x.i') ∧ (x.j' < right)} :=
   have hl : left < n := by omega
 
